@@ -1,7 +1,7 @@
 common:
   tags: extensibility
   integration_platforms:
-    - custom_plank
+    - nucleo_f756zg
     - qemu_cortex_m0
 tests:
   lib.custom_lib: {}

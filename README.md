@@ -43,6 +43,9 @@ west build -b $BOARD app
 ```
 
 where `$BOARD` is the target board.
+```shell
+BOARD="nucleo_f756zg"
+```
 
 You can use the `custom_plank` board found in this
 repository. Note that Zephyr sample boards may be used if an
