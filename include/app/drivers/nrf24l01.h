@@ -3,24 +3,58 @@
 #ifndef ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_NRF24L01_H_
 #define ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_NRF24L01_H_
 
-#include <zephyr/drivers/sensor.h>
+#include <zephyr/device.h>
+#include <zephyr/toolchain.h>
 /** @brief Any identifier (used to do 1:N identification). */
 #define NRF24L01_ID_ANY 0xFFFFU
 
-/** @brief NRF24L01 custom channels. */
-enum nrf24l01_channel {
-	/** Fingerprint verification. */
-	JM101_CHAN_FINGERPRINT = SENSOR_CHAN_PRIV_START,
+/** @cond INTERNAL_HIDDEN */
+
+typedef int (*nrf24l01_read_t)(const struct device *dev, uint8_t *buffer);
+typedef int (*nrf24l01_write_t)(const struct device *dev, uint8_t *buffer);
+
+__subsystem struct nrf24l01_api {
+	nrf24l01_read_t read;
+	nrf24l01_write_t write;
 };
 
-/** @brief JM101 custom attributes. */
-enum nrf24l01_attribute {
-	/** Fingerprint ID used when verifying. */
-	JM101_ATTR_ID_NUM = SENSOR_ATTR_PRIV_START,
-	/** Run the enrolling sequence. */
-	JM101_ATTR_ENROLL,
-	/** Emtpies the fingerprint database. */
-	JM101_ATTR_EMPTYDB,
-};
+/** @endcond */
+/**
+ * @brief Read data.
+ *
+ * @param dev nrf24 instance.
+ * @param buf Read buffer.
+ *
+ * @retval 0 On success.
+ * @retval -errno Other negative errno in case of failure.
+ */
+__syscall int nrf24l01_read(const struct device *dev, uint8_t* buffer);
+
+static inline int z_impl_nrf24l01_read(const struct device *dev, uint8_t *buffer)
+{
+	const struct nrf24l01_api *api =
+		(const struct nrf24l01_api *)dev->api;
+
+	return api->read(dev, buffer);
+}
+
+/**
+ * @brief Write data.
+ *
+ * @param dev nrf24 instance.
+ * @param buf Write buffer.
+ *
+ * @retval 0 On success.
+ * @retval -errno Other negative errno in case of failure.
+ */
+__syscall int nrf24l01_write(const struct device *dev, uint8_t* buffer);
+
+static inline int z_impl_nrf24l01_write(const struct device *dev, uint8_t *buffer)
+{
+	const struct nrf24l01_api *api =
+		(const struct nrf24l01_api *)dev->api;
+
+	return api->write(dev, buffer);
+}
 
 #endif /* ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_NRF24L01_H_ */
