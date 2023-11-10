@@ -11,24 +11,15 @@
 		reg = <0>;
 		compatible = "nrf24l01";
 		status = "okay";
-                ce-gpio = <&gpiod 15 GPIO_ACTIVE_HIGH>;
-                irq-gpio = <&gpiod 14 GPIO_ACTIVE_LOW>;
+		ce-gpio = <&gpiod 15 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&gpiod 14 GPIO_ACTIVE_LOW>;
+		channel-frequency = <16>;
+		rf-power-attenuation = <18>;
+		lna-gain;
+		tx-address = [e7 e7 e7 e7 e7];
+		rx-datapipes-number = <2>;
+		rx-datapipe0-address = [e7 e7 e7 e7 e7];
+		rx-datapipe1-address = [de ad de ad da];
+		rx-datapipes-fixed-size-payload = <16 32>;
 	};
 };
-
-&leds {
-        compatible = "gpio-leds";
-        nrf_ce: led_0 {
-                gpios = <&gpiod 15 GPIO_ACTIVE_HIGH>;
-                label = "CE";
-        };
-};
-
-/*
-&gpio_keys {
-	compatible = "gpio-keys";
-        nrf_irq: led_1 {
-                gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
-                label = "IRQ";
-        };
-};*/

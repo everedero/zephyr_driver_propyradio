@@ -1,0 +1,141 @@
+# Copyright (c) 2022 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  nRF24L01 is a 2.4GHz wireless remote control module.
+
+compatible: "nordic,nrf24l01"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  ce-gpio:
+    type: phandle
+    required: false
+    description: |
+      Chip Enable GPIO (active high). It is used to activate the chip RX or TX mode. If not configured, the driver will use three-wires behaviour and multiplex with the SPI CSN signal.
+
+  irq-gpio:
+    type: phandle
+    required: false
+    description: |
+      Chip Interrupt signal (active low). If not selected, do not use interrupts.
+
+  addr-width:
+    type: int
+    required: false
+    description: |
+      Message address field width, should be 3, 4 or 5 bytes. Default is 5.
+
+  channel-frequency:
+    type: int
+    required: true
+    description: |
+      Channel selection, from 0 to 126. 0 is 2400MHz, each channel is 1MHz wide and 126 is 2526MHz. Default is 16.
+
+  data-rate-2mbps:
+    type: boolean
+    required: false
+    description: |
+      Change data rate to 2Mbps. By default the device uses 1Mbps.
+
+  rf-power-attenuation:
+    type: int
+    required: true
+    description: |
+      RF power attenuation in dB, choose 0, 6, 12 or 18 for 0, -6dB, -12dB or -18dB.
+
+  lna-gain:
+    type: boolean
+    required: false
+    description: |
+      Low noise amplifier activation, allows to reduce consumption in RX mode while sacrificing 1.5dB gain. False by default.
+
+  crc-encoding-twobytes:
+    type: boolean
+    required: false
+    description: |
+      CRC encoding scheme, false for one byte, true for two bytes.
+
+  tx-address:
+    type: uint8-array
+    required: true
+    description: |
+      Transmit channel address, should have a length of addr-width
+
+  dynamic-payload:
+    type: boolean
+    required: false
+    description: |
+      Whether NRF24 dynamic payload length is enabled or not. False by default.
+
+  payload_ack:
+    type: boolean
+    required: false
+    description: |
+      NRF24 payload with ACK. False by default.
+
+  rx-datapipes-number:
+    type: int
+    required: false
+    description: |
+      Number of enabled RX data pipe numbers. 1 by default.
+
+  rx-datapipe0-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 0 address. 
+      Should have a length of addr-width.
+
+  rx-datapipe1-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 1 address. 
+      Should have a length of addr-width.
+
+  rx-datapipe2-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 2 address. 
+      Should have a length of addr-width.
+
+  rx-datapipe3-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 3 address. 
+      Should have a length of addr-width.
+
+  rx-datapipe4-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 4 address. 
+      Should have a length of addr-width.
+
+  rx-datapipe5-address:
+    type: uint8-array
+    required: false
+    description: |
+      RX data pipe 5 address. 
+      Should have a length of addr-width.
+
+  rx-datapipes-dynamic-payload:
+    type: array
+    required: false
+    description: |
+      List of the RX data pipes dynamic payload activation booleans (0 or 1)
+      Should have length rx-datapipe-number.
+
+  rx-datapipes-fixed-size-payload:
+    type: array
+    required: false
+    description: |
+      List of the RX data pipes fixed size payload. Each payload can be between 0 to 32 bytes.
+      Should have length rx-datapipe-number.
