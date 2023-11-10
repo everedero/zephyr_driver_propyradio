@@ -1,0 +1,90 @@
+menuconfig NRF24L01
+	bool "nRF24L01 module support"
+
+if NRF24L01
+
+module = nrf24l01
+module-str = nrf24l01
+source "subsys/logging/Kconfig.template.log_config"
+
+config NRF24L01_ADDR_WIDTH
+	int "NRF24L01 address width, 3, 4 or 5 bytes"
+	default 5
+	help
+	  Address field width: 3, 4 or 5 bytes.
+
+config NRF24L01_EN_CRC
+	bool "NRF24 CRC enable"
+	default True
+	help
+	  CRC enable.
+
+config NRF24L01_CHANNEL
+	int "NRF24 channel selection, from 0 to 126"
+	default 16
+	help
+	  Channel selection, from 0 to 126. 0 is 2400MHz, each channel is 1MHz wide and 126 is 2526MHz.
+
+config NRF24L01_AIR_DATA_RATE_2MBPS
+	bool "NRF24 data rate switch to 2 Mbps"
+	default false
+	help
+	   Data rate selection. Default is 1 Mbps, use this option to switch to 2 Mbps  
+
+config NRF24L01_RF_POWER_ATTENUATION
+	int "NRF24 RF power attenuation"
+	default 0
+	help
+	   RF power attenuation in dB, choose 0, 6, 12 or 18 for 0, -6dB, -12dB or -18dB.
+
+config NRF24L01_LNA_GAIN
+	bool "NRF24 Low Noise Amplifier gain"
+	default false
+	help
+	   Low Noise Amplifier activation, allows to reduce consumption in RX mode while sacrificing 1.5dB gain
+
+config NRF24L01_CRC_ENCODING_TWOBYTES
+	bool "NRF24 CRC encoding scheme"
+	default False
+	help
+	  CRC encoding scheme, false for one byte, true for two bytes.
+
+config NRF24L01_TRANSMIT_ADDRESS
+	hex "NRF24L01 transmit address"
+	default 0xE7E7E7E7E7
+	help
+	  NRF24L01 transmit address, should have a length of ADDR_WIDTH
+
+config NRF24L01_DYNAMIC_PAYLOAD
+	bool "NRF24 dynamic payload length mode enable"
+	default False
+	help
+ 	  Whether NRF24 dynamic payload length is enabled or not.
+
+config NRF24L01_PAYLOAD_ACK
+	bool "NRF24 payload with ACK"
+	default False
+	depends on NRF24L01_DYNAMIC_PAYLOAD_DP0 
+	help
+ 	  NRF24 payload with ACK.
+
+config NRF24L01_DYNAMIC_PAYLOAD_DP0
+	bool "NRF24 dynamic payload length mode for data pipe 0"
+	default False
+	depends on NRF24_DYNAMIC_PAYLOAD
+	help
+ 	  Whether NRF24 dynamic payload length is enabled or not for data pipe 0.
+
+config NRF24L01_FIXED_SIZE_PAYLOAD_DP0
+	int "NRF24L01 fixed size payload for data pipe 0"
+	default 0
+	help
+	  NRF24L01 fixed size payload, 0 to 32 bytes.
+
+config NRF24L01_RECEIVE_ADDRESS_DP0
+	hex "NRF24L01 receive address for data pipe 0"
+	default 0xE7E7E7E7E7
+	help
+	  NRF24L01 receive address for data pipe 0, should have a length of ADDR_WIDTH
+
+endif # NRF24L01
