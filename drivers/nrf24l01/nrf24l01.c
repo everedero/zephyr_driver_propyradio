@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT nrf24l01
+#define DT_DRV_COMPAT nordic_nrf24l01
 
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
