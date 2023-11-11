@@ -1,0 +1,8 @@
+common:
+  tags: extensibility
+  integration_platforms:
+    - nucleo_f756zg
+tests:
+  driver.nrf24l01: {}
+    #  lib.nrf24l01.non_default:
+    #extra_args: CONFIG_CONSOLE=y
