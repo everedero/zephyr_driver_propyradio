@@ -8,7 +8,7 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
-#include "nrf24l01.h"
+#include "nrf24l01_defines.h"
 
 LOG_MODULE_REGISTER(nrf24l01, CONFIG_NRF24L01_LOG_LEVEL);
 
@@ -32,7 +32,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer)
 	return(0);
 }
 
-static const struct nrf24l01_api nrf24l01_api = {
+static const struct nrf24l01_api nrf24l01_api_inst = {
 	.read = nrf24l01_read,
 	.write = nrf24l01_write,
 };
