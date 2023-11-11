@@ -99,44 +99,46 @@ properties:
   rx-datapipe0-address:
     type: uint8-array
     required: false
+    default: [0xe7, 0xe7, 0xe7, 0xe7, 0xe7]
     description: |
-      RX data pipe 0 address. 
+      RX data pipe 0 address.
       Should have a length of addr-width.
 
   rx-datapipe1-address:
     type: uint8-array
     required: false
+    default: [0xc2, 0xc2, 0xc2, 0xc2, 0xc2]
     description: |
-      RX data pipe 1 address. 
+      RX data pipe 1 address.
       Should have a length of addr-width.
 
   rx-datapipe2-address:
-    type: uint8-array
+    type: int
     required: false
     description: |
-      RX data pipe 2 address. 
-      Should have a length of addr-width.
+      RX data pipe 2 address LSB.
+      All MSB bytes are equal to rx-datapipe1-address.
 
   rx-datapipe3-address:
-    type: uint8-array
+    type: int
     required: false
     description: |
-      RX data pipe 3 address. 
-      Should have a length of addr-width.
+      RX data pipe 3 address LSB.
+      All MSB bytes are equal to rx-datapipe1-address.
 
   rx-datapipe4-address:
-    type: uint8-array
+    type: int
     required: false
     description: |
-      RX data pipe 4 address. 
-      Should have a length of addr-width.
+      RX data pipe 4 address LSB.
+      All MSB bytes are equal to rx-datapipe1-address.
 
   rx-datapipe5-address:
-    type: uint8-array
+    type: int
     required: false
     description: |
-      RX data pipe 5 address. 
-      Should have a length of addr-width.
+      RX data pipe 5 address LSB.
+      All MSB bytes are equal to rx-datapipe1-address.
 
   rx-datapipes-dynamic-payload:
     type: array
