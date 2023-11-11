@@ -29,7 +29,6 @@ LOG_MODULE_REGISTER(main, CONFIG_NRF24L01_LOG_LEVEL);
 ZTEST(nrf24l01, test_get_value)
 {
 	static const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
-//zassert_equal(((struct nrf24l01_data *)(nrf24->data))->addr_width, 5, "address width is not 5");
 	zassert_equal(1, 1, "Dummy test fail");
     zassert_not_null(nrf24, "Device pointer is null");
     zassert_not_null(nrf24->name, "Device name is null");
