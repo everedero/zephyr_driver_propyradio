@@ -1,11 +1,16 @@
 menuconfig NRF24L01
-	bool "nRF24L01 module support"
+	bool "NRF24 remote control support"
 
 if NRF24L01
 
-module = nrf24l01
+module = NRF24L01
 module-str = nrf24l01
 source "subsys/logging/Kconfig.template.log_config"
 
+config NRF24_INIT_PRIORITY
+	int "Lock init priority"
+	default 90
+	help
+	  nRF24 initialization priority.
 
 endif # NRF24L01

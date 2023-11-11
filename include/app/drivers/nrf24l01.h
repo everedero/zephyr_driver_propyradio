@@ -5,8 +5,6 @@
 
 #include <zephyr/device.h>
 #include <zephyr/toolchain.h>
-/** @brief Any identifier (used to do 1:N identification). */
-#define NRF24L01_ID_ANY 0xFFFFU
 
 /** @cond INTERNAL_HIDDEN */
 
@@ -28,7 +26,7 @@ __subsystem struct nrf24l01_api {
  * @retval 0 On success.
  * @retval -errno Other negative errno in case of failure.
  */
-__syscall int nrf24l01_read(const struct device *dev, uint8_t* buffer);
+__syscall int nrf24l01_read(const struct device *dev, uint8_t *buffer);
 
 static inline int z_impl_nrf24l01_read(const struct device *dev, uint8_t *buffer)
 {
@@ -47,7 +45,7 @@ static inline int z_impl_nrf24l01_read(const struct device *dev, uint8_t *buffer
  * @retval 0 On success.
  * @retval -errno Other negative errno in case of failure.
  */
-__syscall int nrf24l01_write(const struct device *dev, uint8_t* buffer);
+__syscall int nrf24l01_write(const struct device *dev, uint8_t *buffer);
 
 static inline int z_impl_nrf24l01_write(const struct device *dev, uint8_t *buffer)
 {
@@ -57,4 +55,5 @@ static inline int z_impl_nrf24l01_write(const struct device *dev, uint8_t *buffe
 	return api->write(dev, buffer);
 }
 
+#include <syscalls/nrf24l01.h>
 #endif /* ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_NRF24L01_H_ */
