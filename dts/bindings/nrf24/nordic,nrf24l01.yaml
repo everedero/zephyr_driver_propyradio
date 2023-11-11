@@ -12,14 +12,14 @@ properties:
   reg:
     required: true
 
-  ce-gpio:
-    type: phandle
+  ce-gpios:
+    type: phandle-array
     required: false
     description: |
       Chip Enable GPIO (active high). It is used to activate the chip RX or TX mode. If not configured, the driver will use three-wires behaviour and multiplex with the SPI CSN signal.
 
-  irq-gpio:
-    type: phandle
+  irq-gpios:
+    type: phandle-array
     required: false
     description: |
       Chip Interrupt signal (active low). If not selected, do not use interrupts.
@@ -29,12 +29,14 @@ properties:
     required: false
     description: |
       Message address field width, should be 3, 4 or 5 bytes. Default is 5.
+    default: 5
 
   channel-frequency:
     type: int
     required: true
     description: |
       Channel selection, from 0 to 126. 0 is 2400MHz, each channel is 1MHz wide and 126 is 2526MHz. Default is 16.
+    default: 16
 
   data-rate-2mbps:
     type: boolean
@@ -47,6 +49,15 @@ properties:
     required: true
     description: |
       RF power attenuation in dB, choose 0, 6, 12 or 18 for 0, -6dB, -12dB or -18dB.
+      - ATTEN_0: -0 dB
+      - ATTEN_6: -6 dB
+      - ATTEN_12: -12 dB
+      - ATTEN_18: -18 dB
+      enum:
+        - "ATTEN_0"
+        - "ATTEN_6"
+        - "ATTEN_12"
+        - "ATTEN_18"
 
   lna-gain:
     type: boolean
@@ -83,6 +94,7 @@ properties:
     required: false
     description: |
       Number of enabled RX data pipe numbers. 1 by default.
+    default: 1
 
   rx-datapipe0-address:
     type: uint8-array

@@ -13,6 +13,7 @@
 LOG_MODULE_REGISTER(nrf24l01, CONFIG_NRF24L01_LOG_LEVEL);
 
 struct nrf24l01_config {
+	const struct device *spi;
 	struct gpio_dt_spec ce;
 	struct gpio_dt_spec irq;
 };
@@ -21,12 +22,12 @@ struct nrf24l01_data {
 	int addr_width;
 };
 
-static int nrf24l01_read(const struct device *dev) 
+static int nrf24l01_read(const struct device *dev, uint8_t *buffer)
 {
 	return(0);
 }
 
-static int nrf24l01_write(const struct device *dev) 
+static int nrf24l01_write(const struct device *dev, uint8_t *buffer)
 {
 	return(0);
 }
@@ -59,12 +60,13 @@ static int nrf24l01_init(const struct device *dev)
 
 #define NRF24L01_DEFINE(i)                                             \
 	static const struct nrf24l01_config nrf24l01_config_##i = {        \
+		.spi = DEVICE_DT_GET(DT_INST_BUS(i)),                         \
 		.ce = GPIO_DT_SPEC_INST_GET(i, ce_gpio),                              \
-		.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpio)                              \
+		.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpio),                              \
 	};                                                                     \
                                                                                \
 	static struct nrf24l01_data nrf24l01_##i = {                            \
-		.addr_width = DT_INST_PROP(i, addr_width)                            \
+		.addr_width = DT_INST_PROP_OR(i, addr_width, {}),                            \
 	};                                                                     \
 	DEVICE_DT_INST_DEFINE(i, nrf24l01_init, NULL, NULL,                  \
 			      &nrf24l01_config_##i, POST_KERNEL,             \

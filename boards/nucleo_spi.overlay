@@ -9,10 +9,10 @@
 
 	radio0: nrf24@0 {
 		reg = <0>;
-		compatible = "nrf24l01";
+		compatible = "nordic,nrf24l01";
 		status = "okay";
-		ce-gpio = <&gpiod 15 GPIO_ACTIVE_HIGH>;
-		irq-gpio = <&gpiod 14 GPIO_ACTIVE_LOW>;
+		ce-gpios = <&gpiod 15 GPIO_ACTIVE_HIGH>;
+		irq-gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
 		channel-frequency = <16>;
 		rf-power-attenuation = <18>;
 		lna-gain;
