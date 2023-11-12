@@ -115,6 +115,7 @@ properties:
   rx-datapipe2-address:
     type: int
     required: false
+    default: 0x02
     description: |
       RX data pipe 2 address LSB.
       All MSB bytes are equal to rx-datapipe1-address.
@@ -122,6 +123,7 @@ properties:
   rx-datapipe3-address:
     type: int
     required: false
+    default: 0x03
     description: |
       RX data pipe 3 address LSB.
       All MSB bytes are equal to rx-datapipe1-address.
@@ -129,6 +131,7 @@ properties:
   rx-datapipe4-address:
     type: int
     required: false
+    default: 0x04
     description: |
       RX data pipe 4 address LSB.
       All MSB bytes are equal to rx-datapipe1-address.
@@ -136,6 +139,7 @@ properties:
   rx-datapipe5-address:
     type: int
     required: false
+    default: 0x05
     description: |
       RX data pipe 5 address LSB.
       All MSB bytes are equal to rx-datapipe1-address.
