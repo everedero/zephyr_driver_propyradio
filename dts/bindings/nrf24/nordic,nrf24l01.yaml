@@ -6,7 +6,7 @@ description: |
 
 compatible: "nordic,nrf24l01"
 
-include: base.yaml
+include: [base.yaml, spi-device.yaml]
 
 properties:
   reg:
