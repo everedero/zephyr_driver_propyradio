@@ -40,6 +40,93 @@ struct nrf24l01_data {
 	uint8_t rx_datapipes_fixed_size_payload[6];
 };
 
+uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t data)
+{
+	const struct nrf24l01_config *config = dev->config;
+	uint8_t tx_data[2];
+	uint8_t rx_data;
+	int ret;
+	const struct spi_buf buf[2] = {
+		{
+			.buf = tx_data,
+			.len = 2
+		}, {
+			.buf = &rx_data,
+			.len = 1
+		}
+	};
+	struct spi_buf_set tx = {
+		.buffers = buf,
+	};
+	const struct spi_buf_set rx = {
+		.buffers = buf,
+		.count = 2
+	};
+
+	// 5 lower bits for address, the 6th is 0 for read and 1 for write
+	tx_data[0] = ( W_REGISTER | ( REGISTER_MASK & reg ) );
+	tx_data[1] = data;
+
+	ret = spi_transceive_dt(&config->spi, &tx, &rx);
+	if (ret) {
+		LOG_ERR("Error transceive %d\n", ret);
+		return 0;
+	}
+	return rx_data;
+}
+
+uint8_t nrf24l01_read_register(const struct device *dev, uint8_t reg)
+{
+	const struct nrf24l01_config *config = dev->config;
+	uint8_t tx_data[2];
+	uint8_t rx_data[2];
+	int ret;
+	const struct spi_buf buf[2] = {
+		{
+			.buf = tx_data,
+			.len = 2
+		}, {
+			.buf = rx_data,
+			.len = 2
+		}
+	};
+	struct spi_buf_set tx = {
+		.buffers = buf,
+	};
+	const struct spi_buf_set rx = {
+		.buffers = buf,
+		.count = 2
+	};
+
+	// 5 lower bits for address, the 6th is 0 for read and 1 for write
+	tx_data[0] = ( R_REGISTER | ( REGISTER_MASK & reg ) );
+	tx_data[1] = RF24_NOP;
+
+	ret = spi_transceive_dt(&config->spi, &tx, &rx);
+
+	if (ret) {
+		LOG_ERR("Error transceive %d\n", ret);
+		return 0;
+	}
+
+	// status is 1st byte of receive buffer
+	LOG_DBG("0x%x: 0x%x 0x%x\n", reg, rx_data[0], rx_data[1]);
+	return rx_data[1];
+}
+
+uint8_t nrf24l01_set_channel(const struct device *dev)
+{
+	const struct nrf24l01_config *config = dev->config;
+	const struct nrf24l01_data *data = dev->data;
+	const uint8_t max_channel = 125;
+	return nrf24l01_write_register(dev, RF_CH, MIN(data->channel_frequency, max_channel));
+}
+
+uint8_t nrf24l01_get_channel(const struct device *dev)
+{
+	return nrf24l01_read_register(dev, RF_CH);
+}
+
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer)
 {
 	return(0);
