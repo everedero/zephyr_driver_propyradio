@@ -45,6 +45,7 @@ west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=prj.conf
 where `$BOARD` is the target board.
 ```shell
 BOARD="nucleo_f756zg"
+BOARD="nrf52dk_nrf52832"
 ```
 
 You can use the `custom_plank` board found in this

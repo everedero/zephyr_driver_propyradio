@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2019, Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/led/led.h>
+
+#include "../nrf52-bindings.h"
+
+&arduino_spi {
+/* MOSI on D11 / P0.23 */
+/* CS on D10*/
+	compatible = "nordic,nrf-spim";
+
+	radio0: nrf24@0 {
+		reg = <0>;
+		compatible = "nordic,nrf24l01";
+		status = "okay";
+		spi-max-frequency = <500000>; // Max 8 Mbps for SPI
+		ce-gpios = <&arduino_header 14 GPIO_ACTIVE_LOW>; /* D8 */
+		irq-gpios = <&arduino_header 15 GPIO_ACTIVE_LOW>; /* D9 */
+		channel-frequency = <16>;
+		rf-power-attenuation = <18>;
+		lna-gain;
+		tx-address = [e7 e7 e7 e7 e7];
+		rx-datapipes-number = <2>;
+		rx-datapipe0-address = [e7 e7 e7 e7 e7];
+		rx-datapipe1-address = [de ad de ad da];
+		rx-datapipes-fixed-size-payload = <16 32>;
+	};
+};
