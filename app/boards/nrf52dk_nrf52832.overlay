@@ -7,8 +7,6 @@
 &arduino_spi {
 /* MOSI on D11 / P0.23 */
 /* CS on D10*/
-	compatible = "nordic,nrf-spim";
-
 	radio0: nrf24@0 {
 		reg = <0>;
 		compatible = "nordic,nrf24l01";
