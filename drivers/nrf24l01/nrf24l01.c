@@ -40,6 +40,7 @@ struct nrf24l01_data {
 	uint8_t rx_datapipes_fixed_size_payload[6];
 };
 
+/* Core communication functions */
 uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t data)
 {
 	const struct nrf24l01_config *config = dev->config;
@@ -123,6 +124,44 @@ uint8_t nrf24l01_read_register(const struct device *dev, uint8_t reg)
 	return rx_data[1];
 }
 
+uint8_t nrf24_cmd_register(const struct device *dev, uint8_t cmd)
+{
+	const struct nrf24l01_config *config = dev->config;
+	int ret;
+	uint8_t tx_data[1];
+	uint8_t rx_data[1];
+	const struct spi_buf tx_buf[1] = {
+		{
+			.buf = tx_data,
+			.len = 1
+		}
+	};
+	const struct spi_buf rx_buf[1] = {
+		{
+			.buf = rx_data,
+			.len = 1
+		}
+	};
+	struct spi_buf_set tx = {
+		.buffers = tx_buf,
+		.count = 1
+	};
+	const struct spi_buf_set rx = {
+		.buffers = rx_buf,
+		.count = 1
+	};
+
+	ret = spi_transceive_dt(&config->spi, &tx, &rx);
+	if (ret) {
+		LOG_ERR("Error transceive %d\n", ret);
+		return 0;
+	}
+
+	LOG_DBG("0x%x: 0x%x\n", cmd, rx_data[0]);
+	return rx_data[0];
+}
+
+/* Configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
 {
 	const struct nrf24l01_config *config = dev->config;
@@ -165,6 +204,36 @@ static const struct nrf24_api nrf24l01_api = {
 	.write = nrf24l01_write,
 };
 
+#if !defined(MINIMAL)
+static void nrf24l01_info(const struct device *dev)
+{
+	const struct nrf24l01_config *config = dev->config;
+	int ret;
+	uint8_t chan;
+
+	LOG_INF("Pin CS number 0x%x", *(&config->spi.config.cs.gpio.pin));
+	LOG_INF("Port CS name %s", (**(&config->spi.config.cs.gpio.port)).name);
+	LOG_INF("CS delay %d", *(&config->spi.config.cs.delay));
+	LOG_INF("Frequency %d Hz", *(&config->spi.config.frequency));
+	LOG_INF("Operation 0x%x Hz", *(&config->spi.config.operation));
+	LOG_INF("Config register: 0x%x", nrf24l01_get_config(dev));
+	chan = nrf24l01_get_channel(dev);
+	LOG_INF("Channel selected: %d", chan);
+}
+
+void nrf24l01_print_status(uint8_t status)
+{
+	LOG_INF("STATUS = 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x",
+		status,
+		(status & BIT(RX_DR))?1:0,
+		(status & BIT(TX_DS))?1:0,
+		(status & BIT(MAX_RT))?1:0,
+		((status >> RX_P_NO) & 0x07),
+		(status & BIT(TX_FULL))?1:0
+		);
+}
+#endif
+
 static int nrf24l01_init(const struct device *dev)
 {
 	const struct nrf24l01_config *config = dev->config;
@@ -200,36 +269,21 @@ static int nrf24l01_init(const struct device *dev)
 		LOG_ERR("Could not toggle CE (%d)", ret);
 		return ret;
 	}
-
-	LOG_DBG("Pin CS number 0x%x", *(&config->spi.config.cs.gpio.pin));
-	LOG_DBG("Port CS name %s", (**(&config->spi.config.cs.gpio.port)).name);
-	LOG_DBG("CS delay %d", *(&config->spi.config.cs.delay));
-
 	ret = gpio_pin_configure_dt(&config->spi.config.cs.gpio, GPIO_OUTPUT);
 	if (ret < 0) {
 		LOG_ERR("Could not configure CS GPIO (%d)", ret);
 		return ret;
 	}
 
-	LOG_DBG("Frequency %d Hz", *(&config->spi.config.frequency));
-	LOG_DBG("Operation 0x%x Hz", *(&config->spi.config.operation));
-	k_msleep(1);
-
-	//ret = nrf24l01_get_everything(dev);
-
-	LOG_INF("Config: 0x%x\n", nrf24l01_get_config(dev));
+	// Configuration
 	ret = nrf24l01_set_channel(dev);
 
-	uint8_t chan;
-	chan = nrf24l01_get_channel(dev);
-	LOG_INF("Channel selected: %d\n", chan);
-
-	// Verify RW
-	nrf24l01_write_register(dev, EN_AA, 0x01);
-	ret = nrf24l01_read_register(dev, EN_AA);
-	if (ret != 0x01) {
-		LOG_ERR("Incorrect register RW");
-	}
+#if !defined(MINIMAL)
+	nrf24l01_info(dev);
+	// Command
+	ret = nrf24_cmd_register(dev, RF24_READSTAT);
+	nrf24l01_print_status(ret);
+#endif
 
 	return 0;
 }
