@@ -3,6 +3,10 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 set(SYSCALL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../../../include")
+# Use the project local board root folder
+set(BOARD_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../..")
+set(DTC_OVERLAY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nucleo_f756zg.overlay")
+set(DTC_OVERLAY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nrf52dk_nrf52832.overlay")
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
