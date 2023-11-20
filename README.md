@@ -48,13 +48,7 @@ BOARD="nucleo_f756zg"
 BOARD="nrf52dk_nrf52832"
 ```
 
-You can use the `custom_plank` board found in this
-repository. Note that Zephyr sample boards may be used if an
-appropriate overlay is provided (see `app/boards`).
-
-A sample debug configuration is also provided. To apply it, run the following
-command:
-
+In order to activate debug logs:
 ```shell
 west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=debug.conf
 ```
