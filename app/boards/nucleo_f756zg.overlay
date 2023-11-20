@@ -1,17 +1,15 @@
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pb3 &spi1_miso_pb4 &spi1_mosi_pb5>;
 	pinctrl-names = "default";
-	//cs-gpios = <&gpioa 4 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
-	clock-frequency = <500000>; // Max 8 Mbps for SPI
+	clock-frequency = <8000000>; // Max 8 Mbps for SPI
 	status = "okay";
 
 	radio0: nrf24@0 {
 		reg = <0>;
 		compatible = "nordic,nrf24l01";
 		status = "okay";
-		//spi-max-frequency = <8000000>; // Max 8 Mbps for SPI
-		spi-max-frequency = <500000>; // Max 8 Mbps for SPI
+		spi-max-frequency = <500000>; // This really sets frequency
 		ce-gpios = <&gpiod 15 GPIO_ACTIVE_HIGH>;
 		irq-gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
 		channel-frequency = <16>;
