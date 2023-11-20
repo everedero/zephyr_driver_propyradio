@@ -161,6 +161,23 @@ uint8_t nrf24_cmd_register(const struct device *dev, uint8_t cmd)
 	return rx_data[0];
 }
 
+uint8_t nrf24l01_set_register_bit(const struct device *dev, uint8_t reg, bool val, uint8_t bit)
+{
+	uint8_t reg_data;
+	reg_data = nrf24l01_read_register(dev, reg);
+	if (val) // Setting bit to 1
+	{
+		reg_data = reg_data | BIT(bit);
+	}
+	else // Setting bit to 0
+	{
+		reg_data = reg_data & ~BIT(bit);
+	}
+	reg_data = nrf24l01_write_register(dev, reg, reg_data);
+	return(reg_data);
+}
+
+
 /* Configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
 {
