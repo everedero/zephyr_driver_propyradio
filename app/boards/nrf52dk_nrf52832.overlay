@@ -18,10 +18,10 @@
 		channel-frequency = <16>;
 		rf-power-attenuation = <18>;
 		lna-gain;
-		tx-address = [e7 e7 e7 e7 e7];
+		tx-address = [e7 e7 e7 e7];
 		rx-datapipes-number = <2>;
-		rx-datapipe0-address = [e7 e7 e7 e7 e7];
-		rx-datapipe1-address = [de ad de ad da];
+		rx-datapipe0-address = [e7 e7 e7 e7];
+		rx-datapipe1-address = [de ad de ad];
 		rx-datapipes-fixed-size-payload = <16 32>;
 	};
 };
