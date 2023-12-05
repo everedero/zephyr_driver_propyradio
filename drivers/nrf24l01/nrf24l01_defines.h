@@ -130,6 +130,11 @@
 #define RF_PWR_LOW  1
 #define RF_PWR_HIGH 2
 
+static const uint8_t child_pipe_enable_bit[]  =
+{
+	ERX_P0, ERX_P1, ERX_P2, ERX_P3, ERX_P4, ERX_P5
+};
+
 /**
  * Power Amplifier level.
  *
