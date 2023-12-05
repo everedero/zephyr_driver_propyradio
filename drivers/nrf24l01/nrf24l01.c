@@ -10,6 +10,7 @@
 #include <zephyr/drivers/spi.h>
 #include <app/drivers/nrf24.h>
 #include "nrf24l01_defines.h"
+#include <zephyr/kernel.h>
 
 #define SPI_MAX_MSG_LEN 64
 #define SPI_MAX_REG_LEN 5
@@ -37,11 +38,6 @@ struct nrf24l01_data {
 	uint8_t rx_datapipe0_address[5];
 	uint8_t rx_datapipe1_address[5];
 	uint8_t rx_child_datapipes_addresses[4];
-	/*
-	uint8_t rx_datapipe2_address;
-	uint8_t rx_datapipe3_address;
-	uint8_t rx_datapipe4_address;
-	uint8_t rx_datapipe5_address;*/
 	uint8_t rx_datapipes_dynamic_payload[6];
 	uint8_t rx_datapipes_fixed_size_payload[6];
 };
@@ -328,7 +324,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	uint8_t size;
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
 	size = data_len + 1 ; // Add register value to transmit buffer
-	uint8_t tx_data[SPI_MAX_MSG_LEN + 1]; //2];
+	uint8_t tx_data[SPI_MAX_MSG_LEN + 1];
 	uint8_t rx_data[SPI_MAX_MSG_LEN + 1];
 	const struct spi_buf tx_buf[1] = {
 		{
@@ -586,10 +582,15 @@ static int nrf24l01_init(const struct device *dev)
 	ret = nrf24l01_cmd_register(dev, RF24_READSTAT);
 	nrf24l01_print_status(ret);
 #endif
+	// Test register write/read
+	ret =  nrf24l01_write_register(dev, EN_AA, 0x01);
+	ret =  nrf24l01_read_register(dev, EN_AA);
+	if (ret != 0x01) {
+		LOG_ERR("Register not set");
+	}
 
-	// Payload
 	// Payload write and read
-	uint8_t buf[24] = {0};
+	/*uint8_t buf[24] = {0};
 	uint8_t data_len = 24;
 	int i;
 	for (i=0; i<data_len; i++) {
