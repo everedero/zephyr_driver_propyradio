@@ -463,30 +463,87 @@ void nrf24l01_start_listening(const struct device *dev)
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, RX_DR, true);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, TX_DS, true);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, MAX_RT, true);
+	// Set CE high for RX
 	nrf24l01_toggle_ce(dev, HIGH);
 	// Restore the pipe0 adddress, if exists
-	/*
-	if (data->rx_datapipe0_address[0] > 0){
-		nrf24l01_write_register_len(dev, RX_ADDR_P0, pipe0_reading_address, addr_width);
-	} else {
-		nrf24_closeReadingPipe(spi, spi_cfg, 0);
-	}*/
-
-	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY)) // If ACK payload enabled
+	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY))
 	{
 		nrf24l01_cmd_register(dev, FLUSH_TX);
 	}
 }
-/* API functions */
-
-static int nrf24l01_read(const struct device *dev, uint8_t *buffer)
+void nrf24l01_stop_listening(const struct device *dev)
 {
-	return(0);
+	const uint8_t tx_delay=250;
+	// Set CE low
+	nrf24l01_toggle_ce(dev, LOW);
+
+	k_sleep(K_MSEC(tx_delay));
+
+	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY)) {
+		k_sleep(K_MSEC(tx_delay));
+		nrf24l01_cmd_register(dev, FLUSH_TX);
+	}
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, false);
+
+	// for 3 pins solution TX mode is only left with additonal powerDown/powerUp cycle
+//	if (three_pins) {
+//		nrf24_powerDown(spi, spi_cfg);
+//	}
+//	nrf24_powerUp(spi, spi_cfg);
+
+	nrf24l01_toggle_reading_pipe(dev, 0, true);
+
 }
 
-static int nrf24l01_write(const struct device *dev, uint8_t *buffer)
+/* API functions */
+
+static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
-	return(0);
+	uint8_t pipe_num = 0;
+	static uint8_t got_byte = 0;
+
+	nrf24l01_start_listening(dev);
+	while (!nrf24l01_is_rx_data_available(dev, &pipe_num))
+	{
+		k_msleep(1);
+	}
+	LOG_INF("Read found on pipe %d", pipe_num);
+	nrf24l01_read_payload(dev, buffer, data_len);
+	// Acking
+	got_byte += 1;
+	LOG_DBG("Got byte %d", got_byte);
+	nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
+
+	return 0;
+}
+
+static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+{
+	uint8_t status;
+	nrf24l01_stop_listening(dev);
+
+	// Like startFastWrite
+	nrf24l01_write_tx_payload(dev, buffer, data_len);
+	nrf24l01_toggle_ce(dev, HIGH);
+	// Wait for status bits TX_DS or MAX_RT to be asserted
+	while( !(nrf24l01_get_register_bit(dev, NRF_STATUS, TX_DS) |
+		nrf24l01_get_register_bit(dev, NRF_STATUS, MAX_RT)))
+	{
+		k_msleep(1);
+	}
+	nrf24l01_toggle_ce(dev, LOW);
+
+	status = nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, true);
+
+	// Max retries exceeded, flush TX
+	if ( status & BIT(MAX_RT) ) {
+		nrf24l01_cmd_register(dev, FLUSH_TX);
+		return -EIO;
+	}
+
+	return 0;
 }
 
 static const struct nrf24_api nrf24l01_api = {
@@ -602,10 +659,15 @@ static int nrf24l01_init(const struct device *dev)
 	ret = nrf24l01_read_payload(dev, buf, data_len);
 	LOG_DBG("Read payload: 0x%x", ret);
 	LOG_HEXDUMP_DBG(buf, data_len, "Buffer");
-	nrf24l01_print_status(ret);
+	nrf24l01_print_status(ret);*/
 
 	nrf24l01_configure_pipes(dev);
 	nrf24l01_configure_ack(dev);
+
+	// Starting chip
+	nrf24l01_cmd_register(dev, FLUSH_TX);
+	nrf24l01_cmd_register(dev, FLUSH_RX);
+	nrf24l01_radio_power_up(dev);
 
 	return 0;
 }
