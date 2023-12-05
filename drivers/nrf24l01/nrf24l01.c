@@ -52,7 +52,7 @@ uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t d
 	/* Register config can only be done in power down or standby */
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t tx_data[2];
-	uint8_t rx_data;
+	uint8_t rx_data = 0;
 	int ret;
 	const struct spi_buf tx_buf[1] = {
 		{
@@ -62,7 +62,7 @@ uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t d
 	};
 	const struct spi_buf rx_buf[1] = {
 		{
-			.buf = rx_data,
+			.buf = &rx_data,
 			.len = 2
 		}
 	};
@@ -101,7 +101,7 @@ uint8_t nrf24l01_read_register(const struct device *dev, uint8_t reg)
 	};
 	const struct spi_buf rx_buf[1] = {
 		{
-			.buf = rx_data,
+			.buf = (void *)rx_data,
 			.len = 2
 		}
 	};
@@ -190,11 +190,11 @@ bool nrf24l01_get_register_bit(const struct device *dev, uint8_t reg, uint8_t bi
 	return(res);
 }
 
-uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, uint8_t* data, uint8_t len)
+uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, const uint8_t* data, uint8_t len)
 {
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t tx_data[SPI_MAX_REG_LEN + 1];
-	uint8_t rx_data;
+	uint8_t rx_data = 0;
 	int ret;
 	const struct spi_buf tx_buf[1] = {
 		{
@@ -204,7 +204,7 @@ uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, uint8
 	};
 	const struct spi_buf rx_buf[1] = {
 		{
-			.buf = rx_data,
+			.buf = &rx_data,
 			.len = 2
 		}
 	};
@@ -244,7 +244,6 @@ int nrf24l01_toggle_ce(const struct device *dev, bool level)
 /* Configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
 {
-	const struct nrf24l01_config *config = dev->config;
 	const struct nrf24l01_data *data = dev->data;
 	const uint8_t max_channel = 125;
 	return nrf24l01_write_register(dev, RF_CH, MIN(data->channel_frequency, max_channel));
@@ -262,9 +261,8 @@ uint8_t nrf24l01_get_config(const struct device *dev)
 
 uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, uint8_t data_len, const uint8_t write_type)
 {
-	/* Can be TX or RX ACK*/
-	uint8_t status;
 	int ret;
+	/* Can be TX or RX ACK*/
 	const struct nrf24l01_data *data = dev->data;
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
@@ -306,22 +304,24 @@ uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, u
 
 uint8_t nrf24l01_write_ack_payload(const struct device *dev, const void* buf, uint8_t data_len, uint8_t pipe)
 {
+	uint8_t ret;
 	/* In RX mode, write ACK packet */
-	nrf24l01_write_payload_core(dev, buf, data_len, W_ACK_PAYLOAD | ( pipe & 0x07 ));
+	ret = nrf24l01_write_payload_core(dev, buf, data_len, W_ACK_PAYLOAD | ( pipe & 0x07 ));
+	return ret;
 }
 
 uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uint8_t data_len)
 {
+	uint8_t ret;
 	/* Write a TX payload to send*/
-	nrf24l01_write_payload_core(dev, buf, data_len, W_TX_PAYLOAD);
+	ret = nrf24l01_write_payload_core(dev, buf, data_len, W_TX_PAYLOAD);
 	nrf24l01_toggle_ce(dev, true);
+	return ret;
 }
 
 uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_len)
 {
 	/* In RX mode only*/
-	uint8_t status;
-	uint8_t* current = (uint8_t*)(buf);
 	const struct nrf24l01_data *data = dev->data;
 	const struct nrf24l01_config *config = dev->config;
 	int ret;
@@ -377,13 +377,11 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 
 void nrf24l01_toggle_reading_pipe(const struct device *dev, uint8_t rx_pipe, bool activate)
 {
-	const struct nrf24l01_config *config = dev->config;
 	nrf24l01_set_register_bit(dev, EN_RXADDR, child_pipe_enable_bit[rx_pipe], activate);
 }
 
 void nrf24l01_configure_pipes(const struct device *dev)
 {
-	const struct nrf24l01_config *config = dev->config;
 	const struct nrf24l01_data *data = dev->data;
 	int idx;
 	// Note that AVR 8-bit uC's store this LSB first, and the NRF24L01(+)
@@ -416,7 +414,6 @@ void nrf24l01_configure_pipes(const struct device *dev)
 
 void nrf24l01_configure_ack(const struct device *dev)
 {
-	const struct nrf24l01_config *config = dev->config;
 	const struct nrf24l01_data *data = dev->data;
 	int idx;
 
@@ -535,7 +532,7 @@ static int nrf24l01_init(const struct device *dev)
 	const struct nrf24l01_config *config = dev->config;
 	int ret;
 
-	if (!spi_is_ready(&config->spi)) {
+	if (!spi_is_ready_dt(&config->spi)) {
 		LOG_ERR("SPI not ready");
 	}
 	if (!spi_cs_is_gpio_dt(&config->spi)) {

@@ -15,7 +15,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 int main(void)
 {
-	int ret;
 	static const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
 
 	if (!device_is_ready(nrf24)) {
