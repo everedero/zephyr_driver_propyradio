@@ -80,7 +80,6 @@ uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t d
 	tx_data[1] = data;
 
 	ret = spi_transceive_dt(&config->spi, &tx, &rx);
-	LOG_DBG("Sending 0x%x on 0x%x with result 0x%x", data, reg, rx_data);
 	if (ret) {
 		LOG_ERR("Error transceive %d", ret);
 		return 0;
@@ -127,7 +126,6 @@ uint8_t nrf24l01_read_register(const struct device *dev, uint8_t reg)
 	}
 
 	// status is 1st byte of receive buffer
-	LOG_DBG("0x%x: 0x%x 0x%x", reg, rx_data[0], rx_data[1]);
 	return rx_data[1];
 }
 
@@ -164,7 +162,6 @@ uint8_t nrf24l01_cmd_register(const struct device *dev, uint8_t cmd)
 		return 0;
 	}
 
-	LOG_DBG("0x%x: 0x%x\n", cmd, rx_data[0]);
 	return rx_data[0];
 }
 
@@ -224,7 +221,6 @@ uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, uint8
 	memcpy(&tx_data[1], data, len);
 
 	ret = spi_transceive_dt(&config->spi, &tx, &rx);
-	LOG_DBG("Sending multiple bytes on 0x%x with result 0x%x", reg, rx_data);
 	LOG_HEXDUMP_DBG(data, len, "Sent: ");
 	if (ret) {
 		LOG_ERR("Error transceive %d", ret);
@@ -274,7 +270,6 @@ uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, u
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
 	uint8_t size;
 	size = data_len + blank_len + 1 ; // Add register value to transmit buffer
-	LOG_DBG("Writing %u bytes and %u blanks", data_len, blank_len);
 	uint8_t tx_data[SPI_MAX_MSG_LEN + 1];
 	uint8_t rx_data[1];
 	const struct spi_buf tx_buf[1] = {
