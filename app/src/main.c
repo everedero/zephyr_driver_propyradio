@@ -19,7 +19,6 @@ int main(void)
 {
 	static const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
 	uint8_t data_len = 8;
-	int i = 0;
 	uint8_t buffer[] = {0xab, 0xcd, 0xef, 0xaa, 0xbb, 0xcc, 0xdd, 0xee};
 
 	if (!device_is_ready(nrf24)) {
@@ -30,12 +29,16 @@ int main(void)
 #ifdef IS_TX
 	LOG_INF("I am TX!");
 #else
+	int i = 0;
 	LOG_INF("I am RX");
 #endif
 
 #ifdef IS_TX
-	nrf24_write(nrf24, buffer, data_len);
-	LOG_INF("Wrote stuff");
+	while (true) {
+		nrf24_write(nrf24, buffer, data_len);
+		LOG_INF("Wrote stuff");
+		k_sleep(K_MSEC(1000));
+	}
 #else
 	data_len = 1;
 	for (i=0; i<data_len; i++)
