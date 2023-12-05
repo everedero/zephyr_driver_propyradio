@@ -333,7 +333,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	const struct spi_buf tx_buf[1] = {
 		{
 			.buf = tx_data,
-			.len = 2
+			.len = size
 		}
 	};
 	const struct spi_buf rx_buf[1] = {
