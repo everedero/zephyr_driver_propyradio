@@ -622,7 +622,7 @@ static int nrf24l01_init(const struct device *dev)
 	};                                                                            \
                                                                                   \
 	static struct nrf24l01_data nrf24l01_##i = {                                  \
-		.addr_width = DT_INST_PROP(i, addr_width),                                \
+		.addr_width = DT_INST_PROP_OR(i, addr_width, 5),                                \
 		.channel_frequency = DT_INST_PROP(i, channel_frequency),                  \
 		.data_rate_2mbps = DT_INST_PROP_OR(i, data_rate_2mbps, false),            \
 		.rf_power_attenuation = DT_INST_PROP(i, rf_power_attenuation),            \
