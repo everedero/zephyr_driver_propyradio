@@ -2,6 +2,7 @@ common:
   tags: extensibility
   integration_platforms:
     - nucleo_f756zg
+    - nrf52dk_nrf52832
 tests:
   driver.nrf24l01: {}
     #  lib.nrf24l01.non_default:
