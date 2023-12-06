@@ -34,6 +34,8 @@ cd my-workspace
 west update
 ```
 
+This has been tested with Zephyr 3.5.99
+
 ### Building and running
 
 To build the application, run the following command:
@@ -46,6 +48,7 @@ where `$BOARD` is the target board.
 ```shell
 BOARD="nucleo_f756zg"
 BOARD="nrf52dk_nrf52832"
+BOARD="esp32_devkitc_wroom"
 ```
 
 In order to activate debug logs:
