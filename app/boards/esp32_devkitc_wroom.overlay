@@ -1,0 +1,25 @@
+&spi2 {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        status = "okay";
+        pinctrl-0 = <&spim2_default>;
+        pinctrl-names = "default";
+
+	radio0: nrf24@0 {
+		reg = <0>;
+		compatible = "nordic,nrf24l01";
+		status = "okay";
+		addr-width = <4>;
+		spi-max-frequency = <500000>; // Max 8 Mbps for SPI
+		ce-gpios = <&gpio0 14 GPIO_ACTIVE_LOW>; /* D8 */
+		irq-gpios = <&gpio0 15 GPIO_ACTIVE_LOW>; /* D9 */
+		channel-frequency = <16>;
+		rf-power-attenuation = <18>;
+		lna-gain;
+		tx-address = [e7 e7 e7 e7];
+		rx-datapipes-number = <2>;
+		rx-datapipe0-address = [e7 e7 e7 e7];
+		rx-datapipe1-address = [de ad de ad];
+		rx-datapipes-fixed-size-payload = <16 32>;
+	};
+};

@@ -3,6 +3,7 @@ common:
   integration_platforms:
     - nucleo_f756zg
     - nrf52dk_nrf52832
+    - esp32_devkitc_wroom
 tests:
   driver.nrf24l01: {}
     #  lib.nrf24l01.non_default:
