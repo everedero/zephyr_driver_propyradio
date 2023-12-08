@@ -89,7 +89,7 @@ properties:
     description: |
       Transmit channel fixed payload side
 
-  payload_ack:
+  payload-ack:
     type: boolean
     required: false
     description: |
