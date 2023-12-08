@@ -1,10 +1,15 @@
 common:
   tags: extensibility
-  integration_platforms:
-    - nucleo_f756zg
-    - nrf52dk_nrf52832
-    - esp32_devkitc_wroom
 tests:
-  driver.nrf24l01: {}
-    #  lib.nrf24l01.non_default:
-    #extra_args: CONFIG_CONSOLE=y
+  driver.nrf24l01.nucleo:
+    integration_platforms:
+      - nucleo_f756zg
+    extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nucleo_f756zg.overlay"
+  driver.nrf24l01.nrf52:
+    integration_platforms:
+      - nrf52dk_nrf52832
+    extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nrf52dk_nrf52832.overlay"
+  driver.nrf24l01.esp32:
+    integration_platforms:
+      - esp32_devkitc_wroom
+    extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/esp32_devkitc_wroom.overlay"
