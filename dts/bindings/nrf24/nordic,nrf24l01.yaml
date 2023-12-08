@@ -84,7 +84,7 @@ properties:
       Whether NRF24 dynamic payload length is enabled or not. False by default.
 
   tx-payload-fixed-size:
-    type: uint8-array
+    type: int
     required: false
     description: |
       Transmit channel fixed payload side
