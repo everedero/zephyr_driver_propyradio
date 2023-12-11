@@ -286,6 +286,14 @@ int nrf24l01_toggle_ce(const struct device *dev, bool level)
 	return 0;
 }
 
+bool nrf24l01_read_irq(const struct device *dev)
+{
+	const struct nrf24l01_config *config = dev->config;
+	int ret;
+	ret = gpio_pin_get_dt(&config->irq);
+	return((bool)ret);
+}
+
 /* Configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
 {
@@ -403,8 +411,13 @@ uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uin
 	const struct nrf24l01_data *data = dev->data;
 	cmd = data->payload_ack ? W_TX_PAYLOAD : W_TX_PAYLOAD_NO_ACK;
 	/* Write a TX payload to send*/
-	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);//W_TX_PAYLOAD);
+	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);
+
 	nrf24l01_toggle_ce(dev, true);
+
+	// DBG check quality
+	LOG_DBG("Observe lost pkt: 0x%x", (nrf24l01_read_register(dev, OBSERVE_TX) & 0xf0) >> 4);
+
 	return ret;
 }
 
@@ -451,9 +464,9 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	memcpy(buf, &rx_data[1], data_len);
 
 	// Clear interrupt flags
-    nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
-    nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, true);
-    nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, true);
+    nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
+    nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
+    nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
 
 	return rx_data[0];
 }
@@ -506,17 +519,16 @@ void nrf24l01_configure_ack(const struct device *dev)
 	}
 	nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
 	nrf24l01_set_register_bit(dev, FEATURE, EN_DPL, data->dynamic_payload);
+	if (data->payload_ack)
+	{
+		// Auto ack on pipe 0 when TX
+		nrf24l01_write_register(dev, EN_AA, 0x01);
+	}
 }
 bool nrf24l01_is_rx_data_available(const struct device *dev, uint8_t* pipe_num)
 {
 	/* Set pipe_num to 0 to ignore the pipe number retrieval */
 	uint8_t status;
-	// TODO trying to poll interrupt
-	/*if (! nrf24l01_get_register_bit(dev, NRF_STATUS, RX_DR)) {
-		nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
-	} else {
-		return(false);
-	}*/
 	if (! nrf24l01_get_register_bit(dev, FIFO_STATUS, RX_EMPTY))
 	{
 		// If the caller wants the pipe number, include it
@@ -553,9 +565,9 @@ void nrf24l01_start_listening(const struct device *dev)
 {
 	nrf24l01_radio_power_up(dev);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, true);
-	nrf24l01_set_register_bit(dev, NRF_CONFIG, RX_DR, true);
-	nrf24l01_set_register_bit(dev, NRF_CONFIG, TX_DS, true);
-	nrf24l01_set_register_bit(dev, NRF_CONFIG, MAX_RT, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
 	// Set CE high for RX
 	nrf24l01_toggle_ce(dev, HIGH);
 	// Restore the pipe0 adddress, if exists
@@ -640,9 +652,9 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	}
 	nrf24l01_toggle_ce(dev, LOW);
 
-	status = nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, true);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, true);
+	status = nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
+	status = nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
 
 	// Max retries exceeded, flush TX
 	if ( status & BIT(MAX_RT) ) {
@@ -766,9 +778,9 @@ static int nrf24l01_init(const struct device *dev)
 	nrf24l01_cmd_register(dev, FLUSH_RX);
 
 	// Clear interrupts
-	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, true);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
 
 	nrf24l01_activate(dev);
 

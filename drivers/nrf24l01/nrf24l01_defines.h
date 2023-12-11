@@ -25,6 +25,10 @@
 #define LOW false
 #define HIGH true
 
+/* Booleans for IRQ */
+#define CLEARED true
+#define TRIGGERED false
+
 
 /* Memory Map */
 #define NRF_CONFIG      0x00
