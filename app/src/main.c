@@ -29,7 +29,6 @@ int main(void)
 #ifdef IS_TX
 	LOG_INF("I am TX!");
 #else
-	int i = 0;
 	LOG_INF("I am RX");
 #endif
 
@@ -40,13 +39,11 @@ int main(void)
 		k_sleep(K_MSEC(1000));
 	}
 #else
-	data_len = 1;
-	for (i=0; i<data_len; i++)
-	{
-		nrf24_read(nrf24, &buffer[i], 1);
-		LOG_INF("Read: 0x%x", buffer[i]);
+	while (true) {
+		nrf24_read(nrf24, buffer, data_len);
+		k_sleep(K_MSEC(10));
+		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 	}
-	LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 #endif
 	return 0;
 }

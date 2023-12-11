@@ -17,9 +17,11 @@
 		rf-power-attenuation = <18>;
 		lna-gain;
 		tx-address = [e7 e7 e7 e7];
+		tx-payload-fixed-size = <32>;
 		rx-datapipes-number = <2>;
 		rx-datapipe0-address = [e7 e7 e7 e7];
 		rx-datapipe1-address = [de ad de ad];
-		rx-datapipes-fixed-size-payload = <16 32>;
+		rx-datapipes-fixed-size-payload = <32 32>;
+		//payload-ack;
 	};
 };
