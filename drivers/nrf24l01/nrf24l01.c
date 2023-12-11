@@ -588,6 +588,18 @@ void nrf24l01_stop_listening(const struct device *dev)
 
 }
 
+bool nrf24l01_test_spi(const struct device *dev)
+{
+	uint8_t ret = 0;
+	nrf24l01_write_register(dev, RX_PW_P5, 0x0E);
+	ret = nrf24l01_read_register(dev, RX_PW_P5);
+	nrf24l01_write_register(dev, RX_PW_P5, 0x00);
+	if (ret != 0x0E) {
+		return(false);
+	}
+	return(true);
+}
+
 /* API functions */
 
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
@@ -716,8 +728,11 @@ static int nrf24l01_init(const struct device *dev)
 		return ret;
 	}
 
-	ret = nrf24l01_read_register(dev, NRF_CONFIG);
-	LOG_INF("Config at first: 0x%x", ret);
+	if (!nrf24l01_test_spi(dev))
+	{
+		LOG_ERR("Issue with SPI read/write");
+		return -EIO;
+	}
 
 	// Configuration
 	ret = nrf24l01_set_channel(dev);
