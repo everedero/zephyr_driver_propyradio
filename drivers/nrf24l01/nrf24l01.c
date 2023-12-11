@@ -251,7 +251,7 @@ uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, const
 	const struct spi_buf rx_buf[1] = {
 		{
 			.buf = &rx_data,
-			.len = 1//2
+			.len = 1
 		}
 	};
 	struct spi_buf_set tx = {
@@ -440,13 +440,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 		.count = 1
 	};
 
-	//if(data_len > payload_size) data_len = payload_size;
-	//uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - data_len;
-
-	//LOG_INF("Reading %u bytes %u blanks", data_len, blank_len);
-
 	tx_data[0] = R_RX_PAYLOAD;
-	//tx_data[1] = RF24_NOP;
 	memset(&tx_data[1], RF24_NOP, data_len);
 
 	ret = spi_transceive_dt(&config->spi, &tx, &rx);
@@ -607,7 +601,6 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 	{
 		k_msleep(1);
 	}
-	//LOG_INF("Read found on pipe %d", pipe_num);
 	nrf24l01_read_payload(dev, buffer, data_len);
 	if (data->payload_ack)
 	{
@@ -615,8 +608,6 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 		got_byte += 1;
 		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
 	}
-	// Debug
-	//nrf24l01_cmd_register(dev, FLUSH_RX);
 
 	return 0;
 }
@@ -754,27 +745,6 @@ static int nrf24l01_init(const struct device *dev)
 	ret = nrf24l01_cmd_register(dev, RF24_READSTAT);
 	nrf24l01_print_status(ret);
 #endif
-	// Test register write/read
-	//ret =  nrf24l01_write_register(dev, EN_AA, 0x01);
-	//ret =  nrf24l01_read_register(dev, EN_AA);
-	//if (ret != 0x01) {
-	//	LOG_ERR("Register not set");
-	//}
-
-	// Payload write and read
-	/*uint8_t buf[24] = {0};
-	uint8_t data_len = 24;
-	int i;
-	for (i=0; i<data_len; i++) {
-		buf[i] = i%0xff;
-	}
-
-	ret = nrf24l01_write_tx_payload(dev, buf, data_len);
-	LOG_DBG("Write payload: 0x%x", ret);
-	ret = nrf24l01_read_payload(dev, buf, data_len);
-	LOG_DBG("Read payload: 0x%x", ret);
-	LOG_HEXDUMP_DBG(buf, data_len, "Buffer");
-	nrf24l01_print_status(ret);*/
 
 	// Starting chip
 	nrf24l01_cmd_register(dev, FLUSH_TX);
