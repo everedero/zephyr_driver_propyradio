@@ -239,7 +239,7 @@ bool nrf24l01_get_register_bit(const struct device *dev, uint8_t reg, uint8_t bi
 uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, const uint8_t* data, uint8_t len)
 {
 	const struct nrf24l01_config *config = dev->config;
-	uint8_t tx_data[SPI_MAX_REG_LEN + 1];
+	uint8_t tx_data[SPI_MAX_REG_LEN + 1] = {0};
 	uint8_t rx_data = 0;
 	int ret;
 	const struct spi_buf tx_buf[1] = {
@@ -355,7 +355,7 @@ uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, u
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
 	uint8_t size;
 	size = data_len + blank_len + 1 ; // Add register value to transmit buffer
-	uint8_t tx_data[SPI_MAX_MSG_LEN + 1];
+	uint8_t tx_data[SPI_MAX_MSG_LEN + 1] = {0};
 	uint8_t rx_data[1];
 	const struct spi_buf tx_buf[1] = {
 		{
@@ -417,8 +417,8 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	uint8_t size;
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->rx_datapipes_fixed_size_payload[0] - data_len;
 	size = data_len + blank_len +  1 ; // Add register value to transmit buffer
-	uint8_t tx_data[SPI_MAX_MSG_LEN + 1];
-	uint8_t rx_data[SPI_MAX_MSG_LEN + 1];
+	uint8_t tx_data[SPI_MAX_MSG_LEN + 1] = {0};
+	uint8_t rx_data[SPI_MAX_MSG_LEN + 1] = {0};
 	const struct spi_buf tx_buf[1] = {
 		{
 			.buf = tx_data,
