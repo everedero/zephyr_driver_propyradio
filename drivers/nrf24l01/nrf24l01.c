@@ -152,6 +152,8 @@ uint8_t nrf24l01_cmd_register(const struct device *dev, uint8_t cmd)
 		.count = 1
 	};
 
+	tx_data[0] = cmd;
+
 	ret = spi_transceive_dt(&config->spi, &tx, &rx);
 	if (ret) {
 		LOG_ERR("Error transceive %d\n", ret);
@@ -161,19 +163,67 @@ uint8_t nrf24l01_cmd_register(const struct device *dev, uint8_t cmd)
 	return rx_data[0];
 }
 
+uint8_t nrf24l01_cmd_register_with_arg(const struct device *dev, uint8_t cmd, uint8_t arg)
+{
+	const struct nrf24l01_config *config = dev->config;
+	int ret;
+	uint8_t tx_data[2];
+	uint8_t rx_data[1];
+	const struct spi_buf tx_buf[1] = {
+		{
+			.buf = tx_data,
+			.len = 2
+		}
+	};
+	const struct spi_buf rx_buf[1] = {
+		{
+			.buf = rx_data,
+			.len = 1
+		}
+	};
+	struct spi_buf_set tx = {
+		.buffers = tx_buf,
+		.count = 1
+	};
+	const struct spi_buf_set rx = {
+		.buffers = rx_buf,
+		.count = 1
+	};
+
+	tx_data[0] = cmd;
+	tx_data[1] = arg;
+
+	ret = spi_transceive_dt(&config->spi, &tx, &rx);
+	if (ret) {
+		LOG_ERR("Error transceive %d\n", ret);
+		return 0;
+	}
+
+	return rx_data[0];
+}
+
+uint8_t nrf24l01_activate(const struct device *dev)
+{
+	return(nrf24l01_cmd_register_with_arg(dev, ACTIVATE, 0x73));
+}
+
 uint8_t nrf24l01_set_register_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool val)
 {
-	uint8_t reg_data;
-	reg_data = nrf24l01_read_register(dev, reg);
+	uint8_t reg_data, reg_read;
+	reg_read = nrf24l01_read_register(dev, reg);
 	if (val) // Setting bit to 1
 	{
-		reg_data = reg_data | BIT(bit);
+		reg_data = reg_read | BIT(bit);
 	}
 	else // Setting bit to 0
 	{
-		reg_data = reg_data & ~BIT(bit);
+		reg_data = reg_read & (~BIT(bit));
 	}
-	reg_data = nrf24l01_write_register(dev, reg, reg_data);
+	// Only write if value is different
+	if (reg_read != reg_data)
+	{
+		reg_data = nrf24l01_write_register(dev, reg, reg_data);
+	}
 	return(reg_data);
 }
 
@@ -201,7 +251,7 @@ uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, const
 	const struct spi_buf rx_buf[1] = {
 		{
 			.buf = &rx_data,
-			.len = 2
+			.len = 1//2
 		}
 	};
 	struct spi_buf_set tx = {
@@ -217,7 +267,6 @@ uint8_t nrf24l01_write_register_len(const struct device *dev, uint8_t reg, const
 	memcpy(&tx_data[1], data, len);
 
 	ret = spi_transceive_dt(&config->spi, &tx, &rx);
-	LOG_HEXDUMP_DBG(data, len, "Sent: ");
 	if (ret) {
 		LOG_ERR("Error transceive %d", ret);
 		return 0;
@@ -243,6 +292,48 @@ uint8_t nrf24l01_set_channel(const struct device *dev)
 	const struct nrf24l01_data *data = dev->data;
 	const uint8_t max_channel = 125;
 	return nrf24l01_write_register(dev, RF_CH, MIN(data->channel_frequency, max_channel));
+}
+
+uint8_t nrf24l01_set_config(const struct device *dev)
+{
+	uint8_t val;
+	const struct nrf24l01_data *data = dev->data;
+	nrf24l01_write_register(dev, SETUP_AW, (data->addr_width - 2) & 0x3);
+	nrf24l01_set_register_bit(dev, RF_SETUP, RF_DR, data->data_rate_2mbps);
+	switch (data->rf_power_attenuation)
+	{
+		case 18:
+			val = 0b00;
+		break;
+		case 12:
+			val = 0b01;
+		break;
+		case 6:
+			val = 0b10;
+		break;
+		case 0:
+			val = 0b11;
+		break;
+		default:
+			val = 0b00;
+			LOG_ERR("Invalid RF power value (%d)", data->rf_power_attenuation);
+
+	}
+	nrf24l01_set_register_bit(dev, RF_SETUP, RF_PWR_LOW, val & 0b01);
+	nrf24l01_set_register_bit(dev, RF_SETUP, RF_PWR_HIGH, val & 0b10);
+
+	nrf24l01_set_register_bit(dev, RF_SETUP, LNA_HCURR, data->lna_gain);
+
+	// CRC configuration
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, EN_CRC, data->payload_ack);
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, CRCO, data->crc_encoding_twobytes);
+
+	// Unmask interrupts
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, MASK_RX_DR, false);
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, MASK_TX_DS, false);
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, MASK_MAX_RT, false);
+
+	return 0;
 }
 
 uint8_t nrf24l01_get_channel(const struct device *dev)
@@ -308,9 +399,11 @@ uint8_t nrf24l01_write_ack_payload(const struct device *dev, const void* buf, ui
 
 uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uint8_t data_len)
 {
-	uint8_t ret;
+	uint8_t ret, cmd;
+	const struct nrf24l01_data *data = dev->data;
+	cmd = data->payload_ack ? W_TX_PAYLOAD : W_TX_PAYLOAD_NO_ACK;
 	/* Write a TX payload to send*/
-	ret = nrf24l01_write_payload_core(dev, buf, data_len, W_TX_PAYLOAD);
+	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);//W_TX_PAYLOAD);
 	nrf24l01_toggle_ce(dev, true);
 	return ret;
 }
@@ -322,8 +415,8 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	const struct nrf24l01_config *config = dev->config;
 	int ret;
 	uint8_t size;
-	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
-	size = data_len + 1 ; // Add register value to transmit buffer
+	uint8_t blank_len = data->dynamic_payload ? 0 : data->rx_datapipes_fixed_size_payload[0] - data_len;
+	size = data_len + blank_len +  1 ; // Add register value to transmit buffer
 	uint8_t tx_data[SPI_MAX_MSG_LEN + 1];
 	uint8_t rx_data[SPI_MAX_MSG_LEN + 1];
 	const struct spi_buf tx_buf[1] = {
@@ -350,7 +443,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	//if(data_len > payload_size) data_len = payload_size;
 	//uint8_t blank_len = dynamic_payloads_enabled ? 0 : payload_size - data_len;
 
-	LOG_INF("Reading %u bytes %u blanks", data_len, blank_len);
+	//LOG_INF("Reading %u bytes %u blanks", data_len, blank_len);
 
 	tx_data[0] = R_RX_PAYLOAD;
 	//tx_data[1] = RF24_NOP;
@@ -415,7 +508,7 @@ void nrf24l01_configure_ack(const struct device *dev)
 
 	for (idx=0; idx<data->rx_datapipes_number; idx++)
 	{
-		nrf24l01_set_register_bit(dev, DYNPD, DPL_P0, data->rx_datapipes_dynamic_payload[idx]);
+		nrf24l01_set_register_bit(dev, DYNPD, DPL_P0+idx, data->rx_datapipes_dynamic_payload[idx]);
 	}
 	nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
 	nrf24l01_set_register_bit(dev, FEATURE, EN_DPL, data->dynamic_payload);
@@ -424,6 +517,12 @@ bool nrf24l01_is_rx_data_available(const struct device *dev, uint8_t* pipe_num)
 {
 	/* Set pipe_num to 0 to ignore the pipe number retrieval */
 	uint8_t status;
+	// TODO trying to poll interrupt
+	/*if (! nrf24l01_get_register_bit(dev, NRF_STATUS, RX_DR)) {
+		nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
+	} else {
+		return(false);
+	}*/
 	if (! nrf24l01_get_register_bit(dev, FIFO_STATUS, RX_EMPTY))
 	{
 		// If the caller wants the pipe number, include it
@@ -501,18 +600,23 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 {
 	uint8_t pipe_num = 0;
 	static uint8_t got_byte = 0;
+	const struct nrf24l01_data *data = dev->data;
 
 	nrf24l01_start_listening(dev);
 	while (!nrf24l01_is_rx_data_available(dev, &pipe_num))
 	{
 		k_msleep(1);
 	}
-	LOG_INF("Read found on pipe %d", pipe_num);
+	//LOG_INF("Read found on pipe %d", pipe_num);
 	nrf24l01_read_payload(dev, buffer, data_len);
-	// Acking
-	got_byte += 1;
-	LOG_DBG("Got byte %d", got_byte);
-	nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
+	if (data->payload_ack)
+	{
+		// Acking
+		got_byte += 1;
+		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
+	}
+	// Debug
+	//nrf24l01_cmd_register(dev, FLUSH_RX);
 
 	return 0;
 }
@@ -621,8 +725,12 @@ static int nrf24l01_init(const struct device *dev)
 		return ret;
 	}
 
+	ret = nrf24l01_read_register(dev, NRF_CONFIG);
+	LOG_INF("Config at first: 0x%x", ret);
+
 	// Configuration
 	ret = nrf24l01_set_channel(dev);
+    ret = nrf24l01_set_config(dev);
 
 	const struct nrf24l01_data *data = dev->data;
     if (data->tx_payload_fixed_size > 32)
@@ -632,6 +740,13 @@ static int nrf24l01_init(const struct device *dev)
 	}
 
 	nrf24l01_configure_pipes(dev);
+	nrf24l01_configure_ack(dev);
+	// TODO
+	if (data->dynamic_payload) {
+		LOG_ERR("Dynamic payload not implemented");
+	}
+	nrf24l01_toggle_ce(dev, HIGH);
+	k_sleep(K_MSEC(100));
 
 #if !defined(MINIMAL)
 	nrf24l01_info(dev);
@@ -640,11 +755,11 @@ static int nrf24l01_init(const struct device *dev)
 	nrf24l01_print_status(ret);
 #endif
 	// Test register write/read
-	ret =  nrf24l01_write_register(dev, EN_AA, 0x01);
-	ret =  nrf24l01_read_register(dev, EN_AA);
-	if (ret != 0x01) {
-		LOG_ERR("Register not set");
-	}
+	//ret =  nrf24l01_write_register(dev, EN_AA, 0x01);
+	//ret =  nrf24l01_read_register(dev, EN_AA);
+	//if (ret != 0x01) {
+	//	LOG_ERR("Register not set");
+	//}
 
 	// Payload write and read
 	/*uint8_t buf[24] = {0};
@@ -661,12 +776,19 @@ static int nrf24l01_init(const struct device *dev)
 	LOG_HEXDUMP_DBG(buf, data_len, "Buffer");
 	nrf24l01_print_status(ret);*/
 
-	nrf24l01_configure_pipes(dev);
-	nrf24l01_configure_ack(dev);
-
 	// Starting chip
 	nrf24l01_cmd_register(dev, FLUSH_TX);
 	nrf24l01_cmd_register(dev, FLUSH_RX);
+
+	// Clear interrupts
+	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, true);
+	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, true);
+
+	nrf24l01_activate(dev);
+
+	// Turn radio on
+	// TODO Power up in read() and not write(), fix state machine logic
 	nrf24l01_radio_power_up(dev);
 
 	return 0;
