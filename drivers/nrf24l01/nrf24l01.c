@@ -796,8 +796,8 @@ static int nrf24l01_init(const struct device *dev)
 #define NRF24L01_DEFINE(i)                                             \
 	static const struct nrf24l01_config nrf24l01_config_##i = {        \
 		.spi = SPI_DT_SPEC_INST_GET(i, NRF24L01_SPI_MODE, 2),           \
-		.ce = GPIO_DT_SPEC_INST_GET_OR(i, ce_gpios, {}),               \
-		.irq = GPIO_DT_SPEC_INST_GET_OR(i, irq_gpios, {}),             \
+		.ce = GPIO_DT_SPEC_INST_GET(i, ce_gpios),               \
+		.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpios),             \
 	};                                                                            \
                                                                                   \
 	static struct nrf24l01_data nrf24l01_##i = {                                  \

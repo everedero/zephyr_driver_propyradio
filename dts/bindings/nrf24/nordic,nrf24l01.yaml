@@ -14,13 +14,13 @@ properties:
 
   ce-gpios:
     type: phandle-array
-    required: false
+    required: true
     description: |
       Chip Enable GPIO (active high). It is used to activate the chip RX or TX mode. If not configured, the driver will use three-wires behaviour and multiplex with the SPI CSN signal.
 
   irq-gpios:
     type: phandle-array
-    required: false
+    required: true
     description: |
       Chip Interrupt signal (active low). If not selected, do not use interrupts.
 
