@@ -294,10 +294,10 @@ bool nrf24l01_read_irq(const struct device *dev)
 	return((bool)ret);
 }
 
-/* Configuration functions */
+/* Private configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
 {
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	const uint8_t max_channel = 125;
 	return nrf24l01_write_register(dev, RF_CH, MIN(data->channel_frequency, max_channel));
 }
@@ -305,7 +305,7 @@ uint8_t nrf24l01_set_channel(const struct device *dev)
 uint8_t nrf24l01_set_config(const struct device *dev)
 {
 	uint8_t val;
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	nrf24l01_write_register(dev, SETUP_AW, (data->addr_width - 2) & 0x3);
 	nrf24l01_set_register_bit(dev, RF_SETUP, RF_DR, data->data_rate_2mbps);
 	switch (data->rf_power_attenuation)
@@ -358,7 +358,7 @@ uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, u
 {
 	int ret;
 	/* Can be TX or RX ACK*/
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
 	uint8_t size;
@@ -408,7 +408,7 @@ uint8_t nrf24l01_write_ack_payload(const struct device *dev, const void* buf, ui
 uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uint8_t data_len)
 {
 	uint8_t ret, cmd;
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	cmd = data->payload_ack ? W_TX_PAYLOAD : W_TX_PAYLOAD_NO_ACK;
 	/* Write a TX payload to send*/
 	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);
@@ -424,7 +424,7 @@ uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uin
 uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_len)
 {
 	/* In RX mode only*/
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	const struct nrf24l01_config *config = dev->config;
 	int ret;
 	uint8_t size;
@@ -478,7 +478,7 @@ void nrf24l01_toggle_reading_pipe(const struct device *dev, uint8_t rx_pipe, boo
 
 void nrf24l01_configure_pipes(const struct device *dev)
 {
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	int idx;
 	// Note that AVR 8-bit uC's store this LSB first, and the NRF24L01(+)
 	// expects it LSB first too, so we're good.
@@ -510,7 +510,7 @@ void nrf24l01_configure_pipes(const struct device *dev)
 
 void nrf24l01_configure_ack(const struct device *dev)
 {
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 	int idx;
 
 	for (idx=0; idx<data->rx_datapipes_number; idx++)
@@ -618,7 +618,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 {
 	uint8_t pipe_num = 0;
 	static uint8_t got_byte = 0;
-	const struct nrf24l01_data *data = dev->data;
+	struct nrf24l01_data *data = dev->data;
 
 	nrf24l01_start_listening(dev);
 	while (!nrf24l01_is_rx_data_available(dev, &pipe_num))
@@ -702,6 +702,7 @@ void nrf24l01_print_status(uint8_t status)
 static int nrf24l01_init(const struct device *dev)
 {
 	const struct nrf24l01_config *config = dev->config;
+	struct nrf24l01_data *data = dev->data;
 	int ret;
 
 	if (!spi_is_ready_dt(&config->spi)) {
@@ -750,7 +751,6 @@ static int nrf24l01_init(const struct device *dev)
 	ret = nrf24l01_set_channel(dev);
     ret = nrf24l01_set_config(dev);
 
-	const struct nrf24l01_data *data = dev->data;
     if (data->tx_payload_fixed_size > 32)
 	{
 		LOG_ERR("Selected data payload size too big, max 32");
