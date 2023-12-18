@@ -8,12 +8,16 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/kernel.h>
+
 #include <app/drivers/nrf24.h>
 #include "nrf24l01_defines.h"
-#include <zephyr/kernel.h>
 
 #define SPI_MAX_MSG_LEN 64
 #define SPI_MAX_REG_LEN 5
+#define SPI_MSG_QUEUE_LEN 10
+
+#define CONFIG_NRF24L01_TRIGGER
 
 LOG_MODULE_REGISTER(nrf24l01, CONFIG_NRF24L01_LOG_LEVEL);
 
@@ -40,9 +44,21 @@ struct nrf24l01_data {
 	uint8_t rx_child_datapipes_addresses[4];
 	uint8_t rx_datapipes_dynamic_payload[6];
 	uint8_t rx_datapipes_fixed_size_payload[6];
+#ifdef CONFIG_NRF24L01_TRIGGER
+	/** RX queue buffer. */
+	uint8_t rx_queue_buf[SPI_MSG_QUEUE_LEN * SPI_MAX_MSG_LEN];
+	/** RX queue. */
+	struct k_msgq rx_queue;
+	/** Trigger work queue. */
+	struct k_work trig_work;
+	/** Touch GPIO callback. */
+	struct gpio_callback irq_cb;
+	/** Self reference (used in work queue context). */
+	const struct device *dev;
+#endif /* CONFIG_NRF24L01_TRIGGER */
 };
 
-/* Core communication functions */
+/* Private core communication functions */
 uint8_t nrf24l01_write_register(const struct device *dev, uint8_t reg, uint8_t data)
 {
 	/* Register config can only be done in power down or standby */
@@ -205,6 +221,19 @@ uint8_t nrf24l01_cmd_register_with_arg(const struct device *dev, uint8_t cmd, ui
 uint8_t nrf24l01_activate(const struct device *dev)
 {
 	return(nrf24l01_cmd_register_with_arg(dev, ACTIVATE, 0x73));
+}
+
+// Fast irq clearing
+uint8_t nrf24l01_clear_irq(const struct device *dev)
+{
+	uint8_t reg;
+	reg = nrf24l01_read_register(dev, NRF_STATUS);
+#if CLEARED
+	reg = reg | (BIT(RX_DR) | BIT(TX_DS) | BIT(MAX_RT));
+#else
+	reg = reg & ~(BIT(RX_DR) | BIT(TX_DS) | BIT(MAX_RT));
+#endif
+	return(nrf24l01_write_register(dev, NRF_STATUS, reg));
 }
 
 uint8_t nrf24l01_set_register_bit(const struct device *dev, uint8_t reg, uint8_t bit, bool val)
@@ -464,9 +493,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	memcpy(buf, &rx_data[1], data_len);
 
 	// Clear interrupt flags
-    nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
-    nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
-    nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
+	nrf24l01_clear_irq(dev);
 
 	return rx_data[0];
 }
@@ -565,9 +592,7 @@ void nrf24l01_start_listening(const struct device *dev)
 {
 	nrf24l01_radio_power_up(dev);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, true);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
+	nrf24l01_clear_irq(dev);
 	// Set CE high for RX
 	nrf24l01_toggle_ce(dev, HIGH);
 	// Restore the pipe0 adddress, if exists
@@ -611,10 +636,9 @@ bool nrf24l01_test_spi(const struct device *dev)
 	}
 	return(true);
 }
-
-/* API functions */
-
-static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+#ifdef CONFIG_NRF24L01_TRIGGER
+#else // not CONFIG_NRF24L01_TRIGGER
+static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
 	uint8_t pipe_num = 0;
 	static uint8_t got_byte = 0;
@@ -632,6 +656,25 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 		got_byte += 1;
 		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
 	}
+	return 0;
+}
+#endif // CONFIG_NRF24L01_TRIGGER
+
+/* API functions */
+
+static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+{
+#ifdef CONFIG_NRF24L01_TRIGGER
+	struct nrf24l01_data *data = dev->data;
+	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
+
+	if (k_msgq_get(&data->rx_queue, buffer_full, K_FOREVER) < 0) {
+		LOG_ERR("Nothing in RX queue");
+	}
+	memcpy(buffer, buffer_full, data_len);
+#else // not CONFIG_NRF24L01_TRIGGER
+	nrf24l01_read_polling(dev, buffer, data_len);
+#endif // CONFIG_NRF24L01_TRIGGER
 
 	return 0;
 }
@@ -652,9 +695,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	}
 	nrf24l01_toggle_ce(dev, LOW);
 
-	status = nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
-	status = nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
+	status = nrf24l01_clear_irq(dev);
 
 	// Max retries exceeded, flush TX
 	if ( status & BIT(MAX_RT) ) {
@@ -699,6 +740,84 @@ void nrf24l01_print_status(uint8_t status)
 }
 #endif
 
+#ifdef CONFIG_NRF24L01_TRIGGER
+/* Interrupts */
+
+void irq_callback_handler(const struct device *port,
+	struct gpio_callback *cb, uint32_t pins)
+{
+	struct nrf24l01_data *data = CONTAINER_OF(cb, struct nrf24l01_data, irq_cb);
+	const struct nrf24l01_config *config = data->dev->config;
+	int ret;
+	ARG_UNUSED(port);
+	ARG_UNUSED(pins);
+
+	/* disable any new touch interrupts until work is processed */
+	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_DISABLE);
+	if (ret < 0)
+	{
+		LOG_ERR("Could not deactivate interrupt");
+	}
+	k_work_submit(&data->trig_work);
+}
+
+void work_queue_callback_handler(struct k_work *item)
+{
+	struct nrf24l01_data *data =
+		CONTAINER_OF(item, struct nrf24l01_data, trig_work);
+	const struct device *dev = data->dev;
+	const struct nrf24l01_config *config = dev->config;
+	uint8_t ret;
+	uint8_t buffer[SPI_MAX_MSG_LEN] = {0};
+	int got_byte=0;
+	uint8_t pipe_num = 0;
+	ret = nrf24l01_read_register(dev, NRF_STATUS);
+
+    if (ret & BIT(RX_DR))
+	{
+		if (!nrf24l01_is_rx_data_available(dev, &pipe_num))
+		{
+			LOG_ERR("No data available in RX interrupt");
+			nrf24l01_clear_irq(dev);
+			ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_EDGE_TO_ACTIVE);
+			if (ret < 0)
+			{
+				LOG_ERR("Could not reactivate interrupt");
+			}
+			return;
+		}
+//SPI_MAX_MSG_LEN
+//TODO remove magic number, fixed payload or max
+		nrf24l01_read_payload(dev, buffer, 32);
+		if (k_msgq_put(&data->rx_queue, buffer, K_NO_WAIT) < 0) {
+			LOG_ERR("RX queue full, dropping packet");
+		}
+		if (data->payload_ack)
+		{
+			// Acking
+			got_byte += 1;
+			nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
+		}
+	}
+	else if (ret & BIT(TX_DS))
+	{
+		LOG_INF("TX interrupt!");
+	}
+	else if (ret & BIT(MAX_RT))
+	{
+		LOG_INF("TX max RT interrupt!");
+	}
+	nrf24l01_clear_irq(dev);
+	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_EDGE_TO_ACTIVE);
+	if (ret < 0)
+	{
+		LOG_ERR("Could not reactivate interrupt");
+	}
+	return;
+}
+#endif /* CONFIG_NRF24L01_TRIGGER */
+
+/* Init */
 static int nrf24l01_init(const struct device *dev)
 {
 	const struct nrf24l01_config *config = dev->config;
@@ -721,18 +840,10 @@ static int nrf24l01_init(const struct device *dev)
 		return ret;
 	}
 
-	if (!gpio_is_ready_dt(&config->irq)) {
-		return -EBUSY;
-	}
-	ret = gpio_pin_configure_dt(&config->irq, GPIO_INPUT);
-	if (ret < 0) {
-		LOG_ERR("Could not configure IRQ GPIO (%d)", ret);
-		return ret;
-	}
-
 	ret = gpio_pin_set_dt(&config->ce, HIGH);
 	if (ret < 0) {
 		LOG_ERR("Could not toggle CE (%d)", ret);
+
 		return ret;
 	}
 	ret = gpio_pin_configure_dt(&config->spi.config.cs.gpio, GPIO_OUTPUT);
@@ -777,16 +888,51 @@ static int nrf24l01_init(const struct device *dev)
 	nrf24l01_cmd_register(dev, FLUSH_TX);
 	nrf24l01_cmd_register(dev, FLUSH_RX);
 
-	// Clear interrupts
-	nrf24l01_set_register_bit(dev, NRF_STATUS, RX_DR, CLEARED);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, MAX_RT, CLEARED);
-	nrf24l01_set_register_bit(dev, NRF_STATUS, TX_DS, CLEARED);
 
 	nrf24l01_activate(dev);
+
+#ifdef CONFIG_NRF24L01_TRIGGER
+	k_msgq_init(&data->rx_queue, data->rx_queue_buf, SPI_MAX_MSG_LEN,
+		SPI_MSG_QUEUE_LEN);
+
+	LOG_INF("Trigger config");
+	data->dev = dev;
+
+	if (!gpio_is_ready_dt(&config->irq)) {
+		return -EBUSY;
+	}
+	ret = gpio_pin_configure_dt(&config->irq, GPIO_INPUT);
+	if (ret < 0) {
+		LOG_ERR("Could not configure IRQ GPIO (%d)", ret);
+		return ret;
+	}
+
+	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_EDGE_TO_ACTIVE);
+	if (ret < 0) {
+		LOG_ERR("Could not configure interrupt for IRQ GPIO (%d)", ret);
+		return ret;
+	}
+	// setup the interrupt function
+    gpio_init_callback(&data->irq_cb, irq_callback_handler, BIT(config->irq.pin));
+
+	ret = gpio_add_callback(config->irq.port, &data->irq_cb);
+	if (ret < 0) {
+		LOG_ERR("Could not configure irq callback (%d)", ret);
+		return ret;
+	}
+	k_work_init(&data->trig_work, work_queue_callback_handler);
+
+#endif /* CONFIG_NRF24L01_TRIGGER */
 
 	// Turn radio on
 	// TODO Power up in read() and not write(), fix state machine logic
 	nrf24l01_radio_power_up(dev);
+
+	// Start listening
+	nrf24l01_start_listening(dev);
+
+	// Clear interrupts
+	nrf24l01_clear_irq(dev);
 
 	return 0;
 }
