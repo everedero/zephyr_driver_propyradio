@@ -13,4 +13,11 @@ config NRF24L01_INIT_PRIORITY
 	help
 	  nRF24 initialization priority.
 
+config NRF24L01_TRIGGER
+	bool "NRF24 trigger with irq gpio"
+	depends on NRF24L01
+	help
+	  When enabled, the NRF24L01 read is triggered by irq gpio and
+	  not by polling.
+
 endif # NRF24L01
