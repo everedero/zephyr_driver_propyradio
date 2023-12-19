@@ -20,7 +20,7 @@ properties:
 
   irq-gpios:
     type: phandle-array
-    required: true
+    required: false
     description: |
       Chip Interrupt signal (active low). If not selected, do not use interrupts.
 

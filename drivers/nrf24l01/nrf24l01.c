@@ -316,6 +316,7 @@ int nrf24l01_toggle_ce(const struct device *dev, bool level)
 	return 0;
 }
 
+#ifdef CONFIG_NRF24L01_TRIGGER
 bool nrf24l01_read_irq(const struct device *dev)
 {
 	const struct nrf24l01_config *config = dev->config;
@@ -323,6 +324,7 @@ bool nrf24l01_read_irq(const struct device *dev)
 	ret = gpio_pin_get_dt(&config->irq);
 	return((bool)ret);
 }
+#endif
 
 /* Private configuration functions */
 uint8_t nrf24l01_set_channel(const struct device *dev)
@@ -626,12 +628,6 @@ void nrf24l01_stop_listening(const struct device *dev)
 	}
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, false);
 
-	// for 3 pins solution TX mode is only left with additonal powerDown/powerUp cycle
-//	if (three_pins) {
-//		nrf24_powerDown(spi, spi_cfg);
-//	}
-//	nrf24_powerUp(spi, spi_cfg);
-
 	nrf24l01_toggle_reading_pipe(dev, 0, true);
 	data->is_listening = false;
 }
@@ -651,7 +647,6 @@ bool nrf24l01_test_spi(const struct device *dev)
 // not CONFIG_NRF24L01_TRIGGER
 static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
-	//struct nrf24l01_data *data = dev->data;
 	uint8_t pipe_num = 0;
 
 	nrf24l01_start_listening(dev);
@@ -909,6 +904,7 @@ static int nrf24l01_init(const struct device *dev)
 	// TODO
 	if (data->dynamic_payload) {
 		LOG_ERR("Dynamic payload not implemented");
+		return -ENOSYS;
 	}
 	nrf24l01_toggle_ce(dev, HIGH);
 	k_sleep(K_MSEC(100));
@@ -979,11 +975,12 @@ static int nrf24l01_init(const struct device *dev)
 
 #define NRF24L01_SPI_MODE SPI_WORD_SET(8)
 
-#define NRF24L01_DEFINE(i)                                             \
-	static const struct nrf24l01_config nrf24l01_config_##i = {        \
-		.spi = SPI_DT_SPEC_INST_GET(i, NRF24L01_SPI_MODE, 2),           \
-		.ce = GPIO_DT_SPEC_INST_GET(i, ce_gpios),               \
-		.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpios),             \
+#define NRF24L01_DEFINE(i)                                               \
+	static const struct nrf24l01_config nrf24l01_config_##i = {          \
+		.spi = SPI_DT_SPEC_INST_GET(i, NRF24L01_SPI_MODE, 2),            \
+		.ce = GPIO_DT_SPEC_INST_GET(i, ce_gpios),                        \
+		IF_ENABLED(CONFIG_NRF24L01_TRIGGER,                              \
+			(.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpios),))               \
 	};                                                                            \
                                                                                   \
 	static struct nrf24l01_data nrf24l01_##i = {                                  \
