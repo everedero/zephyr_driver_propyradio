@@ -224,7 +224,9 @@ uint8_t nrf24l01_activate(const struct device *dev)
 	return(nrf24l01_cmd_register_with_arg(dev, ACTIVATE, 0x73));
 }
 
-// Fast irq clearing
+/*
+ * Clear all 3 IRQ in one SPI command
+ */
 uint8_t nrf24l01_clear_irq(const struct device *dev)
 {
 	uint8_t reg;
