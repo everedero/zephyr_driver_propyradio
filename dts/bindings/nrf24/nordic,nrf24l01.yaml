@@ -83,17 +83,24 @@ properties:
     description: |
       Whether NRF24 dynamic payload length is enabled or not. False by default.
 
-  tx-payload-fixed-size:
+  payload-fixed-size:
     type: int
     required: false
     description: |
-      Transmit channel fixed payload side
+      Fixed payload side for transmit and all receive channels. Should be
+      the same for RX and TX side. 32 by default.
 
   payload-ack:
     type: boolean
     required: false
     description: |
       NRF24 payload with ACK. False by default.
+
+  payload-crc:
+    type: boolean
+    required: false
+    description: |
+      NRF24 payload with CRC. False by default.
 
   rx-datapipes-number:
     type: int
@@ -155,11 +162,4 @@ properties:
     required: false
     description: |
       List of the RX data pipes dynamic payload activation booleans (0 or 1)
-      Should have length rx-datapipe-number.
-
-  rx-datapipes-fixed-size-payload:
-    type: array
-    required: false
-    description: |
-      List of the RX data pipes fixed size payload. Each payload can be between 0 to 32 bytes.
       Should have length rx-datapipe-number.

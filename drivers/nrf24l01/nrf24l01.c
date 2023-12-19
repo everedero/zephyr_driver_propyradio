@@ -34,14 +34,15 @@ struct nrf24l01_data {
 	bool crc_encoding_twobytes;
 	uint8_t tx_address[5];
 	bool dynamic_payload;
-	uint8_t tx_payload_fixed_size;
+	uint8_t payload_fixed_size;
 	bool payload_ack;
+	bool payload_crc;
 	int rx_datapipes_number;
 	uint8_t rx_datapipe0_address[5];
 	uint8_t rx_datapipe1_address[5];
 	uint8_t rx_child_datapipes_addresses[4];
 	uint8_t rx_datapipes_dynamic_payload[6];
-	uint8_t rx_datapipes_fixed_size_payload[6];
+	bool is_listening;
 #ifdef CONFIG_NRF24L01_TRIGGER
 	/** RX queue buffer. */
 	uint8_t rx_queue_buf[SPI_MSG_QUEUE_LEN * SPI_MAX_MSG_LEN];
@@ -51,6 +52,8 @@ struct nrf24l01_data {
 	struct k_work trig_work;
 	/** Touch GPIO callback. */
 	struct gpio_callback irq_cb;
+	/** Semaphore for TX. */
+	struct k_sem sem;
 	/** Self reference (used in work queue context). */
 	const struct device *dev;
 #endif /* CONFIG_NRF24L01_TRIGGER */
@@ -360,7 +363,7 @@ uint8_t nrf24l01_set_config(const struct device *dev)
 	nrf24l01_set_register_bit(dev, RF_SETUP, LNA_HCURR, data->lna_gain);
 
 	// CRC configuration
-	nrf24l01_set_register_bit(dev, NRF_CONFIG, EN_CRC, data->payload_ack);
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, EN_CRC, data->payload_crc);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, CRCO, data->crc_encoding_twobytes);
 
 	// Unmask interrupts
@@ -387,7 +390,7 @@ uint8_t nrf24l01_write_payload_core(const struct device *dev, const void* buf, u
 	/* Can be TX or RX ACK*/
 	struct nrf24l01_data *data = dev->data;
 	const struct nrf24l01_config *config = dev->config;
-	uint8_t blank_len = data->dynamic_payload ? 0 : data->tx_payload_fixed_size - data_len;
+	uint8_t blank_len = data->dynamic_payload ? 0 : data->payload_fixed_size - data_len;
 	uint8_t size;
 	size = data_len + blank_len + 1 ; // Add register value to transmit buffer
 	uint8_t tx_data[SPI_MAX_MSG_LEN + 1] = {0};
@@ -442,8 +445,11 @@ uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uin
 
 	nrf24l01_toggle_ce(dev, true);
 
-	// DBG check quality
-	LOG_DBG("Observe lost pkt: 0x%x", (nrf24l01_read_register(dev, OBSERVE_TX) & 0xf0) >> 4);
+	// DBG check quality if we wait for payload ack
+	if (data->payload_ack)
+	{
+		LOG_DBG("Observe lost pkt: 0x%x", (nrf24l01_read_register(dev, OBSERVE_TX) & 0xf0) >> 4);
+	}
 
 	return ret;
 }
@@ -455,7 +461,7 @@ uint8_t nrf24l01_read_payload(const struct device *dev, void* buf, uint8_t data_
 	const struct nrf24l01_config *config = dev->config;
 	int ret;
 	uint8_t size;
-	uint8_t blank_len = data->dynamic_payload ? 0 : data->rx_datapipes_fixed_size_payload[0] - data_len;
+	uint8_t blank_len = data->dynamic_payload ? 0 : data->payload_fixed_size - data_len;
 	size = data_len + blank_len +  1 ; // Add register value to transmit buffer
 	uint8_t tx_data[SPI_MAX_MSG_LEN + 1] = {0};
 	uint8_t rx_data[SPI_MAX_MSG_LEN + 1] = {0};
@@ -524,7 +530,7 @@ void nrf24l01_configure_pipes(const struct device *dev)
 	// Writing pipes lengths
 	for (idx=0; idx<6; idx++)
 	{
-		nrf24l01_write_register(dev, RX_PW_P0+idx, data->rx_datapipes_fixed_size_payload[idx]);
+		nrf24l01_write_register(dev, RX_PW_P0+idx, data->payload_fixed_size);
 	}
 	// Enabling the N first RX pipes
 	for (idx=0; idx<data->rx_datapipes_number; idx++)
@@ -544,11 +550,12 @@ void nrf24l01_configure_ack(const struct device *dev)
 	}
 	nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
 	nrf24l01_set_register_bit(dev, FEATURE, EN_DPL, data->dynamic_payload);
-	if (data->payload_ack)
-	{
+	// TODO Verify, but this is automatically set
+	//if (data->payload_ack)
+	//{
 		// Auto ack on pipe 0 when TX
-		nrf24l01_write_register(dev, EN_AA, 0x01);
-	}
+	//	nrf24l01_write_register(dev, EN_AA, 0x01);
+	//}
 }
 bool nrf24l01_is_rx_data_available(const struct device *dev, uint8_t* pipe_num)
 {
@@ -588,6 +595,8 @@ void nrf24l01_radio_power_down(const struct device *dev)
 
 void nrf24l01_start_listening(const struct device *dev)
 {
+	struct nrf24l01_data *data = dev->data;
+	data->is_listening = true;
 	nrf24l01_radio_power_up(dev);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, true);
 	nrf24l01_clear_irq(dev);
@@ -601,7 +610,11 @@ void nrf24l01_start_listening(const struct device *dev)
 }
 void nrf24l01_stop_listening(const struct device *dev)
 {
+	struct nrf24l01_data *data = dev->data;
 	const uint8_t tx_delay=250;
+	if (! data->is_listening) {
+		return;
+	}
 	// Set CE low
 	nrf24l01_toggle_ce(dev, LOW);
 
@@ -620,7 +633,7 @@ void nrf24l01_stop_listening(const struct device *dev)
 //	nrf24_powerUp(spi, spi_cfg);
 
 	nrf24l01_toggle_reading_pipe(dev, 0, true);
-
+	data->is_listening = false;
 }
 
 bool nrf24l01_test_spi(const struct device *dev)
@@ -634,13 +647,12 @@ bool nrf24l01_test_spi(const struct device *dev)
 	}
 	return(true);
 }
-#ifdef CONFIG_NRF24L01_TRIGGER
-#else // not CONFIG_NRF24L01_TRIGGER
+#ifndef CONFIG_NRF24L01_TRIGGER
+// not CONFIG_NRF24L01_TRIGGER
 static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
+	//struct nrf24l01_data *data = dev->data;
 	uint8_t pipe_num = 0;
-	static uint8_t got_byte = 0;
-	struct nrf24l01_data *data = dev->data;
 
 	nrf24l01_start_listening(dev);
 	while (!nrf24l01_is_rx_data_available(dev, &pipe_num))
@@ -648,22 +660,18 @@ static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint
 		k_msleep(1);
 	}
 	nrf24l01_read_payload(dev, buffer, data_len);
-	if (data->payload_ack)
-	{
-		// Acking
-		got_byte += 1;
-		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
-	}
 	return 0;
 }
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // not CONFIG_NRF24L01_TRIGGER
 
 /* API functions */
 
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
-#ifdef CONFIG_NRF24L01_TRIGGER
+	static uint8_t got_byte = 0;
+	uint8_t pipe_num = 0;
 	struct nrf24l01_data *data = dev->data;
+#ifdef CONFIG_NRF24L01_TRIGGER
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
 	if (k_msgq_get(&data->rx_queue, buffer_full, K_FOREVER) < 0) {
@@ -674,32 +682,51 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 	nrf24l01_read_polling(dev, buffer, data_len);
 #endif // CONFIG_NRF24L01_TRIGGER
 
+	if (data->payload_ack)
+	{
+		// Retrieve pipe_num
+		nrf24l01_is_rx_data_available(dev, &pipe_num);
+		LOG_INF("Sending ack on pipe %d", pipe_num);
+		// Acking
+		got_byte += 1;
+		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
+	}
+
 	return 0;
 }
 
 static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
+#ifdef CONFIG_NRF24L01_TRIGGER
+	struct nrf24l01_data *data = dev->data;
+#else // not CONFIG_NRF24L01_TRIGGER
 	uint8_t status;
+#endif // CONFIG_NRF24L01_TRIGGER
 	nrf24l01_stop_listening(dev);
 
-	// Like startFastWrite
 	nrf24l01_write_tx_payload(dev, buffer, data_len);
 	nrf24l01_toggle_ce(dev, HIGH);
+#ifdef CONFIG_NRF24L01_TRIGGER
+	if (k_sem_take(&data->sem, K_MSEC(100)) != 0) {
+		LOG_ERR("TX sending timed out");
+		nrf24l01_toggle_ce(dev, LOW);
+	}
+#else // not CONFIG_NRF24L01_TRIGGER
 	// Wait for status bits TX_DS or MAX_RT to be asserted
 	while( !(nrf24l01_get_register_bit(dev, NRF_STATUS, TX_DS) |
 		nrf24l01_get_register_bit(dev, NRF_STATUS, MAX_RT)))
 	{
-		k_msleep(1);
+		k_usleep(10);
 	}
-	nrf24l01_toggle_ce(dev, LOW);
-
-	status = nrf24l01_clear_irq(dev);
-
-	// Max retries exceeded, flush TX
+	// If max retries exceeded, flush TX
+	status = nrf24l01_read_register(dev, NRF_STATUS);
 	if ( status & BIT(MAX_RT) ) {
 		nrf24l01_cmd_register(dev, FLUSH_TX);
-		return -EIO;
+		//return -EIO;
 	}
+	nrf24l01_clear_irq(dev);
+	nrf24l01_toggle_ce(dev, LOW);
+#endif // CONFIG_NRF24L01_TRIGGER
 
 	return 0;
 }
@@ -767,8 +794,9 @@ void work_queue_callback_handler(struct k_work *item)
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t ret;
 	uint8_t buffer[SPI_MAX_MSG_LEN] = {0};
-	int got_byte=0;
+	//int got_byte=0;
 	uint8_t pipe_num = 0;
+	uint8_t size = data->dynamic_payload ? SPI_MAX_MSG_LEN : data->payload_fixed_size;
 	ret = nrf24l01_read_register(dev, NRF_STATUS);
 
     if (ret & BIT(RX_DR))
@@ -784,26 +812,36 @@ void work_queue_callback_handler(struct k_work *item)
 			}
 			return;
 		}
-//SPI_MAX_MSG_LEN
-//TODO remove magic number, fixed payload or max
-		nrf24l01_read_payload(dev, buffer, 32);
+		nrf24l01_read_payload(dev, buffer, size);
 		if (k_msgq_put(&data->rx_queue, buffer, K_NO_WAIT) < 0) {
 			LOG_ERR("RX queue full, dropping packet");
 		}
+		/*
 		if (data->payload_ack)
 		{
 			// Acking
 			got_byte += 1;
 			nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
 		}
+		*/
 	}
 	else if (ret & BIT(TX_DS))
 	{
-		LOG_INF("TX interrupt!");
+		LOG_INF("TX OK!");
+		nrf24l01_toggle_ce(dev, LOW);
+		// free semaphore
+		k_sem_give(&data->sem);
+
 	}
 	else if (ret & BIT(MAX_RT))
 	{
+		// If nobody receives the message, we end up here
 		LOG_INF("TX max RT interrupt!");
+		nrf24l01_toggle_ce(dev, LOW);
+		// Max retries exceeded, flush TX
+		nrf24l01_cmd_register(dev, FLUSH_TX);
+		// free semaphore
+		k_sem_give(&data->sem);
 	}
 	nrf24l01_clear_irq(dev);
 	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_EDGE_TO_ACTIVE);
@@ -860,7 +898,7 @@ static int nrf24l01_init(const struct device *dev)
 	ret = nrf24l01_set_channel(dev);
     ret = nrf24l01_set_config(dev);
 
-    if (data->tx_payload_fixed_size > 32)
+    if (data->payload_fixed_size > 32)
 	{
 		LOG_ERR("Selected data payload size too big, max 32");
 		return -ENOTSUP;
@@ -890,11 +928,15 @@ static int nrf24l01_init(const struct device *dev)
 	nrf24l01_activate(dev);
 
 #ifdef CONFIG_NRF24L01_TRIGGER
-	k_msgq_init(&data->rx_queue, data->rx_queue_buf, SPI_MAX_MSG_LEN,
-		SPI_MSG_QUEUE_LEN);
-
 	LOG_INF("Trigger config");
 	data->dev = dev;
+
+	// Semaphore for tx
+	k_sem_init(&data->sem, 0, 1);
+
+	// Message queue
+	k_msgq_init(&data->rx_queue, data->rx_queue_buf, SPI_MAX_MSG_LEN,
+		SPI_MSG_QUEUE_LEN);
 
 	if (!gpio_is_ready_dt(&config->irq)) {
 		return -EBUSY;
@@ -952,12 +994,14 @@ static int nrf24l01_init(const struct device *dev)
 		.lna_gain = DT_INST_PROP_OR(i, lna_gain, false),                          \
 		.crc_encoding_twobytes = DT_INST_PROP_OR(i, crc_encoding_twobytes, false),\
 		.tx_address = DT_INST_PROP(i, tx_address),                                \
-		.tx_payload_fixed_size = DT_INST_PROP_OR(i, tx_payload_fixed_size, 32),            \
+		.payload_fixed_size = DT_INST_PROP_OR(i, payload_fixed_size, 32),            \
 		.dynamic_payload = DT_INST_PROP_OR(i, dynamic_payload, false),            \
 		.payload_ack = DT_INST_PROP_OR(i, payload_ack, false),                    \
-		.rx_datapipes_number = DT_INST_PROP(i, payload_ack),                      \
+		.payload_crc = DT_INST_PROP_OR(i, payload_crc, false),                    \
+		.rx_datapipes_number = DT_INST_PROP(i, rx_datapipes_number),                      \
 		.rx_datapipe0_address = DT_INST_PROP(i, rx_datapipe0_address),            \
 		.rx_datapipe1_address = DT_INST_PROP(i, rx_datapipe1_address),            \
+		.is_listening = false,                                                    \
 		.rx_child_datapipes_addresses = {                 \
 			DT_INST_PROP(i, rx_datapipe2_address),           \
 			DT_INST_PROP(i, rx_datapipe3_address),            \
@@ -965,8 +1009,6 @@ static int nrf24l01_init(const struct device *dev)
 			DT_INST_PROP(i, rx_datapipe5_address)},            \
 		.rx_datapipes_dynamic_payload = DT_INST_PROP_OR(i,                        \
 				rx_datapipes_dynamic_payload, {}),                                \
-		.rx_datapipes_fixed_size_payload = DT_INST_PROP_OR(i,                     \
-				rx_datapipes_fixed_size_payload, {}),                             \
 	};                                                                            \
 	DEVICE_DT_INST_DEFINE(i, nrf24l01_init, NULL, &nrf24l01_##i,  \
 			      &nrf24l01_config_##i, POST_KERNEL,              \

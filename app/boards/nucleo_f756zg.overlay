@@ -2,7 +2,7 @@
 	pinctrl-0 = <&spi1_sck_pb3 &spi1_miso_pb4 &spi1_mosi_pb5>;
 	pinctrl-names = "default";
 	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
-	clock-frequency = <8000000>; // Max 8 Mbps for SPI
+	clock-frequency = <500000>; // Max 8 Mbps for SPI
 	status = "okay";
 
 	radio0: nrf24@0 {
@@ -17,11 +17,12 @@
 		rf-power-attenuation = <18>;
 		lna-gain;
 		tx-address = [e7 e7 e7 e7];
-		tx-payload-fixed-size = <32>;
+		payload-fixed-size = <32>;
 		rx-datapipes-number = <2>;
 		rx-datapipe0-address = [e7 e7 e7 e7];
 		rx-datapipe1-address = [de ad de ad];
-		rx-datapipes-fixed-size-payload = <32 32>;
-		//payload-ack;
+		payload-ack;
+		payload-crc;
+		//data-rate-2mbps;
 	};
 };
