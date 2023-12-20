@@ -447,15 +447,6 @@ uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uin
 	/* Write a TX payload to send*/
 	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);
 
-	/*nrf24l01_toggle_ce(dev, true);
-
-	// DBG check quality if we wait for payload ack
-	if (data->payload_ack)
-	{
-		LOG_DBG("Observe lost pkt: 0x%x", (nrf24l01_read_register(dev, OBSERVE_TX) & 0xf0) >> 4);
-	}
-	*/
-
 	return ret;
 }
 
@@ -553,7 +544,6 @@ void nrf24l01_configure_ack(const struct device *dev)
 	{
 		nrf24l01_set_register_bit(dev, DYNPD, DPL_P0+idx, data->rx_datapipes_dynamic_payload[idx]);
 	}
-	//nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
 	nrf24l01_set_register_bit(dev, FEATURE, EN_DPL, data->dynamic_payload);
 	if (data->payload_ack) {
 		// Auto retransmit with 3 attempts
@@ -700,16 +690,6 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 #else // not CONFIG_NRF24L01_TRIGGER
 	nrf24l01_read_polling(dev, buffer, data_len);
 #endif // CONFIG_NRF24L01_TRIGGER
- //Automagic?
-/*	if (data->payload_ack)
-	{
-		// Retrieve pipe_num
-		nrf24l01_is_rx_data_available(dev, &pipe_num);
-		LOG_INF("Sending ack on pipe %d", pipe_num);
-		// Acking
-		got_byte += 1;
-		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
-	}*/
 
 	return 0;
 }
@@ -725,7 +705,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 
 	nrf24l01_write_tx_payload(dev, buffer, data_len);
 	nrf24l01_toggle_ce(dev, HIGH);
-	// TODO 10 us pulse
+	// 10 us pulse
 	k_usleep(10);
 	nrf24l01_toggle_ce(dev, LOW);
 #ifdef CONFIG_NRF24L01_TRIGGER
@@ -747,7 +727,6 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 		//return -EIO;
 	}
 	nrf24l01_clear_irq(dev);
-	nrf24l01_toggle_ce(dev, LOW);
 #endif // CONFIG_NRF24L01_TRIGGER
 
 	return 0;
@@ -816,7 +795,6 @@ void work_queue_callback_handler(struct k_work *item)
 	const struct nrf24l01_config *config = dev->config;
 	uint8_t ret;
 	uint8_t buffer[SPI_MAX_MSG_LEN] = {0};
-	//int got_byte=0;
 	uint8_t pipe_num = 0;
 	uint8_t size = data->dynamic_payload ? SPI_MAX_MSG_LEN : data->payload_fixed_size;
 	ret = nrf24l01_read_register(dev, NRF_STATUS);
