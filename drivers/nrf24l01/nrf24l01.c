@@ -677,10 +677,8 @@ static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint
 
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
-	static uint8_t got_byte = 0;
-	uint8_t pipe_num = 0;
-	struct nrf24l01_data *data = dev->data;
 #ifdef CONFIG_NRF24L01_TRIGGER
+	struct nrf24l01_data *data = dev->data;
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
 	if (k_msgq_get(&data->rx_queue, buffer_full, K_FOREVER) < 0) {
@@ -704,6 +702,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	nrf24l01_stop_listening(dev);
 
 	nrf24l01_write_tx_payload(dev, buffer, data_len);
+	LOG_DBG("Send TX");
 	nrf24l01_toggle_ce(dev, HIGH);
 	// 10 us pulse
 	k_usleep(10);
@@ -801,7 +800,7 @@ void work_queue_callback_handler(struct k_work *item)
 
     if (ret & BIT(RX_DR))
 	{
-		LOG_INF("RX received");
+		LOG_DBG("RX received");
 		if (!nrf24l01_is_rx_data_available(dev, &pipe_num))
 		{
 			LOG_ERR("No data available in RX interrupt");
@@ -825,7 +824,7 @@ void work_queue_callback_handler(struct k_work *item)
 	}
 	else if (ret & BIT(TX_DS))
 	{
-		LOG_INF("TX OK!");
+		LOG_DBG("TX OK!");
 		nrf24l01_toggle_ce(dev, LOW);
 		// free semaphore
 		k_sem_give(&data->sem);
@@ -834,7 +833,7 @@ void work_queue_callback_handler(struct k_work *item)
 	else if (ret & BIT(MAX_RT))
 	{
 		// If nobody receives the message, we end up here
-		LOG_INF("TX max RT interrupt!");
+		LOG_DBG("TX not acked");
 		nrf24l01_toggle_ce(dev, LOW);
 		// Max retries exceeded, flush TX
 		nrf24l01_cmd_register(dev, FLUSH_TX);
