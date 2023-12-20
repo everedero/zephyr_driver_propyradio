@@ -447,13 +447,14 @@ uint8_t nrf24l01_write_tx_payload(const struct device *dev, const void* buf, uin
 	/* Write a TX payload to send*/
 	ret = nrf24l01_write_payload_core(dev, buf, data_len, cmd);
 
-	nrf24l01_toggle_ce(dev, true);
+	/*nrf24l01_toggle_ce(dev, true);
 
 	// DBG check quality if we wait for payload ack
 	if (data->payload_ack)
 	{
 		LOG_DBG("Observe lost pkt: 0x%x", (nrf24l01_read_register(dev, OBSERVE_TX) & 0xf0) >> 4);
 	}
+	*/
 
 	return ret;
 }
@@ -552,15 +553,32 @@ void nrf24l01_configure_ack(const struct device *dev)
 	{
 		nrf24l01_set_register_bit(dev, DYNPD, DPL_P0+idx, data->rx_datapipes_dynamic_payload[idx]);
 	}
-	nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
+	//nrf24l01_set_register_bit(dev, FEATURE, EN_ACK_PAY, data->payload_ack);
 	nrf24l01_set_register_bit(dev, FEATURE, EN_DPL, data->dynamic_payload);
+	if (data->payload_ack) {
+		// Auto retransmit with 3 attempts
+		nrf24l01_write_register(dev, SETUP_RETR, 0x23);
+	} else {
+		// Disable auto retransmit
+		nrf24l01_write_register(dev, SETUP_RETR, 0x00);
+	}
 	// TODO Verify, but this is automatically set
-	//if (data->payload_ack)
-	//{
-		// Auto ack on pipe 0 when TX
-	//	nrf24l01_write_register(dev, EN_AA, 0x01);
-	//}
+	if (data->payload_ack)
+	{
+		// Auto ack on enabled pipes
+		nrf24l01_write_register(dev, EN_AA,
+				GENMASK(data->rx_datapipes_number-1, 0));
+	} else {
+		nrf24l01_write_register(dev, EN_AA, 0x00);
+	}
+	if (data->payload_ack)
+	{
+		if (memcmp(data->rx_datapipe0_address, data->tx_address, data->addr_width)) {
+			LOG_WRN("RX datapipe 0 and TX address are different, use this config only for RX mode");
+		}
+	}
 }
+
 bool nrf24l01_is_rx_data_available(const struct device *dev, uint8_t* pipe_num)
 {
 	/* Set pipe_num to 0 to ignore the pipe number retrieval */
@@ -606,6 +624,8 @@ void nrf24l01_start_listening(const struct device *dev)
 	nrf24l01_clear_irq(dev);
 	// Set CE high for RX
 	nrf24l01_toggle_ce(dev, HIGH);
+	// In listening mode, rx datapipe has payload size
+	nrf24l01_write_register(dev, RX_PW_P0, data->payload_fixed_size);
 	// Restore the pipe0 adddress, if exists
 	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY))
 	{
@@ -619,6 +639,8 @@ void nrf24l01_stop_listening(const struct device *dev)
 	if (! data->is_listening) {
 		return;
 	}
+	// In non-listening mode, rx datapipe has payload size 2 for ACK
+	nrf24l01_write_register(dev, RX_PW_P0, 2);
 	// Set CE low
 	nrf24l01_toggle_ce(dev, LOW);
 
@@ -678,8 +700,8 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 #else // not CONFIG_NRF24L01_TRIGGER
 	nrf24l01_read_polling(dev, buffer, data_len);
 #endif // CONFIG_NRF24L01_TRIGGER
-
-	if (data->payload_ack)
+ //Automagic?
+/*	if (data->payload_ack)
 	{
 		// Retrieve pipe_num
 		nrf24l01_is_rx_data_available(dev, &pipe_num);
@@ -687,7 +709,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 		// Acking
 		got_byte += 1;
 		nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
-	}
+	}*/
 
 	return 0;
 }
@@ -703,10 +725,13 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 
 	nrf24l01_write_tx_payload(dev, buffer, data_len);
 	nrf24l01_toggle_ce(dev, HIGH);
+	// TODO 10 us pulse
+	k_usleep(10);
+	nrf24l01_toggle_ce(dev, LOW);
 #ifdef CONFIG_NRF24L01_TRIGGER
 	if (k_sem_take(&data->sem, K_MSEC(100)) != 0) {
 		LOG_ERR("TX sending timed out");
-		nrf24l01_toggle_ce(dev, LOW);
+	nrf24l01_toggle_ce(dev, LOW);
 	}
 #else // not CONFIG_NRF24L01_TRIGGER
 	// Wait for status bits TX_DS or MAX_RT to be asserted
@@ -798,6 +823,7 @@ void work_queue_callback_handler(struct k_work *item)
 
     if (ret & BIT(RX_DR))
 	{
+		LOG_INF("RX received");
 		if (!nrf24l01_is_rx_data_available(dev, &pipe_num))
 		{
 			LOG_ERR("No data available in RX interrupt");
@@ -809,18 +835,15 @@ void work_queue_callback_handler(struct k_work *item)
 			}
 			return;
 		}
-		nrf24l01_read_payload(dev, buffer, size);
-		if (k_msgq_put(&data->rx_queue, buffer, K_NO_WAIT) < 0) {
-			LOG_ERR("RX queue full, dropping packet");
+		if (data->is_listening)
+		{ // Not an ACK interrupt
+			nrf24l01_read_payload(dev, buffer, size);
+			if (k_msgq_put(&data->rx_queue, buffer, K_NO_WAIT) < 0) {
+				LOG_ERR("RX queue full, dropping packet");
+			}
+		} else {
+			LOG_INF("Receive ACK");
 		}
-		/*
-		if (data->payload_ack)
-		{
-			// Acking
-			got_byte += 1;
-			nrf24l01_write_ack_payload(dev, &got_byte, 1, pipe_num);
-		}
-		*/
 	}
 	else if (ret & BIT(TX_DS))
 	{

@@ -116,6 +116,7 @@ properties:
     description: |
       RX data pipe 0 address.
       Should have a length of addr-width.
+      If auto acknowledgement is used, it should be the same than tx-address.
 
   rx-datapipe1-address:
     type: uint8-array

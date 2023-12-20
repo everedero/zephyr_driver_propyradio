@@ -69,3 +69,9 @@ To execute Twister integration tests, run the following command:
 ```shell
 west twister -T tests --integration
 ```
+
+# Troubleshooting
+
+## No RX received
+
+* Verify your device tree. Verify CE GPIO is active high and IRQ active low.
