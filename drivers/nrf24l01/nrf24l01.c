@@ -608,25 +608,25 @@ void nrf24l01_radio_power_down(const struct device *dev)
 void nrf24l01_start_listening(const struct device *dev)
 {
 	struct nrf24l01_data *data = dev->data;
+	if (data->is_listening) {
+		return;
+	}
 	data->is_listening = true;
-	nrf24l01_radio_power_up(dev);
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, true);
-	nrf24l01_clear_irq(dev);
 	// Set CE high for RX
 	nrf24l01_toggle_ce(dev, HIGH);
 	// In listening mode, rx datapipe has payload size
 	nrf24l01_write_register(dev, RX_PW_P0, data->payload_fixed_size);
-	// Restore the pipe0 adddress, if exists
-	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY))
-	{
-		nrf24l01_cmd_register(dev, FLUSH_TX);
-	}
+	// Set CE high for RX
+	nrf24l01_toggle_ce(dev, HIGH);
+	nrf24l01_radio_power_up(dev);
 }
+
 void nrf24l01_stop_listening(const struct device *dev)
 {
 	struct nrf24l01_data *data = dev->data;
 	const uint8_t tx_delay=250;
-	if (! data->is_listening) {
+	if (!data->is_listening) {
 		return;
 	}
 	// In non-listening mode, rx datapipe has payload size 2 for ACK
@@ -636,14 +636,12 @@ void nrf24l01_stop_listening(const struct device *dev)
 
 	k_sleep(K_MSEC(tx_delay));
 
-	if (nrf24l01_get_register_bit(dev, FEATURE, EN_ACK_PAY)) {
-		k_sleep(K_MSEC(tx_delay));
-		nrf24l01_cmd_register(dev, FLUSH_TX);
-	}
 	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, false);
 
 	nrf24l01_toggle_reading_pipe(dev, 0, true);
 	data->is_listening = false;
+	nrf24l01_radio_power_up(dev);
+	nrf24l01_clear_irq(dev);
 }
 
 bool nrf24l01_test_spi(const struct device *dev)
@@ -663,7 +661,6 @@ static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint
 {
 	uint8_t pipe_num = 0;
 
-	nrf24l01_start_listening(dev);
 	while (!nrf24l01_is_rx_data_available(dev, &pipe_num))
 	{
 		k_msleep(1);
@@ -677,6 +674,7 @@ static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint
 
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
+	nrf24l01_start_listening(dev);
 #ifdef CONFIG_NRF24L01_TRIGGER
 	struct nrf24l01_data *data = dev->data;
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
@@ -962,13 +960,18 @@ static int nrf24l01_init(const struct device *dev)
 
 #endif /* CONFIG_NRF24L01_TRIGGER */
 
+	// Initialize in non listining mode
+	data->is_listening = false;
+	nrf24l01_write_register(dev, RX_PW_P0, 2);
+	nrf24l01_toggle_ce(dev, LOW);
+	const uint8_t tx_delay=250;
+	k_sleep(K_MSEC(tx_delay));
+	nrf24l01_set_register_bit(dev, NRF_CONFIG, PRIM_RX, false);
+
+	nrf24l01_toggle_reading_pipe(dev, 0, true);
 	// Turn radio on
 	// TODO Power up in read() and not write(), fix state machine logic
 	nrf24l01_radio_power_up(dev);
-
-	// Start listening
-	nrf24l01_start_listening(dev);
-
 	// Clear interrupts
 	nrf24l01_clear_irq(dev);
 
