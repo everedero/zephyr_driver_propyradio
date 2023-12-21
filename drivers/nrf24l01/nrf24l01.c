@@ -674,6 +674,7 @@ static int nrf24l01_read_polling(const struct device *dev, uint8_t *buffer, uint
 
 static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
+	LOG_DBG("Read RX");
 	nrf24l01_start_listening(dev);
 #ifdef CONFIG_NRF24L01_TRIGGER
 	struct nrf24l01_data *data = dev->data;
@@ -697,10 +698,10 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 #else // not CONFIG_NRF24L01_TRIGGER
 	uint8_t status;
 #endif // CONFIG_NRF24L01_TRIGGER
+	LOG_DBG("Send TX");
 	nrf24l01_stop_listening(dev);
 
 	nrf24l01_write_tx_payload(dev, buffer, data_len);
-	LOG_DBG("Send TX");
 	nrf24l01_toggle_ce(dev, HIGH);
 	// 10 us pulse
 	k_usleep(10);
