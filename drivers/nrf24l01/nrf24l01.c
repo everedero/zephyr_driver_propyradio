@@ -682,6 +682,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 
 	if (k_msgq_get(&data->rx_queue, buffer_full, K_FOREVER) < 0) {
 		LOG_ERR("Nothing in RX queue");
+		return(-EIO);
 	}
 	memcpy(buffer, buffer_full, data_len);
 #else // not CONFIG_NRF24L01_TRIGGER
@@ -722,7 +723,8 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	status = nrf24l01_read_register(dev, NRF_STATUS);
 	if ( status & BIT(MAX_RT) ) {
 		nrf24l01_cmd_register(dev, FLUSH_TX);
-		//return -EIO;
+		nrf24l01_clear_irq(dev);
+		return -EIO;
 	}
 	nrf24l01_clear_irq(dev);
 #endif // CONFIG_NRF24L01_TRIGGER
