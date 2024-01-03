@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2024 Eve Redero
  * SPDX-License-Identifier: Apache-2.0
  */
 

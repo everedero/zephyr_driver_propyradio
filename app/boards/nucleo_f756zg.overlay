@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024 Eve Redero
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pb3 &spi1_miso_pb4 &spi1_mosi_pb5>;
 	pinctrl-names = "default";

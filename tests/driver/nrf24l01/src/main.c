@@ -1,17 +1,14 @@
 /*
- * Copyright (c) 2021 Legrand North America, LLC.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright (c) 2024 Eve Redero
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 /*
- * @file test custom_lib library
- *
- * This suite verifies that the methods provided with the custom_lib
- * library works correctly.
- */
-
-#include <limits.h>
+* @file test nrf24l01 driver
+*
+* This suite verifies that the driver builds correctly
+* on selected target
+*/
 
 #include <zephyr/ztest.h>
 
