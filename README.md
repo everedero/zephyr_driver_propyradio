@@ -74,4 +74,13 @@ west twister -T tests --integration
 
 ## No RX received
 
-* Verify your device tree. Verify CE GPIO is active high and IRQ active low.
+* Verify your device tree
+* Verify CE GPIO is active high and IRQ active low.
+
+## Issue with SPI read/write
+
+Write in a register and read it.
+
+* Verify NRF24 is correctly plugged
+* Verify it is power supplied correctly
+* Verify the incoming SPI data is correct
