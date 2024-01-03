@@ -3,12 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+&pinctrl {
+spim2_default: spim2_default {
+		group1 {
+			pinmux = <SPIM2_MISO_GPIO2>,
+				 <SPIM2_MOSI_GPIO15>,
+				 <SPIM2_SCLK_GPIO14>;
+		};
+	};
+};
+
 &spi2 {
-        #address-cells = <1>;
-        #size-cells = <0>;
-        status = "okay";
-        pinctrl-0 = <&spim2_default>;
-        pinctrl-names = "default";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	pinctrl-0 = <&spim2_default>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 
 	radio0: nrf24@0 {
 		reg = <0>;

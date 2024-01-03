@@ -22,8 +22,8 @@ The IS\_TX flag allows to switch the behaviour between RX and TX.
 | VCC       | 2         | 3V3        |                     | VDD         |                    | 3V3            |                    |
 | CE        | 3         | D9         | PD15                | P0.19       | D8                 | 16             | 16                 |
 | CSN / NSS | 4         | D24        | PA4                 | P0.22       | D10                | D3             | 10                 |
-| SCK       | 5         | D23        | PB3                 | P0.25       | D13                | CLK            | 6                  |
-| MOSI      | 6         | D22        | PB5                 | P0.23       | D11                | D0             | 7                  |
+| SCK       | 5         | D23        | PB3                 | P0.25       | D13                | 14             | 14                 |
+| MOSI      | 6         | D22        | PB5                 | P0.23       | D11                | 15             | 15                 |
 | MISO      | 7         | D25        | PB4                 | P0.24       | D12                | 2              | 2                  |
 | IRQ       | 8         | D10        | PD14                | P0.20       | D9                 | 17             | 17                 |
 
@@ -215,7 +215,7 @@ PlantUML](https://kroki.io/ditaa/svg/eNrNl81uhCAURvc-Bcsa04Z_dK2mMU0dOzbzGr6AD19
             |     |                                  |     |
             | 27  |                                  | 17  |  IRQ (8)
             |     |                                  |     |
-            | 14  |                                  | 16  |  CE  (3)
+(5) SCK     | 14  |                                  | 16  |  CE  (3)
             |     |                                  |     |
             | 12  |                                  | 4   |
             |     |                                  |     |
@@ -223,15 +223,15 @@ PlantUML](https://kroki.io/ditaa/svg/eNrNl81uhCAURvc-Bcsa04Z_dK2mMU0dOzbzGr6AD19
             |     |                                  |     |
             | 13  |                                  | 2   |  MISO (7)
             |     |                                  |     |
-            | D2  |                                  | 15  |
+            | D2  |                                  | 15  |  MOSI (6)
             |     |                                  |     |
 (4) CSN     | D3  |                                  | D1  |
             |     |                                  |     |
-            | CMD |                                  | D0  |  MOSI (6)
+            | CMD |                                  | D0  |
             |     |                                  |     |
-            | 5V  |                                  | CLK |  SCK (5)
+            | 5V  |                                  | CLK |
             |     |                                  |     |
             +-----+                                  +-----+
 -->
 ![Kroki generated
-PlantUML](https://kroki.io/ditaa/svg/eNrFlsEKgzAMhu8-RY4VGdjG6naubohTNzvcHsaH31REq0MCCyyHQkk-_-SvhXqwiODQR-DsnHBTgbeEO8AWP-u028SculQpdN42R4KHdQVnFRFWCLzK7W1Vkdlbk1mbn9fKilu52iqjOjybui4d-PFiVsaICDfsypp6zpJbWcGf_m3EuWLnSnYgT_sz78R3ZaWJsDxyK8dEWAO3ckKdeSzMmzuIo8_ZgoyoLYwumQxAIG8LighH3P4P14cCh9zKEomwGj9R5rYGkbD6nlJ9l_rn6UXkg7HVpEydPpXMvpuSeOJpOPpe2xxEzOq7bomwuRZ9oTUFCM3Ygvvy2onp5fUGnSeHzg==)
+PlantUML](https://kroki.io/ditaa/svg/eNrFls0KgzAMx-8-RY4VEdbGuu1c3RDnx-xwexgffptOXHVIwMByKJTk31-aNFCAyYLwbYGzc8x1Bd6XFjrAFl_ruFvY5DqXCXTe0kcS9-tMnJZEsULgJbf1LCK1dZNam53mZMVNLpdkVOG9qarCEd8ezGSMiOKGnaypfZbcZAV_etuIU8TKSHYgj-t3XrHfZKWJYnngJsdEsQZu8p565yEwa64gDv62FIT2wZp8PDmipjBUyaQAAn3OKkhFFEfc9e_HhyLecZMlEsVqOKLIbAViz1r3hFp3OYxmUdkMRLz1-UU-GFuOOVDrkEjmDpiC2Ptkx0zWLVFsLjkn2f1wrdgn8An4ooaa)
