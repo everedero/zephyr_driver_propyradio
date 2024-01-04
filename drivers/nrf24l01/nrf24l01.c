@@ -681,7 +681,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 	struct nrf24l01_data *data = dev->data;
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
-	if (k_msgq_get(&data->rx_queue, buffer_full, K_SECONDS(1)) < 0) {
+	if (k_msgq_get(&data->rx_queue, buffer_full, K_MSEC(CONFIG_NRF24L01_READ_TIMEOUT)) < 0) {
 		LOG_ERR("Nothing in RX queue");
 		return(-EIO);
 	}

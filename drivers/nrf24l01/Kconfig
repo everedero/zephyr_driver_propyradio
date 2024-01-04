@@ -20,4 +20,11 @@ config NRF24L01_TRIGGER
 	  When enabled, the NRF24L01 read is triggered by irq gpio and
 	  not by polling.
 
+config NRF24L01_READ_TIMEOUT
+	int "Timout for read operation"
+	depends on NRF24L01_TRIGGER
+	default 1000
+	help
+	  nRF24 timeout for reading, in ms.
+
 endif # NRF24L01
