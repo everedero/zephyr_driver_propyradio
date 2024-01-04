@@ -43,6 +43,7 @@ struct nrf24l01_data {
 	uint8_t rx_child_datapipes_addresses[4];
 	uint8_t rx_datapipes_dynamic_payload[6];
 	bool is_listening;
+	uint8_t write_ret_code;
 #ifdef CONFIG_NRF24L01_TRIGGER
 	/** RX queue buffer. */
 	uint8_t rx_queue_buf[SPI_MSG_QUEUE_LEN * SPI_MAX_MSG_LEN];
@@ -680,7 +681,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 	struct nrf24l01_data *data = dev->data;
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
-	if (k_msgq_get(&data->rx_queue, buffer_full, K_FOREVER) < 0) {
+	if (k_msgq_get(&data->rx_queue, buffer_full, K_SECONDS(1)) < 0) {
 		LOG_ERR("Nothing in RX queue");
 		return(-EIO);
 	}
@@ -696,6 +697,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 {
 #ifdef CONFIG_NRF24L01_TRIGGER
 	struct nrf24l01_data *data = dev->data;
+	int ret = 0;
 #else // not CONFIG_NRF24L01_TRIGGER
 	uint8_t status;
 #endif // CONFIG_NRF24L01_TRIGGER
@@ -710,8 +712,10 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 #ifdef CONFIG_NRF24L01_TRIGGER
 	if (k_sem_take(&data->sem, K_MSEC(100)) != 0) {
 		LOG_ERR("TX sending timed out");
-	nrf24l01_toggle_ce(dev, LOW);
+		nrf24l01_toggle_ce(dev, LOW);
+		return -ETIME;
 	}
+	ret = (int)data->write_ret_code;
 #else // not CONFIG_NRF24L01_TRIGGER
 	// Wait for status bits TX_DS or MAX_RT to be asserted
 	while( !(nrf24l01_get_register_bit(dev, NRF_STATUS, TX_DS) |
@@ -729,7 +733,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	nrf24l01_clear_irq(dev);
 #endif // CONFIG_NRF24L01_TRIGGER
 
-	return 0;
+	return ret;
 }
 
 static const struct nrf24_api nrf24l01_api = {
@@ -828,6 +832,7 @@ void work_queue_callback_handler(struct k_work *item)
 		LOG_DBG("TX OK!");
 		nrf24l01_toggle_ce(dev, LOW);
 		// free semaphore
+		data->write_ret_code = 0;
 		k_sem_give(&data->sem);
 
 	}
@@ -838,6 +843,8 @@ void work_queue_callback_handler(struct k_work *item)
 		nrf24l01_toggle_ce(dev, LOW);
 		// Max retries exceeded, flush TX
 		nrf24l01_cmd_register(dev, FLUSH_TX);
+		// Write error code
+		data->write_ret_code = MAX_RT;
 		// free semaphore
 		k_sem_give(&data->sem);
 	}
@@ -1007,6 +1014,7 @@ static int nrf24l01_init(const struct device *dev)
 		.rx_datapipe0_address = DT_INST_PROP(i, rx_datapipe0_address),            \
 		.rx_datapipe1_address = DT_INST_PROP(i, rx_datapipe1_address),            \
 		.is_listening = false,                                                    \
+		.write_ret_code = 0,                                                    \
 		.rx_child_datapipes_addresses = {                 \
 			DT_INST_PROP(i, rx_datapipe2_address),           \
 			DT_INST_PROP(i, rx_datapipe3_address),            \
