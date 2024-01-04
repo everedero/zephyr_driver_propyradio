@@ -1,5 +1,14 @@
 # Example application for NRF24L01 driver
 
+## Description
+
+This application demonstrates read and write capability of the NRF24L01 radio transmiter driver.
+There are 3 modes: Alice, Bob and Eve.
+
+* Alice first sends a message, then listens for Bob’s answer
+* Bob first listens for Alice’s message, then answer to Alice
+* Eve just listens for Alice and Bob’s messages, without interfering (not mandatory to run our example)
+
 This example app can be run on the following boards:
 
 * STM32 Nucleo F756ZX (nucleo\_f756zg)
@@ -8,11 +17,14 @@ This example app can be run on the following boards:
 
 For each board, an example overlay layer is provided.
 
-## Description
+Those modes can be selected with the project conf file.
 
-The example demonstrates reading and writing with NRF24L01 radio transceiver.
-By default, it uses NRF52DK+NRF24 as receiver and Nucleo+NRF24 as transmitter.
-The IS\_TX flag allows to switch the behaviour between RX and TX.
+For instance, let’s have a Nrf52dk in the role of Alice, a Nucleo in the role of Bob and an ESP32 in the role of Eve.
+```
+BOARD="nrf52dk_nrf52832";west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=alice.conf
+BOARD="esp32_devkitc_wroom";west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=eve.conf
+BOARD="nucleo_f756zg";west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=bob.conf
+```
 
 ## Pinout
 
