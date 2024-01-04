@@ -97,6 +97,20 @@ int main(void)
 #endif // CONFIG_NRF24L01_TRIGGER
 	}
 #endif // BOB
+
+#ifdef EVE
+	printk("I am Eve!\n");
+	while (true) {
+#ifdef TRIGGER
+		while (nrf24_read(nrf24, buffer, data_len));
+#else
+		strncpy(buffer, "               ", 16);
+		nrf24_read(nrf24, buffer, data_len);
+#endif // CONFIG_NRF24L01_TRIGGER
+		LOG_HEXDUMP_INF(buffer, data_len, "I spied: ");
+	}
+#endif // EVE
+
 	return 0;
 }
 
