@@ -682,7 +682,7 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
 	if (k_msgq_get(&data->rx_queue, buffer_full, K_MSEC(CONFIG_NRF24L01_READ_TIMEOUT)) < 0) {
-		LOG_ERR("Nothing in RX queue");
+		LOG_INF("Nothing in RX queue");
 		return(-EIO);
 	}
 	memcpy(buffer, buffer_full, data_len);
@@ -695,9 +695,9 @@ static int nrf24l01_read(const struct device *dev, uint8_t *buffer, uint8_t data
 
 static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
+	int ret = 0;
 #ifdef CONFIG_NRF24L01_TRIGGER
 	struct nrf24l01_data *data = dev->data;
-	int ret = 0;
 #else // not CONFIG_NRF24L01_TRIGGER
 	uint8_t status;
 #endif // CONFIG_NRF24L01_TRIGGER
@@ -821,7 +821,7 @@ void work_queue_callback_handler(struct k_work *item)
 		{ // Not an ACK interrupt
 			nrf24l01_read_payload(dev, buffer, size);
 			if (k_msgq_put(&data->rx_queue, buffer, K_NO_WAIT) < 0) {
-				LOG_ERR("RX queue full, dropping packet");
+				LOG_WRN("RX queue full, dropping packet");
 			}
 		} else {
 			LOG_INF("Receive ACK");
