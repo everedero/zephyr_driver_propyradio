@@ -13,12 +13,27 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #error "whoops, node label radio0 not found"
 #endif
 
+#ifdef CONFIG_NRF24L01_TRIGGER
+#define TRIGGER
+#endif
+
+#if CONFIG_ROLE == 0
+	#define ALICE
+#elif CONFIG_ROLE == 1
+	#define BOB
+#else
+	#define EVE
+#endif
+
+
 int main(void)
 {
 	static const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
 	uint8_t data_len = 16;
 	uint8_t buffer[16] = {0};
-	int ret;
+#ifndef TRIGGER
+	int i;
+#endif // CONFIG_NRF24L01_TRIGGER
 
 	if (!device_is_ready(nrf24)) {
 		LOG_ERR("Sensor not ready");
@@ -26,58 +41,62 @@ int main(void)
 	}
 	LOG_INF("Device ready");
 
-#if CONFIG_ROLE == 0
-	#define ALICE
-	printk("I am Alice!\n");
-#elif CONFIG_ROLE == 1
-	#define BOB
-	printk("I am Bob!\n");
-#else
-	#define EVE
-	printk("I am Eve!\n");
-#endif
-
 #ifdef ALICE
+	printk("I am Alice!\n");
 	while (true) {
 		strncpy(buffer, "I am Alice, hi!", 16);
-		while (true) {
-			ret = nrf24_write(nrf24, buffer, data_len);
-			if (ret != 0) {
-				printk("Not received\n");
-			} else {
-				printk("Ret: %d\n", ret);
-				break;
-			}
-			k_sleep(K_MSEC(1000));
+#ifdef TRIGGER
+		printk("Trigger mode!\n");
+		while (nrf24_write(nrf24, buffer, data_len))
+		{
+			k_sleep(K_MSEC(10));
 		}
+#else
+		for (i=0; i<10; i++)
+		{
+			nrf24_write(nrf24, buffer, data_len);
+			k_sleep(K_MSEC(10));
+		}
+#endif // CONFIG_NRF24L01_TRIGGER
 		printk("Switch to read");
-		while (!nrf24_read(nrf24, buffer, data_len));
+#ifdef TRIGGER
+		while (nrf24_read(nrf24, buffer, data_len));
+#else
+		nrf24_read(nrf24, buffer, data_len);
+#endif // CONFIG_NRF24L01_TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 		k_sleep(K_MSEC(1000));
 		printk("Switch to write\n");
 	}
-#endif
+#endif // ALICE
+
 #ifdef BOB
+	printk("I am Bob!\n");
 	while (true) {
-		//while(true) {
-		ret = nrf24_read(nrf24, buffer, data_len);
+#ifdef TRIGGER
+		while (nrf24_read(nrf24, buffer, data_len));
+#else
+		nrf24_read(nrf24, buffer, data_len);
+#endif // CONFIG_NRF24L01_TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
-		//}
 		printk("Switch to write\n");
 		strncpy(buffer, "Hi Alice Im Bob", 16);
-		while (true) {
-			k_sleep(K_MSEC(1000));
-			ret = nrf24_write(nrf24, buffer, data_len);
-			printk("Ret: %d\n", ret);
-			if (ret != 0) {
-				printk("Not received or ACK not set\n");
-			} else {
-				printk("Switch to read\n");
-				break;
-			}
+		k_sleep(K_MSEC(1000));
+#ifdef TRIGGER
+		printk("Trigger mode!\n");
+		while (nrf24_write(nrf24, buffer, data_len))
+		{
+			k_sleep(K_MSEC(10));
 		}
+#else
+		for (i=0; i<10; i++)
+		{
+			nrf24_write(nrf24, buffer, data_len);
+			k_sleep(K_MSEC(10));
+		}
+#endif // CONFIG_NRF24L01_TRIGGER
 	}
-#endif
+#endif // BOB
 	return 0;
 }
 
