@@ -33,20 +33,22 @@ int main(void)
 	uint8_t buffer[16] = {0};
 #ifndef TRIGGER
 	int i;
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // TRIGGER
 
 	if (!device_is_ready(nrf24)) {
 		LOG_ERR("Sensor not ready");
 		return 0;
 	}
 	LOG_INF("Device ready");
+#ifdef TRIGGER
+	LOG_DBG("Trigger mode activated");
+#endif //TRIGGER
 
 #ifdef ALICE
-	printk("I am Alice!\n");
+	LOG_WRN("I am Alice!");
 	while (true) {
 		strncpy(buffer, "I am Alice, hi!", 16);
 #ifdef TRIGGER
-		printk("Trigger mode!\n");
 		while (nrf24_write(nrf24, buffer, data_len))
 		{
 			k_sleep(K_MSEC(10));
@@ -57,33 +59,33 @@ int main(void)
 			nrf24_write(nrf24, buffer, data_len);
 			k_sleep(K_MSEC(10));
 		}
-#endif // CONFIG_NRF24L01_TRIGGER
-		printk("Switch to read");
+#endif // TRIGGER
+		LOG_HEXDUMP_INF(buffer, data_len, "Sent: ");
+		LOG_DBG("Switch to read");
 #ifdef TRIGGER
 		while (nrf24_read(nrf24, buffer, data_len));
 #else
 		nrf24_read(nrf24, buffer, data_len);
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 		k_sleep(K_MSEC(1000));
-		printk("Switch to write\n");
+		LOG_DBG("Switch to write");
 	}
 #endif // ALICE
 
 #ifdef BOB
-	printk("I am Bob!\n");
+	LOG_WRN("I am Bob!");
 	while (true) {
 #ifdef TRIGGER
 		while (nrf24_read(nrf24, buffer, data_len));
 #else
 		nrf24_read(nrf24, buffer, data_len);
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
-		printk("Switch to write\n");
+		LOG_DBG("Switch to write");
 		strncpy(buffer, "Hi Alice Im Bob", 16);
 		k_sleep(K_MSEC(1000));
 #ifdef TRIGGER
-		printk("Trigger mode!\n");
 		while (nrf24_write(nrf24, buffer, data_len))
 		{
 			k_sleep(K_MSEC(10));
@@ -94,19 +96,21 @@ int main(void)
 			nrf24_write(nrf24, buffer, data_len);
 			k_sleep(K_MSEC(10));
 		}
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // TRIGGER
+		LOG_HEXDUMP_INF(buffer, data_len, "Sent: ");
+		LOG_DBG("Switch to read");
 	}
 #endif // BOB
 
 #ifdef EVE
-	printk("I am Eve!\n");
+	LOG_WRN("I am Eve!");
 	while (true) {
 #ifdef TRIGGER
 		while (nrf24_read(nrf24, buffer, data_len));
 #else
 		strncpy(buffer, "               ", 16);
 		nrf24_read(nrf24, buffer, data_len);
-#endif // CONFIG_NRF24L01_TRIGGER
+#endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "I spied: ");
 	}
 #endif // EVE
