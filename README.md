@@ -62,6 +62,8 @@ Once you have built the application, run the following command to flash it:
 west flash
 ```
 
+For more detailed information, see the [example app Readme](app/README.md)
+
 ### Testing
 
 To execute Twister integration tests, run the following command:
