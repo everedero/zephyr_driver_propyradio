@@ -72,6 +72,30 @@ To execute Twister integration tests, run the following command:
 west twister -T tests --integration
 ```
 
+# API reference
+
+This driver uses a minimalist custom API.
+
+## Read
+```
+int nrf24_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+```
+
+This methods reads data\_len bytes from the device dev, and places it in buffer.
+In trigger mode, if NRF24L01\_READ\_TIMEOUT is exceeded, the function times out.
+
+In polling mode, it will loop forever.
+
+# Write
+```
+int nrf24_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+```
+
+This methods writes data\_len bytes from buffer, and sends it through device dev.
+In trigger mode, if NRF24L01\_WRITE\_TIMEOUT is exceeded, the function times out.
+
+In polling mode, it will loop forever.
+
 # Troubleshooting
 
 ## No RX received

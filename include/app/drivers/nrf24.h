@@ -22,8 +22,10 @@ __subsystem struct nrf24_api {
  *
  * @param dev nrf24 instance.
  * @param buf Read buffer.
+ * @param data_len Number of bytes to read
  *
  * @retval 0 On success.
+ * @retval -EIO Nothing in RX queue (trigger mode)
  * @retval -errno Other negative errno in case of failure.
  */
 __syscall int nrf24_read(const struct device *dev, uint8_t *buffer, uint8_t data_len);
@@ -41,8 +43,12 @@ static inline int z_impl_nrf24_read(const struct device *dev, uint8_t *buffer, u
  *
  * @param dev nrf24 instance.
  * @param buf Write buffer.
+ * @param data_len Number of bytes to write
  *
  * @retval 0 On success.
+ * @retval -ETIME TX sending timed out (trigger mode)
+ * @retval -EIO Max retries exceeded (polling mode)
+ * @retval MAX_RT Message not acknowledged (trigger mode)
  * @retval -errno Other negative errno in case of failure.
  */
 __syscall int nrf24_write(const struct device *dev, uint8_t *buffer, uint8_t data_len);

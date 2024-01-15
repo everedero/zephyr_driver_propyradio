@@ -710,7 +710,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	k_usleep(10);
 	nrf24l01_toggle_ce(dev, LOW);
 #ifdef CONFIG_NRF24L01_TRIGGER
-	if (k_sem_take(&data->sem, K_MSEC(100)) != 0) {
+	if (k_sem_take(&data->sem, K_MSEC(CONFIG_NRF24L01_WRITE_TIMEOUT)) != 0) {
 		LOG_ERR("TX sending timed out");
 		nrf24l01_toggle_ce(dev, LOW);
 		return -ETIME;

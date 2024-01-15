@@ -27,4 +27,11 @@ config NRF24L01_READ_TIMEOUT
 	help
 	  nRF24 timeout for reading, in ms.
 
+config NRF24L01_WRITE_TIMEOUT
+	int "Timout for write operation"
+	depends on NRF24L01_TRIGGER
+	default 100
+	help
+	  nRF24 timeout for writing, in ms.
+
 endif # NRF24L01
