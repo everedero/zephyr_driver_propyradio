@@ -72,6 +72,8 @@ To execute Twister integration tests, run the following command:
 west twister -T tests --integration
 ```
 
+This only tests correct compilation under 3 different platforms, it does not run tests on target or emulator.
+
 # API reference
 
 This driver uses a minimalist custom API.
