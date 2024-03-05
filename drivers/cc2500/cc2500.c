@@ -21,10 +21,31 @@ LOG_MODULE_REGISTER(cc2500, CONFIG_CC2500_LOG_LEVEL);
 
 struct cc2500_config {
 	const struct spi_dt_spec spi;
+	struct gpio_dt_spec ce;
 };
 
 struct cc2500_data {
 };
+
+static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+{
+	int ret = 0;
+	struct cc2500_data *data = dev->data;
+	return ret;
+}
+
+static int cc2500_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+{
+	int ret = 0;
+	struct cc2500_data *data = dev->data;
+	return ret;
+}
+
+static const struct propy_radio_api cc2500_api = {
+	.read = cc2500_read,
+	.write = cc2500_write,
+};
+
 
 /* Init */
 static int cc2500_init(const struct device *dev)
@@ -44,12 +65,6 @@ static int cc2500_init(const struct device *dev)
 	if (ret < 0) {
 		LOG_ERR("Could not configure CS GPIO (%d)", ret);
 		return ret;
-	}
-
-	if (!cc2500_test_spi(dev))
-	{
-		LOG_ERR("Issue with SPI read/write");
-		return -EIO;
 	}
 
 	return 0;
