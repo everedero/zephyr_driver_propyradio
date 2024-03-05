@@ -1,0 +1,13 @@
+# Copyright (c) 2024 Eve Redero
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  CC2500 is a 2.4GHz wireless remote control module.
+
+compatible: "ti,cc2500"
+
+include: [base.yaml, spi-device.yaml]
+
+properties:
+  reg:
+    required: true
