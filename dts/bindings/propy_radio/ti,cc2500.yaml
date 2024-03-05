@@ -12,8 +12,8 @@ properties:
   reg:
     required: true
 
-  ce-gpios:
-    type: phandle-array
-    required: true
+  conf-array:
+    type: uint8-array
     description: |
-      Chip Enable GPIO (active high). It is used to activate the chip RX or TX mode. If not configured, the driver will use three-wires behaviour and multiplex with the SPI CSN signal.
+      Configuration values from 0x07 to 0x2E.
+      By default, device keeps its default conf values.
