@@ -28,6 +28,5 @@
 		rx-datapipe1-address = [de ad de ad];
 		payload-ack;
 		payload-crc;
-		//data-rate-2mbps;
 	};
 };
