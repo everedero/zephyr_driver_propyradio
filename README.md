@@ -1,6 +1,10 @@
-# Zephyr out-of-tree driver for nRF24L01 SPI 2.4GHz remote control module
+# Zephyr out-of-tree driver for proprietary radio chips
 
-This repository contains a Zephyr out-of-tree driver.
+This repository contains a Zephyr out-of-tree driver for proprietary radio
+chips:
+
+* nRF24L01 SPI 2.4GHz remote control module
+* TI CC2500 SPI 2.4GHz remote control module
 
 This repository is versioned together with the [Zephyr main tree][zephyr]. This
 means that every time that Zephyr is tagged, this repository is tagged as well
