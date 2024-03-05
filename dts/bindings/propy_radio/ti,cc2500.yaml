@@ -11,3 +11,9 @@ include: [base.yaml, spi-device.yaml]
 properties:
   reg:
     required: true
+
+  ce-gpios:
+    type: phandle-array
+    required: true
+    description: |
+      Chip Enable GPIO (active high). It is used to activate the chip RX or TX mode. If not configured, the driver will use three-wires behaviour and multiplex with the SPI CSN signal.
