@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2024 Eve Redero
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&spi1 {
+	pinctrl-0 = <&spi1_sck_pb3 &spi1_miso_pb4 &spi1_mosi_pb5>;
+	pinctrl-names = "default";
+	cs-gpios = <&gpioa 4 GPIO_ACTIVE_LOW>;
+	clock-frequency = <8000000>; // Max 8 Mbps for SPI
+	status = "okay";
+
+	radio0: propy_radio@0 {
+		reg = <0>;
+		compatible = "ti,cc2500";
+		status = "okay";
+		spi-max-frequency = <500000>; // This really sets frequency
+		/* From 0x07 to 0x2E */
+		conf-array =         [0A 04 01 00 0A 00 5D 13 B1
+		2D 3B 73 22 F8 00 07 30 18 1D 1C C7 00 B0 87 6B
+		F8 B6 10 EA 0A 00 11 41 00 59 7F 3F 88 31 0B];
+	};
+};
