@@ -10,7 +10,7 @@
 	clock-frequency = <8000000>; // Max 8 Mbps for SPI
 	status = "okay";
 
-	radio0: nrf24@0 {
+	radio0: propy_radio@0 {
 		reg = <0>;
 		addr-width = <4>;
 		compatible = "nordic,nrf24l01";

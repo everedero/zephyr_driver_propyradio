@@ -6,7 +6,7 @@
 &arduino_spi {
 /* MOSI on D11 / P0.23 */
 /* CS on D10*/
-	radio0: nrf24@0 {
+	radio0: propy_radio@0 {
 		reg = <0>;
 		compatible = "nordic,nrf24l01";
 		status = "okay";

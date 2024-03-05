@@ -21,7 +21,7 @@ spim2_default: spim2_default {
 	pinctrl-names = "default";
 	cs-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
 
-	radio0: nrf24@0 {
+	radio0: propy_radio@0 {
 		reg = <0>;
 		compatible = "nordic,nrf24l01";
 		status = "okay";
