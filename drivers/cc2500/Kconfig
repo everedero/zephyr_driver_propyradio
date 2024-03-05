@@ -1,0 +1,37 @@
+menuconfig CC2500
+	bool "TI CC2500 remote control support"
+
+if CC2500
+
+module = CC2500
+module-str = cc2500
+source "subsys/logging/Kconfig.template.log_config"
+
+config CC2500_INIT_PRIORITY
+	int "Lock init priority"
+	default 90
+	help
+	  CC2500 initialization priority.
+
+config CC2500_TRIGGER
+	bool "NRF24 trigger with irq gpio"
+	depends on CC2500
+	help
+	  When enabled, the CC2500 read is triggered by irq gpio and
+	  not by polling.
+
+config CC2500_READ_TIMEOUT
+	int "Timout for read operation"
+	depends on CC2500_TRIGGER
+	default 1000
+	help
+	  CC2500 timeout for reading, in ms.
+
+config CC2500_WRITE_TIMEOUT
+	int "Timout for write operation"
+	depends on CC2500_TRIGGER
+	default 100
+	help
+	  CC2500 timeout for writing, in ms.
+
+endif # CC2500

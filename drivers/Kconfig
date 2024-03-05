@@ -3,4 +3,5 @@
 
 menu "Drivers"
 rsource "nrf24l01/Kconfig"
+rsource "cc2500/Kconfig"
 endmenu
