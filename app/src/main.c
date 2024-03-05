@@ -6,7 +6,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
 
-#include <app/drivers/nrf24.h>
+#include <app/drivers/propy_radio.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #if !DT_NODE_EXISTS(DT_NODELABEL(radio0))
@@ -49,23 +49,23 @@ int main(void)
 	while (true) {
 		strncpy(buffer, "I am Alice, hi!", 16);
 #ifdef TRIGGER
-		while (nrf24_write(nrf24, buffer, data_len))
+		while (propy_radio_write(nrf24, buffer, data_len))
 		{
 			k_sleep(K_MSEC(10));
 		}
 #else
 		for (i=0; i<10; i++)
 		{
-			nrf24_write(nrf24, buffer, data_len);
+			propy_radio_write(nrf24, buffer, data_len);
 			k_sleep(K_MSEC(10));
 		}
 #endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Sent: ");
 		LOG_DBG("Switch to read");
 #ifdef TRIGGER
-		while (nrf24_read(nrf24, buffer, data_len));
+		while (propy_radio_read(nrf24, buffer, data_len));
 #else
-		nrf24_read(nrf24, buffer, data_len);
+		propy_radio_read(nrf24, buffer, data_len);
 #endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 		k_sleep(K_MSEC(1000));
@@ -77,23 +77,23 @@ int main(void)
 	LOG_WRN("I am Bob!");
 	while (true) {
 #ifdef TRIGGER
-		while (nrf24_read(nrf24, buffer, data_len));
+		while (propy_radio_read(nrf24, buffer, data_len));
 #else
-		nrf24_read(nrf24, buffer, data_len);
+		propy_radio_read(nrf24, buffer, data_len);
 #endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 		LOG_DBG("Switch to write");
 		strncpy(buffer, "Hi Alice Im Bob", 16);
 		k_sleep(K_MSEC(1000));
 #ifdef TRIGGER
-		while (nrf24_write(nrf24, buffer, data_len))
+		while (propy_radio_write(nrf24, buffer, data_len))
 		{
 			k_sleep(K_MSEC(10));
 		}
 #else
 		for (i=0; i<10; i++)
 		{
-			nrf24_write(nrf24, buffer, data_len);
+			propy_radio_write(nrf24, buffer, data_len);
 			k_sleep(K_MSEC(10));
 		}
 #endif // TRIGGER
@@ -106,10 +106,10 @@ int main(void)
 	LOG_WRN("I am Eve!");
 	while (true) {
 #ifdef TRIGGER
-		while (nrf24_read(nrf24, buffer, data_len));
+		while (propy_radio_read(nrf24, buffer, data_len));
 #else
 		strncpy(buffer, "               ", 16);
-		nrf24_read(nrf24, buffer, data_len);
+		propy_radio_read(nrf24, buffer, data_len);
 #endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "I spied: ");
 	}

@@ -80,7 +80,7 @@ This driver uses a minimalist custom API.
 
 ## Read
 ```
-int nrf24_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+int propy_radio_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 ```
 
 This methods reads data\_len bytes from the device dev, and places it in buffer.
@@ -90,7 +90,7 @@ In polling mode, it will loop forever.
 
 # Write
 ```
-int nrf24_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
+int propy_radio_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 ```
 
 This methods writes data\_len bytes from buffer, and sends it through device dev.

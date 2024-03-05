@@ -10,7 +10,7 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/kernel.h>
 
-#include <app/drivers/nrf24.h>
+#include <app/drivers/propy_radio.h>
 #include "nrf24l01_defines.h"
 
 #define SPI_MAX_MSG_LEN 64
@@ -736,7 +736,7 @@ static int nrf24l01_write(const struct device *dev, uint8_t *buffer, uint8_t dat
 	return ret;
 }
 
-static const struct nrf24_api nrf24l01_api = {
+static const struct propy_radio_api nrf24l01_api = {
 	.read = nrf24l01_read,
 	.write = nrf24l01_write,
 };
