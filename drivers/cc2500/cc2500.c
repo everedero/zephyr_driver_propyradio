@@ -276,7 +276,12 @@ static uint8_t cc2500_set_tx(const struct device *dev)
 	return(cc2500_cmd_register(dev, STX));
 }
 
-static uint8_t cc2500_set_pkt_len(const struct device *dev, int len)
+static uint8_t cc2500_set_channel_num(const struct device *dev, uint8_t chan_num)
+{
+	return(cc2500_write_register(dev, CHANNR, chan_num));
+}
+
+static uint8_t cc2500_set_pkt_len(const struct device *dev, uint8_t len)
 {
 	return(cc2500_write_register(dev, PKTLEN, len));
 }
@@ -359,6 +364,7 @@ static int cc2500_init(const struct device *dev)
 	cc2500_write_register(dev, IOCFG0, 0x5B);
 
 	cc2500_flush_rx(dev);
+	cc2500_set_channel_num(dev, 0x01);
 	cc2500_flush_tx(dev);
 	cc2500_idle(dev);
 
