@@ -190,6 +190,44 @@ uint8_t cc2500_write_register_len(const struct device *dev, uint8_t reg, const u
 	return rx_data;
 }
 
+uint8_t cc2500_read_register_len(const struct device *dev, uint8_t reg, uint8_t* data, uint8_t len)
+{
+	const struct cc2500_config *config = dev->config;
+	uint8_t tx_data[SPI_MAX_MSG_LEN + 1] = {0};
+	uint8_t rx_data[SPI_MAX_MSG_LEN + 1] = {0};
+	int ret;
+	const struct spi_buf tx_buf[1] = {
+		{
+			.buf = tx_data,
+			.len = (len + 1)
+		}
+	};
+	const struct spi_buf rx_buf[1] = {
+		{
+			.buf = &rx_data,
+			.len = (len + 1)
+		}
+	};
+	struct spi_buf_set tx = {
+		.buffers = tx_buf,
+		.count = 1
+	};
+	const struct spi_buf_set rx = {
+		.buffers = rx_buf,
+		.count = 1
+	};
+
+	tx_data[0] = ( READ_BURST | ( RW_MASK & reg ) );
+
+	ret = spi_transceive_dt(&config->spi, &tx, &rx);
+	if (ret) {
+		LOG_ERR("Error transceive %d", ret);
+		return 0;
+	}
+	memcpy(data, &rx_data[1], len);
+	return rx_data[0];
+}
+
 uint8_t cc2500_cmd_register(const struct device *dev, uint8_t cmd)
 {
 	const struct cc2500_config *config = dev->config;
@@ -288,9 +326,15 @@ static uint8_t cc2500_set_pkt_len(const struct device *dev, uint8_t len)
 
 static void cc2500_write_register_burst(const struct device *dev, uint8_t reg, const uint8_t* data, uint8_t len)
 {
-	/* Packet length +1 because we count the reg byte */
-	cc2500_set_pkt_len(dev, len+1);
 	cc2500_write_register_len(dev, reg, data, len);
+}
+
+static uint8_t cc2500_get_rssi(const struct device *dev)
+{
+	/* Quirk: read RSSI has to be burst read, not single byte*/
+	uint8_t reg_value;
+	cc2500_read_register_len(dev, RSSI, &reg_value, 1);
+	return(reg_value);
 }
 
 static bool cc2500_test_spi(const struct device *dev)
@@ -309,7 +353,14 @@ static bool cc2500_test_spi(const struct device *dev)
 static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
 	int ret = 0;
-
+	uint8_t status = 0;
+	cc2500_idle(dev);
+	cc2500_set_rx(dev);
+	/* Packet length +1 because we count the reg byte */
+	cc2500_set_pkt_len(dev, data_len);
+	status = cc2500_read_register_len(dev, RXFIFO, buffer, data_len);
+	LOG_DBG("Status: 0x%x", status);
+	cc2500_idle(dev);
 	return ret;
 }
 
@@ -319,20 +370,24 @@ static int cc2500_write(const struct device *dev, uint8_t *buffer, uint8_t data_
 	int status = 0;
 
 	cc2500_idle(dev);
+	status = cc2500_read_status(dev);
 	cc2500_write_register_burst(dev, TXFIFO, buffer, data_len);
+	/* Packet length +1 because we count the reg byte */
+	cc2500_set_pkt_len(dev, data_len);
+
 	cc2500_set_tx(dev);
 	status = cc2500_read_status(dev);
-	LOG_DBG("Status: 0x%x", status);
-	k_msleep(1);
+	//LOG_DBG("Status: 0x%x", status);
+	k_usleep(800);
 	status = cc2500_read_status(dev);
-	LOG_DBG("Status: 0x%x", status);
+	//LOG_DBG("Status: 0x%x", status);
 
 	cc2500_flush_tx(dev);
 	status = cc2500_idle(dev);
-	LOG_DBG("Status idle: 0x%x", status);
+	//LOG_DBG("Status idle: 0x%x", status);
 	cc2500_set_rx(dev);
 	status = cc2500_idle(dev);
-	LOG_DBG("Status idle: 0x%x", status);
+	//LOG_DBG("Status idle: 0x%x", status);
 	return ret;
 }
 
@@ -341,6 +396,58 @@ static const struct propy_radio_api cc2500_api = {
 	.write = cc2500_write,
 };
 
+/* Init subfunction */
+static int cc2500_set_channel_process(const struct device *dev, uint8_t chann)
+{
+	const struct cc2500_config *config = dev->config;
+	uint8_t reg_value;
+	uint8_t status;
+	int i;
+	int ret = 0;
+	cc2500_idle(dev);
+	cc2500_idle(dev);
+	status = cc2500_read_status(dev);
+	cc2500_set_channel_num(dev, chann);
+	cc2500_flush_rx(dev);
+	cc2500_flush_tx(dev);
+	cc2500_idle(dev);
+	cc2500_set_rx(dev);
+
+	return(ret);
+}
+
+static int cc2500_rssi_process(const struct device *dev)
+{
+	const struct cc2500_config *config = dev->config;
+	uint8_t reg_value;
+	int i;
+	int ret = 0;
+	long total = 0;
+	const int num_mes = 45;
+	uint8_t current_chan = 0x01;
+
+	for (current_chan=1; current_chan<0x09; current_chan++) {
+		total = 0;
+		cc2500_set_channel_process(dev, current_chan);
+		k_msleep(5);
+		/* Single read */
+		reg_value = cc2500_read_register(dev, FSCAL1);
+		LOG_DBG("FS cal1: %d",  reg_value);
+		for (i=0; i<num_mes; i++) {
+			//reg_value = cc2500_read_register(dev, RSSI);
+			//ret = cc2500_read_register_len(dev, RSSI, &reg_value, 1);
+			reg_value = cc2500_get_rssi(dev);
+			total += reg_value;
+			k_usleep(3600);
+		}
+		//total = total / 45;
+		LOG_DBG("RSSI 0x%x: %ld", current_chan, total);
+	}
+	// I guess we choose the max here
+	cc2500_set_channel_process(dev, 0x08);
+
+	return(ret);
+}
 
 /* Init */
 static int cc2500_init(const struct device *dev)
@@ -349,6 +456,7 @@ static int cc2500_init(const struct device *dev)
 	const struct cc2500_config *config = dev->config;
 	struct cc2500_data *data = dev->data;
 	uint8_t reg_value;
+	uint8_t status;
 	int i;
 	int ret;
 
@@ -364,7 +472,11 @@ static int cc2500_init(const struct device *dev)
 		LOG_ERR("Could not configure CS GPIO (%d)", ret);
 		return ret;
 	}
-	cc2500_test_spi(dev);
+
+	if (!cc2500_test_spi(dev)) {
+		LOG_ERR("SPI read write test failed");
+		return(-EIO);
+	}
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
 
@@ -373,26 +485,14 @@ static int cc2500_init(const struct device *dev)
 	reg_value = cc2500_read_register(dev, FREQ0);
 	LOG_DBG("Freq 0: %d", reg_value);
 
-	cc2500_write_register(dev, IOCFG2, 0x5C);
-	cc2500_write_register(dev, IOCFG0, 0x5B);
-
 	cc2500_flush_rx(dev);
-	cc2500_set_channel_num(dev, 0x01);
 	cc2500_flush_tx(dev);
 	cc2500_idle(dev);
 
-	cc2500_set_rx(dev);
+	cc2500_write_register(dev, IOCFG2, 0x5C);
+	cc2500_write_register(dev, IOCFG0, 0x5B);
 
-	/* Single read */
-	reg_value = cc2500_read_register(dev, FSCAL1);
-	LOG_DBG("FS Cal1: %d", reg_value);
-
-	for (i=0; i<30; i++) {
-		reg_value = cc2500_read_register(dev, RSSI);
-		LOG_DBG("RSSI: %d", reg_value);
-		k_msleep(1);
-	}
-
+	cc2500_rssi_process(dev);
 	return 0;
 }
 
