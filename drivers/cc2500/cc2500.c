@@ -293,6 +293,18 @@ static void cc2500_write_register_burst(const struct device *dev, uint8_t reg, c
 	cc2500_write_register_len(dev, reg, data, len);
 }
 
+static bool cc2500_test_spi(const struct device *dev)
+{
+	uint8_t ret = 0;
+	cc2500_write_register(dev, SYNC0, 0x0E);
+	ret = cc2500_read_register(dev, SYNC0);
+	cc2500_write_register(dev, SYNC0, 0x91);
+	if (ret != 0x0E) {
+		return(false);
+	}
+	return(true);
+}
+
 /* API functions */
 static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
 {
@@ -352,6 +364,7 @@ static int cc2500_init(const struct device *dev)
 		LOG_ERR("Could not configure CS GPIO (%d)", ret);
 		return ret;
 	}
+	cc2500_test_spi(dev);
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
 

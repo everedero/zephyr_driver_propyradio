@@ -102,7 +102,7 @@ IAR Embedded Workbench v3.41
 #define NOP          0xFF
 
 /* Definitions to support burst/single access: */
-#define RW_MASK      0xC0        /* Mask register for single or burst */
+#define RW_MASK      0x3F        /* Mask register for single or burst */
 #define WRITE_SINGLE 0x00
 #define WRITE_BURST  0x40
 #define READ_SINGLE  0x80

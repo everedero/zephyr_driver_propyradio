@@ -14,7 +14,7 @@
 		reg = <0>;
 		compatible = "ti,cc2500";
 		status = "okay";
-		spi-max-frequency = <500000>; // This really sets frequency
+		spi-max-frequency = <100000>; // Max 10 MHz for cc2500
 		/* From 0x07 to 0x2E */
 		conf-array =         [0A 04 01 00 0A 00 5D 13 B1
 		2D 3B 73 22 F8 00 07 30 18 1D 1C C7 00 B0 87 6B
