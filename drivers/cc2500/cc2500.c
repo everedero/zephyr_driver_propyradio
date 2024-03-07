@@ -401,11 +401,9 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 	cc2500_flush_rx(dev);
 	cc2500_set_pkt_len(dev, data_len);
 	cc2500_set_rx(dev);
-	k_msleep(1);
 	while (!cc2500_has_data(dev)){
 		k_msleep(1);
 	}
-	status = cc2500_data_len(dev);
 	if (!cc2500_is_crc_ok(dev)) {
 		LOG_WRN("Wrong CRC");
 	}
