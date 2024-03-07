@@ -31,6 +31,19 @@ int select_mode(const struct device *cc2500, uint8_t mode, uint8_t volume)
 	}
 	return(0);
 }
+
+int read_stuff(const struct device *cc2500)
+{
+	uint8_t data_len = 9;
+	uint8_t buffer[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	int i = 0;
+	for (i=0; i<100; i++) {
+		propy_radio_read(cc2500, buffer, data_len);
+		LOG_HEXDUMP_INF(buffer, data_len, "read: ");
+		k_msleep(500);
+	}
+}
+
 int main(void)
 {
 	static const struct device *cc2500 = DEVICE_DT_GET(DT_NODELABEL(radio0));
@@ -41,21 +54,24 @@ int main(void)
 		return 0;
 	}
 	LOG_INF("Device ready");
+
+	read_stuff(cc2500);
+
 	for (i=0; i<20; i++) {
-		LOG_INF("Mode 5, 1");
-		select_mode(cc2500, 5, 1);
-		LOG_INF("Mode 5, 0");
-		select_mode(cc2500, 5, 0);
+		LOG_INF("Mode 0, 1");
+		select_mode(cc2500, 0, 5);
+		LOG_INF("Mode 0, 0");
+		select_mode(cc2500, 0, 5);
 	}
 	for (i=0; i<20; i++) {
-		LOG_INF("Mode 5 level 1");
-		select_mode(cc2500, 4, 1);
-		LOG_INF("Mode 5 level 0");
-		select_mode(cc2500, 4, 0);
+		LOG_INF("Mode 2 level 1");
+		select_mode(cc2500, 2, 1);
+		LOG_INF("Mode 2 level 0");
+		select_mode(cc2500, 2, 0);
 	}
 	for (i=0; i<20; i++) {
-		LOG_INF("Mode 1");
-		select_mode(cc2500, 1, 6);
+		LOG_INF("Mode 3");
+		select_mode(cc2500, 3, 6);
 	}
 	LOG_INF("Vol 0");
 	select_mode(cc2500, 0, 0);
