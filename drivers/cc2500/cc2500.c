@@ -56,7 +56,6 @@ uint8_t cc2500_write_register(const struct device *dev, uint8_t reg, uint8_t dat
 		.count = 1
 	};
 
-	// 5 lower bits for address, the 6th is 0 for read and 1 for write
 	tx_data[0] = ( WRITE_SINGLE | ( RW_MASK & reg ) );
 	tx_data[1] = data;
 
@@ -443,17 +442,13 @@ static int cc2500_write(const struct device *dev, uint8_t *buffer, uint8_t data_
 
 	cc2500_set_tx(dev);
 	status = cc2500_read_status(dev);
-	//LOG_DBG("Status: 0x%x", status);
 	k_usleep(800);
 	status = cc2500_read_status(dev);
-	//LOG_DBG("Status: 0x%x", status);
 
 	cc2500_flush_tx(dev);
 	status = cc2500_idle(dev);
-	//LOG_DBG("Status idle: 0x%x", status);
 	cc2500_set_rx(dev);
 	status = cc2500_idle(dev);
-	//LOG_DBG("Status idle: 0x%x", status);
 	return ret;
 }
 
@@ -569,8 +564,9 @@ static int cc2500_init(const struct device *dev)
 	cc2500_write_register(dev, IOCFG0, 0x5B);
 	/* FIFO threshold */
 	//cc2500_write_register(dev, FIFOTHR, 0x7);
+	cc2500_cmd_register(dev, SFSTXON);
 
-	//cc2500_set_channel_process(dev, 4);
+	cc2500_rssi_process(dev);
 
 	return 0;
 }
