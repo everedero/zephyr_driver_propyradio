@@ -397,7 +397,6 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 	uint8_t status = 0;
 	cc2500_idle(dev);
 	k_msleep(1);
-	cc2500_flush_tx(dev);
 	cc2500_flush_rx(dev);
 	cc2500_set_pkt_len(dev, data_len);
 	cc2500_set_rx(dev);
@@ -408,9 +407,7 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 		LOG_WRN("Wrong CRC");
 	}
 	status = cc2500_read_register_len(dev, RXFIFO, buffer, data_len);
-	cc2500_set_tx(dev);
 	cc2500_idle(dev);
-	cc2500_flush_tx(dev);
 	cc2500_flush_rx(dev);
 	return ret;
 }
