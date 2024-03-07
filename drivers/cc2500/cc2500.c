@@ -269,19 +269,33 @@ uint8_t cc2500_cmd_register(const struct device *dev, uint8_t cmd)
 static int cc2500_set_config_registers(const struct device *dev)
 {
 	int ret = 0;
-	int i, reg;
+	int i;
+	uint8_t idx;
 	const struct cc2500_config *config = dev->config;
+	/*uint8_t array[] = {0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10,
+		0x11, 0x12, 0x13, 0x14, 0xA, 0x15, 0x21, 0x22,
+		0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x23, 0x24,
+		0x25, 0x26, 0x29, 0x2C, 0x2D, 0x2E, 0x07, 0x08,
+		0x09};*/
 
 	if (config->array_len < 40) {
 		LOG_DBG("No valid default config");
 		/* No valid startup config */
 		return 0;
 	}
+	/*for (i=0; i<31; i++) {
+		idx = array[i] - 7;
+		LOG_DBG("Write reg 0x%x: 0x%x", array[i], config->array[idx]);
+		cc2500_write_register(dev, array[i], config->array[idx]);
+	}*/
+
 	for (i=0; i<40; i++) {
-		if ((i+0x07) == 0x29 || (i+0x07) == 0x2A || (i+0x07) == 0x2B) {
-			/* Skipping test registers */
+		if ((i+0x07) == 0x2A || (i+0x07) == 0x2B
+			|| (i+0x07) == 0x29) {
+			//(i+0x07) == 0x27 || (i+0x07) == 0x28) {
 			continue;
 		}
+		LOG_DBG("Write reg 0x%x: 0x%x", i+0x07, config->array[i]);
 		cc2500_write_register(dev, i+0x07, config->array[i]);
 	}
 	return ret;
@@ -333,12 +347,18 @@ static void cc2500_write_register_burst(const struct device *dev, uint8_t reg, c
 	cc2500_write_register_len(dev, reg, data, len);
 }
 
-static uint8_t cc2500_get_rssi(const struct device *dev)
+static int cc2500_get_rssi(const struct device *dev)
 {
 	/* RSSI has burst-only access */
 	uint8_t reg_value;
+	int rssi;
 	cc2500_read_register_len(dev, RSSI, &reg_value, 1);
-	return(reg_value);
+	if (reg_value >= 128) {
+		rssi = reg_value - 256;
+	} else {
+		rssi = reg_value;
+	}
+	return(rssi);
 }
 
 static bool cc2500_test_spi(const struct device *dev)
@@ -366,8 +386,6 @@ static uint8_t cc2500_get_pkt_status(const struct device *dev)
 	LOG_INF("CRC OK: %d", (status & 0x80) >> 7);
 	/* Return CRC OK bit */
 	return((status & 0x80) >> 7);
-	//return((status & 0x08) >> 3);
-	//return((status & 0x04) >> 2);
 }
 
 static uint8_t cc2500_is_crc_ok(const struct device *dev)
@@ -447,10 +465,7 @@ static const struct propy_radio_api cc2500_api = {
 /* Init subfunction */
 static int cc2500_set_channel_process(const struct device *dev, uint8_t chann)
 {
-	const struct cc2500_config *config = dev->config;
-	uint8_t reg_value;
 	uint8_t status;
-	int i;
 	int ret = 0;
 	cc2500_idle(dev);
 	cc2500_idle(dev);
@@ -466,18 +481,17 @@ static int cc2500_set_channel_process(const struct device *dev, uint8_t chann)
 
 static int cc2500_rssi_process(const struct device *dev)
 {
-	const struct cc2500_config *config = dev->config;
 	uint8_t reg_value;
 	int i;
 	int ret = 0;
 	long total = 0;
-	const int num_mes = 45;
+	const int num_mes = 50;
 	uint8_t current_chan = 0x01;
-	const uint8_t last_chan = 10;
+	const uint8_t last_chan = 9;
 	uint8_t max_chan = 0;
-	long max = 0;
+	long max = -0x7FFFFFFF;
 
-	for (current_chan=1; current_chan<last_chan; current_chan++) {
+	for (current_chan=1; current_chan<=last_chan; current_chan++) {
 		total = 0;
 		cc2500_set_channel_process(dev, current_chan);
 		k_msleep(5);
@@ -485,10 +499,7 @@ static int cc2500_rssi_process(const struct device *dev)
 		reg_value = cc2500_read_register(dev, FSCAL1);
 		LOG_DBG("FS cal1: %d",  reg_value);
 		for (i=0; i<num_mes; i++) {
-			//reg_value = cc2500_read_register(dev, RSSI);
-			//ret = cc2500_read_register_len(dev, RSSI, &reg_value, 1);
-			reg_value = cc2500_get_rssi(dev);
-			total += reg_value;
+			total += cc2500_get_rssi(dev);
 			k_usleep(3600);
 		}
 		//total = total / 45;
@@ -522,10 +533,7 @@ static int cc2500_init(const struct device *dev)
 	//uint8_t pa_data[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	uint8_t pa_data[] = {0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6};
 	const struct cc2500_config *config = dev->config;
-	struct cc2500_data *data = dev->data;
 	uint8_t reg_value;
-	uint8_t status;
-	int i;
 	int ret;
 
 	if (!spi_is_ready_dt(&config->spi)) {
@@ -547,6 +555,7 @@ static int cc2500_init(const struct device *dev)
 	}
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
+	//cc2500_read_default(dev);
 
 	cc2500_set_pkt_len(dev, 9);
 	cc2500_write_register_burst(dev, PATABLE, pa_data, 8);
@@ -563,7 +572,11 @@ static int cc2500_init(const struct device *dev)
 	/* FIFO threshold */
 	cc2500_write_register(dev, FIFOTHR, 0x7);
 
+	cc2500_set_channel_process(dev, 4);
 //	cc2500_rssi_process(dev);
+	// Remove CCA mode
+	//cc2500_write_register(dev, MCSM1, 0x00);
+
 	return 0;
 }
 

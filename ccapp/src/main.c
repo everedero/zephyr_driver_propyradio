@@ -42,6 +42,7 @@ int read_stuff(const struct device *cc2500)
 		LOG_HEXDUMP_INF(buffer, data_len, "read: ");
 		k_msleep(500);
 	}
+	return(0);
 }
 
 int main(void)
@@ -56,22 +57,23 @@ int main(void)
 	LOG_INF("Device ready");
 
 	read_stuff(cc2500);
+	k_msleep(60);
 
 	for (i=0; i<20; i++) {
-		LOG_INF("Mode 0, 1");
-		select_mode(cc2500, 0, 5);
-		LOG_INF("Mode 0, 0");
-		select_mode(cc2500, 0, 5);
+		LOG_INF("Mode 1, 1");
+		select_mode(cc2500, 1, 1);
+		LOG_INF("Mode 1, 5");
+		select_mode(cc2500, 1, 5);
 	}
 	for (i=0; i<20; i++) {
-		LOG_INF("Mode 2 level 1");
-		select_mode(cc2500, 2, 1);
-		LOG_INF("Mode 2 level 0");
-		select_mode(cc2500, 2, 0);
-	}
-	for (i=0; i<20; i++) {
-		LOG_INF("Mode 3");
+		LOG_INF("Mode 3 level 6");
 		select_mode(cc2500, 3, 6);
+		LOG_INF("Mode 3 level 10");
+		select_mode(cc2500, 3, 10);
+	}
+	for (i=0; i<20; i++) {
+		LOG_INF("Mode 5");
+		select_mode(cc2500, 5, 6);
 	}
 	LOG_INF("Vol 0");
 	select_mode(cc2500, 0, 0);
