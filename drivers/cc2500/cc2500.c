@@ -548,14 +548,12 @@ static int cc2500_init(const struct device *dev)
 		LOG_ERR("Could not configure CS GPIO (%d)", ret);
 		return ret;
 	}
-	/*cc2500_read_default(dev);*/
 	if (!cc2500_test_spi(dev)) {
 		LOG_ERR("SPI read write test failed");
 		return(-EIO);
 	}
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
-	//cc2500_read_default(dev);
 
 	cc2500_set_pkt_len(dev, 9);
 	cc2500_write_register_burst(dev, PATABLE, pa_data, 8);
@@ -570,12 +568,9 @@ static int cc2500_init(const struct device *dev)
 	cc2500_write_register(dev, IOCFG2, 0x5C);
 	cc2500_write_register(dev, IOCFG0, 0x5B);
 	/* FIFO threshold */
-	cc2500_write_register(dev, FIFOTHR, 0x7);
+	//cc2500_write_register(dev, FIFOTHR, 0x7);
 
-	cc2500_set_channel_process(dev, 4);
-//	cc2500_rssi_process(dev);
-	// Remove CCA mode
-	//cc2500_write_register(dev, MCSM1, 0x00);
+	//cc2500_set_channel_process(dev, 4);
 
 	return 0;
 }
