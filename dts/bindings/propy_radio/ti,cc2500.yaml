@@ -17,3 +17,21 @@ properties:
     description: |
       Configuration values from 0x07 to 0x2E.
       By default, device keeps its default conf values.
+
+  irq-gpios:
+    type: phandle-array
+    required: false
+    description: |
+      Chip parametric GPIO 0 or 2. Default is GPIO 0, use use-gpio-2-as-irq to select GPIO 2 instead.
+
+  use-gpio-2-as-irq:
+    type: boolean
+    required: false
+    description: |
+      Use GPIO 2 instead of GPIO 0 as IRQ input pin.
+
+  payload-crc:
+    type: boolean
+    required: false
+    description: |
+      Use payload CRC. Default true.

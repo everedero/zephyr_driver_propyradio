@@ -14,7 +14,7 @@ config CC2500_INIT_PRIORITY
 	  CC2500 initialization priority.
 
 config CC2500_TRIGGER
-	bool "NRF24 trigger with irq gpio"
+	bool "CC2500 trigger with irq gpio"
 	depends on CC2500
 	help
 	  When enabled, the CC2500 read is triggered by irq gpio and

@@ -15,6 +15,7 @@
 
 /* Max data fifo len */
 #define SPI_MAX_MSG_LEN 64
+#define SPI_MSG_QUEUE_LEN 10
 
 LOG_MODULE_REGISTER(cc2500, CONFIG_CC2500_LOG_LEVEL);
 
@@ -22,9 +23,26 @@ struct cc2500_config {
 	const struct spi_dt_spec spi;
 	const uint8_t array[40];
 	const int array_len;
+	struct gpio_dt_spec irq;
+	bool gpio2_as_irq;
+	bool payload_crc;
 };
 
 struct cc2500_data {
+#ifdef CONFIG_CC2500_TRIGGER
+	/** RX queue buffer. */
+	uint8_t rx_queue_buf[SPI_MSG_QUEUE_LEN * SPI_MAX_MSG_LEN];
+	/** RX queue. */
+	struct k_msgq rx_queue;
+	/** Trigger work queue. */
+	struct k_work trig_work;
+	/** Touch GPIO callback. */
+	struct gpio_callback irq_cb;
+	/** Semaphore for TX. */
+	struct k_sem sem;
+	/** Self reference (used in work queue context). */
+	const struct device *dev;
+#endif /* CONFIG_CC2500_TRIGGER */
 };
 
 /* Private core communication functions */
@@ -387,6 +405,8 @@ static uint8_t cc2500_get_pkt_status(const struct device *dev)
 	return((status & 0x80) >> 7);
 }
 
+#ifndef CONFIG_CC2500_TRIGGER
+/* Polling behaviour */
 static uint8_t cc2500_is_crc_ok(const struct device *dev)
 {
 	uint8_t status = 0;
@@ -395,6 +415,7 @@ static uint8_t cc2500_is_crc_ok(const struct device *dev)
 	/* Return CRC OK bit */
 	return((status & CRC_OK) >> 7);
 }
+#endif /* not CONFIG_CC2500_TRIGGER */
 
 static uint8_t cc2500_has_data(const struct device *dev)
 {
@@ -412,18 +433,31 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 {
 	int ret = 0;
 	uint8_t status = 0;
+	const struct cc2500_config *config = dev->config;
 	cc2500_idle(dev);
 	k_msleep(1);
 	cc2500_flush_rx(dev);
 	cc2500_set_pkt_len(dev, data_len);
 	cc2500_set_rx(dev);
+#ifdef CONFIG_CC2500_TRIGGER
+	struct cc2500_data *data = dev->data;
+	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
+
+	if (k_msgq_get(&data->rx_queue, buffer_full, K_MSEC(CONFIG_CC2500_READ_TIMEOUT)) < 0) {
+		LOG_INF("Nothing in RX queue");
+		return(-EIO);
+	}
+	memcpy(buffer, buffer_full, data_len);
+#else
 	while (!cc2500_has_data(dev)){
 		k_msleep(1);
 	}
-	if (!cc2500_is_crc_ok(dev)) {
+	if (config->payload_crc && !cc2500_is_crc_ok(dev)) {
 		LOG_WRN("Wrong CRC");
+		return -EIO;
 	}
 	status = cc2500_read_register_len(dev, RXFIFO, buffer, data_len);
+#endif /* CONFIG_CC2500_TRIGGER */
 	cc2500_idle(dev);
 	cc2500_flush_rx(dev);
 	return ret;
@@ -522,6 +556,35 @@ static void cc2500_read_default(const struct device *dev)
 	}
 }
 
+#ifdef CONFIG_CC2500_TRIGGER
+/* Interrupts */
+
+void irq_callback_handler(const struct device *port,
+	struct gpio_callback *cb, uint32_t pins)
+{
+	struct cc2500_data *data = CONTAINER_OF(cb, struct cc2500_data, irq_cb);
+	const struct cc2500_config *config = data->dev->config;
+	int ret;
+	ARG_UNUSED(port);
+	ARG_UNUSED(pins);
+
+	/* disable any new touch interrupts until work is processed */
+	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_DISABLE);
+	if (ret < 0)
+	{
+		LOG_ERR("Could not deactivate interrupt");
+	}
+	k_work_submit(&data->trig_work);
+}
+
+void work_queue_callback_handler(struct k_work *item)
+{
+	struct cc2500_data *data =
+		CONTAINER_OF(item, struct cc2500_data, trig_work);
+	return;
+}
+#endif /* CONFIG_CC2500_TRIGGER */
+
 /* Init */
 static int cc2500_init(const struct device *dev)
 {
@@ -547,6 +610,59 @@ static int cc2500_init(const struct device *dev)
 		LOG_ERR("SPI read write test failed");
 		return(-EIO);
 	}
+#ifdef CONFIG_CC2500_TRIGGER
+	struct cc2500_data *data = dev->data;
+	uint8_t irq_mode;
+	LOG_INF("Trigger config");
+	data->dev = dev;
+
+	// Semaphore for tx
+	k_sem_init(&data->sem, 0, 1);
+
+	// Message queue
+	k_msgq_init(&data->rx_queue, data->rx_queue_buf, SPI_MAX_MSG_LEN,
+		SPI_MSG_QUEUE_LEN);
+
+	if (!gpio_is_ready_dt(&config->irq)) {
+		return -EBUSY;
+	}
+	ret = gpio_pin_configure_dt(&config->irq, GPIO_INPUT);
+	if (ret < 0) {
+		LOG_ERR("Could not configure IRQ GPIO (%d)", ret);
+		return ret;
+	}
+
+	ret = gpio_pin_interrupt_configure_dt(&config->irq, GPIO_INT_EDGE_TO_ACTIVE);
+	if (ret < 0) {
+		LOG_ERR("Could not configure interrupt for IRQ GPIO (%d)", ret);
+		return ret;
+	}
+
+	/* Setup GPIO 0 or GPIO 2 as RX FIFO */
+	irq_mode = 0x00;
+	if (config->payload_crc) {
+		/* IRQ on CRC OK */
+		irq_mode = 0x07;
+	}
+	if (config->gpio2_as_irq) {
+		cc2500_write_register(dev, IOCFG2, 0x00);
+	} else {
+		cc2500_write_register(dev, IOCFG0, 0x00);
+	}
+	/* 4 bytes in RX FIFO before threshold, deasserts when empty */
+	cc2500_write_register(dev, FIFOTHR, 0x01);
+
+	// setup the interrupt function
+    gpio_init_callback(&data->irq_cb, irq_callback_handler, BIT(config->irq.pin));
+
+	ret = gpio_add_callback(config->irq.port, &data->irq_cb);
+	if (ret < 0) {
+		LOG_ERR("Could not configure irq callback (%d)", ret);
+		return ret;
+	}
+	k_work_init(&data->trig_work, work_queue_callback_handler);
+
+#endif /* CONFIG_CC2500_TRIGGER */
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
 
@@ -578,6 +694,10 @@ static int cc2500_init(const struct device *dev)
 		.spi = SPI_DT_SPEC_INST_GET(i, CC2500_SPI_MODE, 2),            \
 		.array = DT_INST_PROP_OR(i, conf_array, {}), \
 		.array_len = DT_INST_PROP_LEN_OR(i, conf_array, 0), \
+		.gpio2_as_irq = DT_INST_PROP_OR(i, use_gpio_2_as_irq, false),      \
+		.payload_crc = DT_INST_PROP_OR(i, payload_crc, true),                    \
+		IF_ENABLED(CONFIG_CC2500_TRIGGER,                              \
+			(.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpios),))           \
 	};                                                                            \
                                                                                   \
 	static struct cc2500_data cc2500_##i = {                                  \
