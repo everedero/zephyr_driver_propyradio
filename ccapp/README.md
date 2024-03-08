@@ -16,14 +16,15 @@ BOARD="nucleo_f756zg";west build -b $BOARD -p always ccapp -- -DOVERLAY_CONFIG=b
 
 ## Pinout
 
-| Name      | NRF24 pin | Nucleo pin | Nucleo logical GPIO | NRF52DK pin | NRF52 logical GPIO | ESP32WROOM pin | ESP32 logical GPIO |
+| Name      | CC25 pin  | Nucleo pin | Nucleo logical GPIO | NRF52DK pin | NRF52 logical GPIO | ESP32WROOM pin | ESP32 logical GPIO |
 |-----------|-----------|------------|---------------------|-------------|--------------------|----------------|--------------------|
-| GND       | 1         | GND        |                     | GND         |                    | GND            |                    |
-| VCC       | 2         | 3V3        |                     | VDD         |                    | 3V3            |                    |
-| CSN       | 4         | D24        | PA4                 | P0.22       | D10                | D3             | 10                 |
-| SCK       | 5         | D23        | PB3                 | P0.25       | D13                | 14             | 14                 |
-| MOSI      | 6         | D22        | PB5                 | P0.23       | D11                | 15             | 15                 |
-| MISO      | 7         | D25        | PB4                 | P0.24       | D12                | 2              | 2                  |
+| GND       | 2         | GND        |                     | GND         |                    | GND            |                    |
+| VCC       | 1         | 3V3        |                     | VDD         |                    | 3V3            |                    |
+| CSN       | 8         | D24        | PA4                 | P0.22       | D10                | D3             | 10                 |
+| SCLK      | 4         | D23        | PB3                 | P0.25       | D13                | 14             | 14                 |
+| MOSI      | 3         | D22        | PB5                 | P0.23       | D11                | 15             | 15                 |
+| MISO      | 5         | D25        | PB4                 | P0.24       | D12                | 2              | 2                  |
+| GDO0      | 7         | D10        | PD14                | P0.20       | D9                 | 17             | 17                 |
 
 ### Pinout diagrams
 #### CC2400
@@ -32,13 +33,13 @@ BOARD="nucleo_f756zg";west build -b $BOARD -p always ccapp -- -DOVERLAY_CONFIG=b
 VCC   | 1
 GND   | 2
 SI    | 3
-SCLK  | 3
-SO    | 4
-GDO2  | 5
-GDO0  | 6
-CSN   | 7
-PA    | 8
-LNA   | 9
+SCLK  | 4
+SO    | 5
+GDO2  | 6
+GDO0  | 7
+CSN   | 8
+PA    | 9
+LNA   | 10
 
 -->
 ![Kroki generated
@@ -62,13 +63,13 @@ PlantUML](https://kroki.io/ditaa/svg/eNpTUIACbV1dXTDmAvHc_VwUFGoUDIHYCIjDnJ25FFB
                   |   |   |                                            |   |   |
                   | 3 | 4 | D44                                    D21 | 11| 12| D12
                   |   |   |                                            |   |   |
-                  | 5 | 6 | D45                    (6) SPI1_MOSI   D22 | 13| 14| D11
+                  | 5 | 6 | D45                    (3) SPI1_MOSI   D22 | 13| 14| D11
                   |   |   |                                            |   |   |
-              3V3 | 7 | 8 | D46                    (5) SPI1_SCK    D23 | 15| 16| D10
+              3V3 | 7 | 8 | D46                    (4) SPI1_SCK    D23 | 15| 16| D10 GD0_IRQ (7)
                   |   |   |                                            |   |   |
-               5V | 9 | 10| D47                    (4) SPI1_NSS    D24 | 17| 18| D9
+               5V | 9 | 10| D47                    (8) SPI1_NSS    D24 | 17| 18| D9
                   |   |   |                                            |   |   |
-              GND | 11| 12| D48                    (7) SPI1_MISO   D25 | 19| 20| D8
+              GND | 11| 12| D48                    (5) SPI1_MISO   D25 | 19| 20| D8
                   |   |   |                                            |   |   |
               GND | 13| 14| D49                                        +-------+
                   |   |   |
@@ -127,15 +128,15 @@ PlantUML](https://kroki.io/ditaa/svg/eNrNmMFO5DAMhu_zFDkOQkhxHDvpsWoXNEJbdqnElRf
         o                                                   |    |
      +---+                                          GND     | 7  |
      | 1 | VDD                                              |    |
-     |   |                                (5) SCK   P0.25   | 6  |
+     |   |                                (4) SCK   P0.25   | 6  |
      | 2 | VDD                                              |    |
-     |   |                                (7) MISO  P0.24   | 5  |
+     |   |                                (5) MISO  P0.24   | 5  |
      | 3 | RESET                                            |    |
-     |   |                                (6) MOSI  P0.23   | 4  |
+     |   |                                (3) MOSI  P0.23   | 4  |
      | 4 | VDD                                              |    |
-     |   |                                (4) CSN   P0.22   | 3  |
+     |   |                                (8) CSN   P0.22   | 3  |
      | 5 | 5V                                               |    |
-     |   |                                          P0.20   | 2  |
+     |   |                           (7) GDO0_IRQ   P0.20   | 2  |
      | 6 | GND                                              |    |
      |   |                                          P0.19   | 1  |
      | 7 | GND                                              |    |
@@ -213,19 +214,19 @@ PlantUML](https://kroki.io/ditaa/svg/eNrNl81uhCAURvc-Bcsa04Z_dK2mMU0dOzbzGr6AD19
             |     |                                  |     |
             | 26  |                                  | 5   |
             |     |                                  |     |
-            | 27  |                                  | 17  |
+            | 27  |                                  | 17  |  GDO0_IRQ (7)
             |     |                                  |     |
-(5) SCK     | 14  |                                  | 16  |
+(4) SCK     | 14  |                                  | 16  |
             |     |                                  |     |
             | 12  |                                  | 4   |
             |     |                                  |     |
             | GND |                                  | 0   |
             |     |                                  |     |
-            | 13  |                                  | 2   |  MISO (7)
+            | 13  |                                  | 2   |  MISO (5)
             |     |                                  |     |
-            | D2  |                                  | 15  |  MOSI (6)
+            | D2  |                                  | 15  |  MOSI (3)
             |     |                                  |     |
-(4) CSN     | D3  |                                  | D1  |
+(8) CSN     | D3  |                                  | D1  |
             |     |                                  |     |
             | CMD |                                  | D0  |
             |     |                                  |     |
