@@ -35,7 +35,7 @@ properties:
     type: int
     required: true
     description: |
-      Channel selection, from 0 to 126. 0 is 2400MHz, each channel is 1MHz wide and 126 is 2526MHz. Default is 16.
+      Channel selection, from 0 to 126. 0 is 2400MHz. Max available frequency is 2483.5MHz. Each channel is 200kHz wide by default, and 126 is 2526MHz. Default is 16.
     default: 16
 
   data-rate-2mbps:

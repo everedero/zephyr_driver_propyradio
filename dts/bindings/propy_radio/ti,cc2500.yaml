@@ -20,18 +20,42 @@ properties:
 
   irq-gpios:
     type: phandle-array
-    required: false
     description: |
-      Chip parametric GPIO 0 or 2. Default is GPIO 0, use use-gpio-2-as-irq to select GPIO 2 instead.
+      Chip parametric GPIO 0 or 2. Default is GPIO 0, use use-gpio-2-as-irq to select GPIO 2 instead. Default as none.
 
   use-gpio-2-as-irq:
     type: boolean
-    required: false
     description: |
-      Use GPIO 2 instead of GPIO 0 as IRQ input pin.
+      Use GPIO 2 instead of GPIO 0 as IRQ input pin. Default false.
 
   payload-crc:
     type: boolean
-    required: false
     description: |
       Use payload CRC. Default true.
+
+  start-frequency:
+    type: int
+    default: 2464
+    description: |
+      Base frequency, center of the lowest channel to be selected by channel-frequency, in MHz. Default is 2464 MHz.
+
+  channel-frequency:
+    type: int
+    description: |
+      Channel selection. Each channel is 200kHz wide by default, to be added to start-frequency. Default is 0.
+    default: 0
+
+  modulation-format:
+    type: int
+    description: |
+      Modulation format. Default is 2-FSK.
+      - 2-FSK
+      - GFSK
+      - OOK
+      - MSK
+      enum:
+        - "2-FSK"
+        - "GFSK"
+        - "OOK"
+        - "MSK"
+    default: 0

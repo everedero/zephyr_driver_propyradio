@@ -25,10 +25,13 @@ struct cc2500_config {
 	const int array_len;
 	struct gpio_dt_spec irq;
 	bool gpio2_as_irq;
-	bool payload_crc;
 };
 
 struct cc2500_data {
+	int channel_frequency;
+	int start_frequency;
+	int modulation_format;
+	bool payload_crc;
 #ifdef CONFIG_CC2500_TRIGGER
 	/** RX queue buffer. */
 	uint8_t rx_queue_buf[SPI_MSG_QUEUE_LEN * SPI_MAX_MSG_LEN];
@@ -434,13 +437,13 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 	int ret = 0;
 	uint8_t status = 0;
 	const struct cc2500_config *config = dev->config;
+	struct cc2500_data *data = dev->data;
 	cc2500_idle(dev);
 	k_msleep(1);
 	cc2500_flush_rx(dev);
 	cc2500_set_pkt_len(dev, data_len);
 	cc2500_set_rx(dev);
 #ifdef CONFIG_CC2500_TRIGGER
-	struct cc2500_data *data = dev->data;
 	uint8_t buffer_full[SPI_MAX_MSG_LEN] = {0};
 
 	if (k_msgq_get(&data->rx_queue, buffer_full, K_MSEC(CONFIG_CC2500_READ_TIMEOUT)) < 0) {
@@ -452,7 +455,7 @@ static int cc2500_read(const struct device *dev, uint8_t *buffer, uint8_t data_l
 	while (!cc2500_has_data(dev)){
 		k_msleep(1);
 	}
-	if (config->payload_crc && !cc2500_is_crc_ok(dev)) {
+	if (data->payload_crc && !cc2500_is_crc_ok(dev)) {
 		LOG_WRN("Wrong CRC");
 		return -EIO;
 	}
@@ -591,6 +594,7 @@ static int cc2500_init(const struct device *dev)
 	//uint8_t pa_data[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 	uint8_t pa_data[] = {0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6};
 	const struct cc2500_config *config = dev->config;
+	struct cc2500_data *data = dev->data;
 	uint8_t reg_value;
 	int ret;
 
@@ -611,7 +615,6 @@ static int cc2500_init(const struct device *dev)
 		return(-EIO);
 	}
 #ifdef CONFIG_CC2500_TRIGGER
-	struct cc2500_data *data = dev->data;
 	uint8_t irq_mode;
 	LOG_INF("Trigger config");
 	data->dev = dev;
@@ -640,7 +643,7 @@ static int cc2500_init(const struct device *dev)
 
 	/* Setup GPIO 0 or GPIO 2 as RX FIFO */
 	irq_mode = 0x00;
-	if (config->payload_crc) {
+	if (data->payload_crc) {
 		/* IRQ on CRC OK */
 		irq_mode = 0x07;
 	}
@@ -676,13 +679,7 @@ static int cc2500_init(const struct device *dev)
 	cc2500_flush_tx(dev);
 	cc2500_idle(dev);
 
-	cc2500_write_register(dev, IOCFG2, 0x5C);
-	cc2500_write_register(dev, IOCFG0, 0x5B);
-	/* FIFO threshold */
-	//cc2500_write_register(dev, FIFOTHR, 0x7);
 	cc2500_cmd_register(dev, SFSTXON);
-
-	cc2500_rssi_process(dev);
 
 	return 0;
 }
@@ -695,12 +692,15 @@ static int cc2500_init(const struct device *dev)
 		.array = DT_INST_PROP_OR(i, conf_array, {}), \
 		.array_len = DT_INST_PROP_LEN_OR(i, conf_array, 0), \
 		.gpio2_as_irq = DT_INST_PROP_OR(i, use_gpio_2_as_irq, false),      \
-		.payload_crc = DT_INST_PROP_OR(i, payload_crc, true),                    \
 		IF_ENABLED(CONFIG_CC2500_TRIGGER,                              \
 			(.irq = GPIO_DT_SPEC_INST_GET(i, irq_gpios),))           \
 	};                                                                            \
                                                                                   \
 	static struct cc2500_data cc2500_##i = {                                  \
+		.channel_frequency = DT_INST_PROP(i, channel_frequency),                    \
+		.start_frequency = DT_INST_PROP(i, start_frequency),                    \
+		.modulation_format = DT_INST_PROP(i, modulation_format),            \
+		.payload_crc = DT_INST_PROP_OR(i, payload_crc, true)                    \
 	};                                                                            \
 	DEVICE_DT_INST_DEFINE(i, cc2500_init, NULL, &cc2500_##i,  \
 			      &cc2500_config_##i, POST_KERNEL,              \

@@ -15,6 +15,8 @@
 		compatible = "ti,cc2500";
 		status = "okay";
 		spi-max-frequency = <500000>; // Max 10 MHz for cc2500, min 420k for driver
+		channel-frequency = <3>;
+		start-frequency = <2412>;
 		irq-gpios = <&gpiod 14 GPIO_ACTIVE_LOW>;
 		payload-crc;
 		/* From 0x07 to 0x2E */
