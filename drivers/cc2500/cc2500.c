@@ -535,7 +535,7 @@ static int cc2500_rssi_process(const struct device *dev)
 		cc2500_set_channel_process(dev, current_chan);
 		k_msleep(5);
 		/* Wait for PLL lock */
-		while (cc2500_is_pll_locked(dev)) {
+		while (!cc2500_is_pll_locked(dev)) {
 			k_usleep(100);
 		}
 		/* Single read */
