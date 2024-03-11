@@ -7,9 +7,9 @@ tests:
     extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nucleo_f756zg.overlay"
   driver.nrf24l01.nrf52:
     integration_platforms:
-      - nrf52dk_nrf52832
+      - nrf52dk/nrf52832
     extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/nrf52dk_nrf52832.overlay"
   driver.nrf24l01.esp32:
     integration_platforms:
-      - esp32_devkitc_wroom
+      - esp32_devkitc_wroom/esp32/procpu
     extra_args: DTC_OVERLAY_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../../../app/boards/esp32_devkitc_wroom.overlay"
