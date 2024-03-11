@@ -15,7 +15,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
 
-#include <app/drivers/nrf24.h>
+#include <app/drivers/propy_radio.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, CONFIG_NRF24L01_LOG_LEVEL);
 
