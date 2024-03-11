@@ -511,6 +511,13 @@ static int cc2500_set_channel_process(const struct device *dev, uint8_t chann)
 	return(ret);
 }
 
+static bool cc2500_is_pll_locked(const struct device *dev) {
+	if (cc2500_read_register(dev, FSCAL1) == 0x3F) {
+		return(false);
+	}
+	return(true);
+}
+
 static int cc2500_rssi_process(const struct device *dev)
 {
 	uint8_t reg_value;
@@ -527,9 +534,11 @@ static int cc2500_rssi_process(const struct device *dev)
 		total = 0;
 		cc2500_set_channel_process(dev, current_chan);
 		k_msleep(5);
+		/* Wait for PLL lock */
+		while (cc2500_is_pll_locked(dev)) {
+			k_usleep(100);
+		}
 		/* Single read */
-		reg_value = cc2500_read_register(dev, FSCAL1);
-		LOG_DBG("FS cal1: %d",  reg_value);
 		for (i=0; i<num_mes; i++) {
 			total += cc2500_get_rssi(dev);
 			k_usleep(3600);
