@@ -52,7 +52,7 @@ where `$BOARD` is the target board.
 ```shell
 BOARD="nucleo_f756zg"
 BOARD="nrf52dk_nrf52832"
-BOARD="esp32_devkitc_wroom"
+BOARD="esp32_devkitc_wroom/esp32/procpu"
 ```
 
 In order to activate debug logs:
