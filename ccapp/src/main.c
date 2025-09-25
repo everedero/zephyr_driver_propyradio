@@ -56,8 +56,6 @@ int main(void)
 	}
 	LOG_INF("Device ready");
 
-	read_stuff(cc2500);
-	k_msleep(60);
 
 	for (i=0; i<20; i++) {
 		LOG_INF("Mode 1, 1");

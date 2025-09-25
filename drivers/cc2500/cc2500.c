@@ -408,6 +408,13 @@ static uint8_t cc2500_get_pkt_status(const struct device *dev)
 	return((status & 0x80) >> 7);
 }
 
+static uint8_t cc2500_is_not_ready(const struct device *dev)
+{
+	uint8_t ret;
+	ret = cc2500_read_status(dev);
+	return((ret & 0x80) >> 7);
+}
+
 #ifndef CONFIG_CC2500_TRIGGER
 /* Polling behaviour */
 static uint8_t cc2500_is_crc_ok(const struct device *dev)
@@ -622,6 +629,11 @@ static int cc2500_init(const struct device *dev)
 	if (!cc2500_test_spi(dev)) {
 		LOG_ERR("SPI read write test failed");
 		return(-EIO);
+	}
+
+	while(cc2500_is_not_ready(dev)) {
+		LOG_DBG("Device not ready");
+		k_msleep(1);
 	}
 #ifdef CONFIG_CC2500_TRIGGER
 	uint8_t irq_mode;
