@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2025 Philippe Peurichard
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&spi2 {
+	cs-gpios = <&arduino_header 10 GPIO_ACTIVE_LOW>;
+	clock-frequency = <8000000>; // Max 8 Mbps for SPI
+
+};
+
+
+&arduino_spi {
+	radio0: nrf24@0 {
+		reg = <0>;
+		compatible = "nordic,nrf24l01";
+		status = "okay";
+		addr-width = <5>;
+		spi-max-frequency = <500000>; // Max 8 Mbps for SPI
+		ce-gpios = <&arduino_header 13 GPIO_ACTIVE_HIGH>; /* D7 */
+		irq-gpios = <&arduino_header 15 GPIO_ACTIVE_LOW>; /* D9 */
+		channel-frequency = <76>;
+		lna-gain;
+		rf-power-attenuation = <18>;
+		tx-address = [00 00 00 00 01]; // [ab cd ab cd 71];    
+		payload-fixed-size = <32>;
+		rx-datapipes-number = <2>;
+		rx-datapipe0-address = [00 00 00 00 01]; // [ab cd ab cd 71];
+		rx-datapipe1-address = [00 00 00 00 ff]; // [ab cd ab cd 72];
+		// payload-ack;
+		payload-crc;
+		crc-encoding-twobytes;
+	};
+};
