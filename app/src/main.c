@@ -16,9 +16,12 @@
 #include <ui.h>
 
 static int32_t counter;
+static bool increment_counter = false;
 
 int32_t get_var_counter() {
-    return counter;
+	static char str_buf[11];
+    snprintf(str_buf, sizeof(str_buf), "%d", counter);
+    return (int32_t) str_buf;
 }
 
 void set_var_counter(int32_t value) {
@@ -64,6 +67,13 @@ static const struct device *lvgl_keypad =
 void action_start_button_pressed(lv_event_t *e)
 {
 	ARG_UNUSED(e);
+	if (increment_counter) {
+		increment_counter = false;
+		lv_label_set_text(objects.button_label, "Start");
+	} else {
+		increment_counter = true;
+		lv_label_set_text(objects.button_label, "Stop");
+	}
 
 	// count = 0;
 }
@@ -120,7 +130,9 @@ int main(void)
 
 	while (true) {
 		/* Update counter */
-		// set_var_counter(get_var_counter() + 1);
+		if (increment_counter) {
+			set_var_counter(counter + 1);
+		}
 
 		/* Update UI */
 		ui_tick();
@@ -140,6 +152,8 @@ int main(void)
 		}
 #endif // TRIGGER
 		LOG_HEXDUMP_INF(buffer, data_len, "Sent: ");
+
+#if 0
 		LOG_DBG("Switch to read");
 #ifdef TRIGGER
 		while (nrf24_read(nrf24, buffer, data_len));
@@ -149,6 +163,7 @@ int main(void)
 		LOG_HEXDUMP_INF(buffer, data_len, "Received: ");
 		k_sleep(K_MSEC(100));
 		LOG_DBG("Switch to write");
+#endif // 0
 	}
 #endif // ALICE
 
@@ -195,6 +210,5 @@ int main(void)
 		LOG_HEXDUMP_INF(buffer, data_len, "I spied: ");
 	}
 #endif // EVE
-
 	return 0;
 }
