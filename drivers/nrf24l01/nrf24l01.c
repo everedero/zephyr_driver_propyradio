@@ -510,8 +510,8 @@ void nrf24l01_configure_pipes(const struct device *dev)
 	int idx;
 	// Note that AVR 8-bit uC's store this LSB first, and the NRF24L01(+)
 	// expects it LSB first too, so we're good.
-	if (data->addr_width != 4) {
-		LOG_ERR("Width should be 4");
+	if (data->addr_width > 5) {
+		LOG_ERR("Channel pipe address width should be less than 6");
 		return;
 	}
 	// Writing pipe addresses
