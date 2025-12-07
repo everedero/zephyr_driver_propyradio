@@ -78,6 +78,17 @@ void action_start_button_pressed(lv_event_t *e)
 	// count = 0;
 }
 
+void action_menu_back_action(lv_event_t *e) {
+    // TODO: Implement action menu_back_action here
+	loadScreen(SCREEN_ID_MAIN);
+}
+
+void action_menu_settings_action(lv_event_t *e) {
+    // TODO: Implement action menu_settings_action here
+	loadScreen(SCREEN_ID_SETTINGS);
+}
+
+
 #ifdef CONFIG_NRF24L01_TRIGGER
 #define TRIGGER
 #endif

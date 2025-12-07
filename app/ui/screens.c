@@ -27,6 +27,7 @@ void create_screen_main() {
             objects.label_counter = obj;
             lv_obj_set_pos(obj, 317, 117);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "Counter: ");
         }
         {
@@ -45,6 +46,7 @@ void create_screen_main() {
                     lv_obj_set_pos(obj, 0, 0);
                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_label_set_text(obj, "Start");
                 }
             }
@@ -55,7 +57,47 @@ void create_screen_main() {
             objects.counter_label = obj;
             lv_obj_set_pos(obj, 436, 117);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "");
+        }
+        {
+            // Banner
+            lv_obj_t *obj = lv_obj_create(parent_obj);
+            objects.banner = obj;
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, 800, 65);
+            lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_right(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_pad_bottom(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_border_width(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_grad_color(obj, lv_color_hex(0xffebe0e0), LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            // Menu
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.menu = obj;
+            lv_obj_set_pos(obj, 0, 65);
+            lv_obj_set_size(obj, 119, 120);
+            lv_obj_add_event_cb(obj, action_menu_settings_action, LV_EVENT_PRESSED, (void *)0);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_src(obj, &img_settings_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xfff1c38d), LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // MenuLabel
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    objects.menu_label = obj;
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text(obj, "");
+                }
+            }
         }
     }
     
@@ -74,11 +116,74 @@ void tick_screen_main() {
     }
 }
 
+void create_screen_settings() {
+    lv_obj_t *obj = lv_obj_create(0);
+    objects.settings = obj;
+    lv_obj_set_pos(obj, 0, 0);
+    lv_obj_set_size(obj, 800, 480);
+    {
+        lv_obj_t *parent_obj = obj;
+        {
+            // SettingsTabView
+            lv_obj_t *obj = lv_tabview_create(parent_obj);
+            objects.settings_tab_view = obj;
+            lv_obj_set_pos(obj, 77, 1);
+            lv_obj_set_size(obj, 646, 479);
+            lv_tabview_set_tab_bar_position(obj, LV_DIR_TOP);
+            lv_tabview_set_tab_bar_size(obj, 50);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xfff1c38d), LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // TabRadio
+                    lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Radio");
+                    objects.tab_radio = obj;
+                }
+                {
+                    // TabSwitch
+                    lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Switch");
+                    objects.tab_switch = obj;
+                }
+            }
+        }
+        {
+            // Menu_Back
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.menu_back = obj;
+            lv_obj_set_pos(obj, 0, 1);
+            lv_obj_set_size(obj, 76, 201);
+            lv_obj_add_event_cb(obj, action_menu_back_action, LV_EVENT_PRESSED, (void *)0);
+            lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0xff000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_src(obj, &img_back_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // MenuBackLabel
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    objects.menu_back_label = obj;
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text(obj, "");
+                }
+            }
+        }
+    }
+    
+    tick_screen_settings();
+}
+
+void tick_screen_settings() {
+}
+
 
 
 typedef void (*tick_screen_func_t)();
 tick_screen_func_t tick_screen_funcs[] = {
     tick_screen_main,
+    tick_screen_settings,
 };
 void tick_screen(int screen_index) {
     tick_screen_funcs[screen_index]();
@@ -93,4 +198,5 @@ void create_screens() {
     lv_disp_set_theme(dispp, theme);
     
     create_screen_main();
+    create_screen_settings();
 }
