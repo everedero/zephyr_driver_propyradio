@@ -7,6 +7,7 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/adc.h>
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -183,6 +184,29 @@ static const struct device *lvgl_keypad =
 	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
 #endif /* CONFIG_LV_Z_KEYPAD_INPUT */
 
+
+#if !DT_NODE_EXISTS(DT_PATH(zephyr_user)) || \
+	!DT_NODE_HAS_PROP(DT_PATH(zephyr_user), io_channels)
+#error "No suitable devicetree overlay specified"
+#endif
+
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
+	ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
+
+/* Data of ADC io-channels specified in devicetree. */
+static const struct adc_dt_spec adc_channels[] = {
+	DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), io_channels,
+			     DT_SPEC_AND_COMMA)
+};
+
+
+adc_sequence_callback adc_callback(const struct device *dev,
+		const struct adc_sequence *sequence,
+		uint16_t sampling_index)
+{
+	return(ADC_ACTION_CONTINUE);
+}
+
 void action_start_button_pressed(lv_event_t *e)
 {
 	ARG_UNUSED(e);
@@ -254,9 +278,68 @@ void radio_thread(void)
 	}
 }
 
+void adc_read_thread(void)
+{
+	int err;
+	uint32_t count = 0;
+	uint16_t buf[32 * 6];
+	const struct adc_sequence_options adc_options = {
+		.interval_us = 100000,
+		.callback = &adc_callback,
+		/* How many to read -1 */
+		.extra_samplings = 3,
+	};
+	struct adc_sequence sequence = {
+		.buffer = buf,
+		/* buffer size in bytes, not number of samples */
+		.buffer_size = sizeof(buf),
+		.options = &adc_options,
+		.channels = 0xf210, /* 0b1111001000010000, adc channels bitmask */
+	};
+
+	/* Configure channels individually prior to sampling. */
+	for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+		if (!adc_is_ready_dt(&adc_channels[i])) {
+			printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
+			return;
+		}
+
+		err = adc_channel_setup_dt(&adc_channels[i]);
+		if (err < 0) {
+			printk("Could not setup channel #%d (%d)\n", i, err);
+			return;
+		}
+	}
+	/* Initializes sequence from channel 0 parameters */
+	/* All elements hould have same resolution and oversampling parameters */
+	(void)adc_sequence_init_dt(adc_channels, &sequence);
+	/* Re-set multiple channel config, rewritten by sequence_init */
+	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
+
+	while (1) {
+		err = adc_read_dt(adc_channels, &sequence);
+		if (err < 0) {
+			printk("Could not read (%d)\n", err);
+			continue;
+		}
+		else {
+			/* Process ADC samples stored in buf */
+			// For example, log the first sample of each channel
+			//LOG_INF("ADC Sample Count: %d", count++);
+			for (size_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
+				printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
+			}
+		}
+		k_sleep(K_MSEC(100));
+	}
+}
+
 K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 		PRIORITY, 0, 0);
 
+
+K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
+		(PRIORITY+1), 0, 0);
 
 int main(void)
 {
@@ -286,7 +369,7 @@ int main(void)
 		ui_tick();
 		lv_timer_handler();
 
-		k_sleep(K_MSEC(1000));
+		k_sleep(K_MSEC(1));
 	}
 	return 0;
 }
