@@ -106,7 +106,7 @@ void create_screen_main() {
 
 void tick_screen_main() {
     {
-        const char *new_val = get_var_counter();
+        const char *new_val = (char *)(get_var_counter());
         const char *cur_val = lv_label_get_text(objects.counter_label);
         if (strcmp(new_val, cur_val) != 0) {
             tick_value_change_obj = objects.counter_label;
