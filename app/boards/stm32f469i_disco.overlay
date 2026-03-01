@@ -11,6 +11,21 @@
 			<&adc1 15>, <&adc1 4>;
 	};
 };
+/* Activation I2C1 (Arduino connector) */
+&arduino_i2c {
+    status = "okay";
+
+    pcf8575: gpio_expander@20 {
+        compatible = "nxp,pcf857x";
+        reg = <0x20>;
+        gpio-controller;
+        #gpio-cells = <2>;
+		ngpios = <16>;
+		int-gpios = <&gpiog 15 GPIO_ACTIVE_LOW>; 
+        status = "okay";
+    };
+};
+
 
 &dma2 {
 	status = "okay";
