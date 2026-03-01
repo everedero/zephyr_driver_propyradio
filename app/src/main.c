@@ -5,6 +5,7 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/device.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
@@ -200,7 +201,7 @@ static const struct adc_dt_spec adc_channels[] = {
 };
 
 
-adc_sequence_callback adc_callback(const struct device *dev,
+static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
 		uint16_t sampling_index)
 {
@@ -281,7 +282,7 @@ void radio_thread(void)
 void adc_read_thread(void)
 {
 	int err;
-	uint32_t count = 0;
+	// uint32_t count = 0;
 	uint16_t buf[32 * 6];
 	const struct adc_sequence_options adc_options = {
 		.interval_us = 100000,
@@ -341,10 +342,78 @@ K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
 		(PRIORITY+1), 0, 0);
 
+/* ----------- PCF8575 ----------- */
+#define PCF_NODE DT_NODELABEL(pcf8575)
+
+static const struct device *pcf_dev = DEVICE_DT_GET(PCF_NODE);
+
+//const struct gpio_dt_spec pcf8575_gpio = GPIO_DT_SPEC_GET(DT_NODELABEL(pcf8575), gpios);
+
+static struct gpio_callback int_cb_data;
+
+/* ----------- Debounce ----------- */
+
+#define DEBOUNCE_TIME_MS 20
+
+#define INPUT_PIN 0
+
+static struct k_work_delayable debounce_work;
+
+/* ----------- Work handler ----------- */
+
+static void debounce_work_handler(struct k_work *work)
+{
+    ARG_UNUSED(work);
+	int val = gpio_pin_get(pcf_dev, INPUT_PIN);
+	LOG_INF("Debounced value: %d", val);
+	/* re-enable interrupt */
+	gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_BOTH);
+}
+
+/* ----------- ISR ----------- */
+
+static void pcf_int_callback(const struct device *dev,
+                             struct gpio_callback *cb,
+                             uint32_t pins)
+{
+    /* disable interrupt */
+    gpio_pin_interrupt_configure(dev, pins, GPIO_INT_DISABLE);
+
+	/* start debounce timer*/
+    k_work_reschedule(&debounce_work, K_MSEC(DEBOUNCE_TIME_MS));
+}
+
+
 int main(void)
 {
 	const struct device *display_dev;
-	
+	int ret;
+
+	if (!device_is_ready(pcf_dev)) {
+        LOG_ERR("Device PCF8575 not ready");
+        return -1;
+    }
+
+    gpio_pin_configure(pcf_dev, INPUT_PIN, GPIO_INPUT); // Configure pin 0 as input (INT pin)
+    
+    ret = gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_TO_ACTIVE); // Configure interrupt on rising edge
+    
+	if (ret < 0) {
+        LOG_ERR("Interrupt config failed");
+        return ret;
+    }
+
+    gpio_init_callback(&int_cb_data,
+                       pcf_int_callback,
+                       BIT(INPUT_PIN));
+
+    gpio_add_callback(pcf_dev, &int_cb_data);
+
+    k_work_init_delayable(&debounce_work,
+                          debounce_work_handler);
+
+    LOG_INF("PCF8575 debounce example ready");
+
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 	/* Check if the Display device is ready */
