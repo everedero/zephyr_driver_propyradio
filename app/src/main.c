@@ -285,7 +285,7 @@ void adc_read_thread(void)
 	// uint32_t count = 0;
 	uint16_t buf[32 * 6];
 	const struct adc_sequence_options adc_options = {
-		.interval_us = 100000,
+		.interval_us = 500000,
 		.callback = &adc_callback,
 		/* How many to read -1 */
 		.extra_samplings = 3,
@@ -317,7 +317,7 @@ void adc_read_thread(void)
 	/* Re-set multiple channel config, rewritten by sequence_init */
 	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
 
-	while (1) {
+	while (true) {
 		err = adc_read_dt(adc_channels, &sequence);
 		if (err < 0) {
 			printk("Could not read (%d)\n", err);
@@ -328,20 +328,20 @@ void adc_read_thread(void)
 			// For example, log the first sample of each channel
 			//LOG_INF("ADC Sample Count: %d", count++);
 			for (size_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
-				printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
+				// printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
 			}
 		}
-		k_sleep(K_MSEC(100));
+		//k_sleep(K_MSEC(100));
 	}
 }
-
+#if 0
 K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 		PRIORITY, 0, 0);
 
 
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
 		(PRIORITY+1), 0, 0);
-
+#endif
 /* ----------- PCF8575 ----------- */
 #define PCF_NODE DT_NODELABEL(pcf8575)
 
