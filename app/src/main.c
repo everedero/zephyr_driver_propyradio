@@ -9,6 +9,7 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
+#include <zephyr/drivers/pwm.h>
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -48,16 +49,26 @@ typedef uint8_t (*map_t)(
 	const uint8_t min,
 	const uint8_t max,
 	const uint8_t center,
-	const uint8_t step,
-	const uint32_t data);
+	const uint16_t resolution,
+	const uint16_t data);
+
+uint8_t def_map(
+	const uint8_t min,
+	const uint8_t max,
+	const uint8_t center,
+	const uint16_t resolution,
+	const uint16_t data) {
+	// Simple linear mapping for demonstration
+	return (data - min) * (max - min) / (resolution - min) + min;
+}
 
 /* Channel mapping structure */
 struct channel_map {
 	uint8_t min;
 	uint8_t max;
 	uint8_t center;
-	uint8_t step;
-	uint32_t input;
+	uint16_t resolution;
+	uint16_t input;
 	map_t map;
 };
 
@@ -85,7 +96,7 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 				settings->ch_settings[i].min,
 				settings->ch_settings[i].max,
 				settings->ch_settings[i].center,
-				settings->ch_settings[i].step,
+				settings->ch_settings[i].resolution,
 				settings->ch_settings[i].input
 			);
 		} else {
@@ -125,9 +136,9 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 		settings->ch_settings[i].min = 0;
 		settings->ch_settings[i].max = 255;
 		settings->ch_settings[i].center = 127;
-		settings->ch_settings[i].step = 1;
+		settings->ch_settings[i].resolution = 255;
 		settings->ch_settings[i].input = 127; // Default input value
-		settings->ch_settings[i].map = NULL; // No mapping function by default
+		settings->ch_settings[i].map = def_map; // linear mapping function
 	}
 
 	// Initialize auxiliary channel settings with default values
@@ -218,8 +229,6 @@ void action_start_button_pressed(lv_event_t *e)
 		increment_counter = true;
 		lv_label_set_text(objects.button_label, "Stop");
 	}
-
-	// count = 0;
 }
 
 void action_menu_back_action(lv_event_t *e) {
@@ -282,10 +291,9 @@ void radio_thread(void)
 void adc_read_thread(void)
 {
 	int err;
-	// uint32_t count = 0;
 	uint16_t buf[32 * 6];
 	const struct adc_sequence_options adc_options = {
-		.interval_us = 500000,
+		.interval_us = 100000,
 		.callback = &adc_callback,
 		/* How many to read -1 */
 		.extra_samplings = 3,
@@ -325,23 +333,53 @@ void adc_read_thread(void)
 		}
 		else {
 			/* Process ADC samples stored in buf */
-			// For example, log the first sample of each channel
-			//LOG_INF("ADC Sample Count: %d", count++);
 			for (size_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
 				// printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
+				if (ch < MAX_CHANNELS) {
+					rf_parameters.ch_settings[ch].resolution = (uint16_t)((1 << adc_channels[ch].resolution) - 1); // Calculate resolution from ADC resolution bits
+					rf_parameters.ch_settings[ch].input = ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
+				}	
 			}
 		}
 		//k_sleep(K_MSEC(100));
 	}
 }
-#if 0
-K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
+
+const struct pwm_dt_spec sBuzzer = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
+
+/* Thread plays song on buzzer */
+K_SEM_DEFINE(buzzer_initialized_sem, 0, 1); /* Wait until buzzer is ready */
+
+#define BUZZER_STACK 1024
+
+extern void buzzer_thread(void *d0, void *d1, void *d2)
+{
+	/* Block until buzzer is available */
+	k_sem_take(&buzzer_initialized_sem, K_FOREVER);
+	while (true) {
+		
+		pwm_set_dt(&sBuzzer, PWM_HZ(1000), PWM_HZ(1000) / 2);
+		k_msleep(100);
+		
+		/* turn buzzer off (pulse duty to 0) */
+		pwm_set_pulse_dt(&sBuzzer, 0);
+
+		/* Sleep thread until awoken externally */
+		k_sleep(K_FOREVER);
+	}
+}
+
+K_THREAD_DEFINE(buzzer_tid, BUZZER_STACK, buzzer_thread, NULL, NULL, NULL,
 		PRIORITY, 0, 0);
 
 
+K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
+		(PRIORITY-1), 0, 0);
+
+
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
-		(PRIORITY+1), 0, 0);
-#endif
+		(PRIORITY-2), 0, 0);
+
 /* ----------- PCF8575 ----------- */
 #define PCF_NODE DT_NODELABEL(pcf8575)
 
@@ -391,7 +429,7 @@ int main(void)
 
 	if (!device_is_ready(pcf_dev)) {
         LOG_ERR("Device PCF8575 not ready");
-        return -1;
+        return -ENODEV;;
     }
 
     gpio_pin_configure(pcf_dev, INPUT_PIN, GPIO_INPUT); // Configure pin 0 as input (INT pin)
@@ -413,6 +451,13 @@ int main(void)
                           debounce_work_handler);
 
     LOG_INF("PCF8575 debounce example ready");
+	
+	if (!device_is_ready(sBuzzer.dev)) {
+		return -ENODEV;
+	}
+	k_sem_give(&buzzer_initialized_sem);
+	LOG_INF("Buzzer device ready");
+	
 
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
@@ -427,6 +472,9 @@ int main(void)
 	display_blanking_off(display_dev);
 
 	set_var_counter(0);
+
+	// 1 Beep at startup
+	k_wakeup(buzzer_tid);
 
 	while (true) {
 		/* Update counter */
