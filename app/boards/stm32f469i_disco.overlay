@@ -21,7 +21,7 @@
         gpio-controller;
         #gpio-cells = <2>;
 		ngpios = <16>;
-		int-gpios = <&gpiog 15 GPIO_ACTIVE_LOW>; 
+		int-gpios = <&gpiog 13 GPIO_ACTIVE_LOW>;
         status = "okay";
     };
 };
