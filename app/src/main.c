@@ -31,6 +31,21 @@
 /* Maximum number of auxiliary channels */
 #define MAX_AUX_CHANNELS 4
 
+/* ----------- PCF8575 ----------- */
+#define PCF_NODE DT_NODELABEL(pcf8575)
+
+static const struct device *pcf_dev = DEVICE_DT_GET(PCF_NODE);
+
+static struct gpio_callback int_cb_data;
+
+/* ----------- Debounce ----------- */
+
+#define DEBOUNCE_TIME_MS 20
+
+#define INPUT_PIN 0
+
+static struct k_work_delayable debounce_work;
+
 /* Radio information structure */
 struct radio_info_t {
 	uint8_t rx_channel[MAX_CHANNELS];
@@ -59,7 +74,7 @@ uint8_t def_map(
 	const uint16_t resolution,
 	const uint16_t data) {
 	// Simple linear mapping for demonstration
-	return (data - min) * (max - min) / (resolution - min) + min;
+	return (uint8_t)((data - min) * (max - min) / (resolution - min) + min);
 }
 
 /* Channel mapping structure */
@@ -83,6 +98,15 @@ struct rf_settings {
 };
 
 K_FIFO_DEFINE(radio_fifo);
+
+const struct pwm_dt_spec sBuzzer = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
+
+/* Thread plays song on buzzer */
+K_SEM_DEFINE(buzzer_initialized_sem, 0, 1); /* Wait until buzzer is ready */
+
+static const enum adc_action adc_callback(const struct device *dev,
+		const struct adc_sequence *sequence,
+		uint16_t sampling_index);
 
 int fill_radio_info(struct radio_info_t *info, const struct rf_settings *settings) {
 	if (info == NULL || settings == NULL) {
@@ -211,14 +235,6 @@ static const struct adc_dt_spec adc_channels[] = {
 			     DT_SPEC_AND_COMMA)
 };
 
-
-static const enum adc_action adc_callback(const struct device *dev,
-		const struct adc_sequence *sequence,
-		uint16_t sampling_index)
-{
-	return(ADC_ACTION_CONTINUE);
-}
-
 void action_start_button_pressed(lv_event_t *e)
 {
 	ARG_UNUSED(e);
@@ -291,12 +307,12 @@ void radio_thread(void)
 void adc_read_thread(void)
 {
 	int err;
-	uint16_t buf[32 * 6];
+	__aligned(32) uint16_t buf[32 * 6];
 	const struct adc_sequence_options adc_options = {
-		.interval_us = 100000,
+		.interval_us = 10000,
 		.callback = &adc_callback,
 		/* How many to read -1 */
-		.extra_samplings = 3,
+		.extra_samplings = 31,
 	};
 	struct adc_sequence sequence = {
 		.buffer = buf,
@@ -320,8 +336,14 @@ void adc_read_thread(void)
 		}
 	}
 	/* Initializes sequence from channel 0 parameters */
-	/* All elements hould have same resolution and oversampling parameters */
-	(void)adc_sequence_init_dt(adc_channels, &sequence);
+	/* All elements should have same resolution and oversampling parameters */
+	err = adc_sequence_init_dt(adc_channels, &sequence);
+
+	if(err<0) {
+		printk("Could not initialize sequence from device tree (%d)\n", err);
+		return;
+	}
+
 	/* Re-set multiple channel config, rewritten by sequence_init */
 	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
 
@@ -333,26 +355,17 @@ void adc_read_thread(void)
 		}
 		else {
 			/* Process ADC samples stored in buf */
-			for (size_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
+			for (uint8_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
 				// printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
-				if (ch < MAX_CHANNELS) {
-					rf_parameters.ch_settings[ch].resolution = (uint16_t)((1 << adc_channels[ch].resolution) - 1); // Calculate resolution from ADC resolution bits
-					rf_parameters.ch_settings[ch].input = ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
-				}	
+				rf_parameters.ch_settings[ch].resolution = (uint16_t)((1 << adc_channels[ch].resolution) - 1); // Calculate resolution from ADC resolution bits
+				rf_parameters.ch_settings[ch].input = ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
 			}
 		}
-		//k_sleep(K_MSEC(100));
+		k_msleep(100); // Sleep for a while before the next read
 	}
 }
 
-const struct pwm_dt_spec sBuzzer = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
-
-/* Thread plays song on buzzer */
-K_SEM_DEFINE(buzzer_initialized_sem, 0, 1); /* Wait until buzzer is ready */
-
-#define BUZZER_STACK 1024
-
-extern void buzzer_thread(void *d0, void *d1, void *d2)
+void buzzer_thread(void *d0, void *d1, void *d2)
 {
 	/* Block until buzzer is available */
 	k_sem_take(&buzzer_initialized_sem, K_FOREVER);
@@ -368,8 +381,7 @@ extern void buzzer_thread(void *d0, void *d1, void *d2)
 		k_sleep(K_FOREVER);
 	}
 }
-
-K_THREAD_DEFINE(buzzer_tid, BUZZER_STACK, buzzer_thread, NULL, NULL, NULL,
+K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
 		PRIORITY, 0, 0);
 
 
@@ -380,22 +392,15 @@ K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
 		(PRIORITY-2), 0, 0);
 
-/* ----------- PCF8575 ----------- */
-#define PCF_NODE DT_NODELABEL(pcf8575)
-
-static const struct device *pcf_dev = DEVICE_DT_GET(PCF_NODE);
-
-//const struct gpio_dt_spec pcf8575_gpio = GPIO_DT_SPEC_GET(DT_NODELABEL(pcf8575), gpios);
-
-static struct gpio_callback int_cb_data;
-
-/* ----------- Debounce ----------- */
-
-#define DEBOUNCE_TIME_MS 20
-
-#define INPUT_PIN 0
-
-static struct k_work_delayable debounce_work;
+static const enum adc_action adc_callback(const struct device *dev,
+		const struct adc_sequence *sequence,
+		uint16_t sampling_index)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(sequence);
+	ARG_UNUSED(sampling_index);
+	return(ADC_ACTION_CONTINUE);
+}
 
 /* ----------- Work handler ----------- */
 
@@ -432,15 +437,9 @@ int main(void)
         return -ENODEV;;
     }
 
-    gpio_pin_configure(pcf_dev, INPUT_PIN, GPIO_INPUT); // Configure pin 0 as input (INT pin)
+	/* By default all pins are inputs so do nothing */
+    // gpio_pin_configure(pcf_dev, INPUT_PIN, GPIO_INPUT); // Configure pin 0 as input (INT pin)
     
-    ret = gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_TO_ACTIVE); // Configure interrupt on rising edge
-    
-	if (ret < 0) {
-        LOG_ERR("Interrupt config failed");
-        return ret;
-    }
-
     gpio_init_callback(&int_cb_data,
                        pcf_int_callback,
                        BIT(INPUT_PIN));
@@ -449,6 +448,13 @@ int main(void)
 
     k_work_init_delayable(&debounce_work,
                           debounce_work_handler);
+
+	ret = gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_TO_ACTIVE); // Configure interrupt on rising edge
+
+	if (ret < 0) {
+        LOG_ERR("Interrupt config failed");
+        return ret;
+    }
 
     LOG_INF("PCF8575 debounce example ready");
 	

@@ -56,52 +56,51 @@
 		<&adc1_in13_pc3>, <&adc1_in14_pc4>,
 		<&adc1_in15_pc5>, <&adc1_in4_pa4>;
 	pinctrl-names = "default";
-	/* st,adc-clock-source = <SYNC>; */
 	st,adc-prescaler = <2>;
 
-	dmas = <&dma2 0 0 (STM32_DMA_PERIPH_RX | STM32_DMA_MEM_16BITS |
-		STM32_DMA_PERIPH_16BITS) STM32_DMA_FIFO_FULL>;
+	dmas = <&dma2 0 0 (STM32_DMA_PERIPH_TO_MEMORY | STM32_DMA_MEM_INC ) STM32_DMA_FIFO_FULL>;
 	dma-names = "dma";
+
 	channel@9 {
 		reg = <9>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 	channel@c {
 		reg = <0xc>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 	channel@d {
 		reg = <0xd>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 	channel@e {
 		reg = <0xe>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 	channel@f {
 		reg = <0xf>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 	channel@4 {
 		reg = <4>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,acquisition-time = <ADC_ACQ_TIME_MAX>;
 		zephyr,resolution = <12>;
 	};
 };
