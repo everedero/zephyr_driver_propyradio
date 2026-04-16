@@ -58,7 +58,7 @@
 	pinctrl-names = "default";
 	st,adc-prescaler = <2>;
 
-	dmas = <&dma2 0 0 (STM32_DMA_PERIPH_TO_MEMORY | STM32_DMA_MEM_INC ) STM32_DMA_FIFO_FULL>;
+	dmas = <&dma2 0 0 (STM32_DMA_PERIPH_RX | STM32_DMA_PERIPH_16BITS | STM32_DMA_MEM_16BITS ) STM32_DMA_FIFO_FULL>;
 	dma-names = "dma";
 
 	channel@9 {

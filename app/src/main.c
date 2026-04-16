@@ -307,12 +307,12 @@ void radio_thread(void)
 void adc_read_thread(void)
 {
 	int err;
-	__aligned(32) uint16_t buf[32 * 6];
+	uint16_t buf[6];
 	const struct adc_sequence_options adc_options = {
-		.interval_us = 10000,
+		.interval_us = 50000,
 		.callback = &adc_callback,
 		/* How many to read -1 */
-		.extra_samplings = 31,
+		.extra_samplings = 0,
 	};
 	struct adc_sequence sequence = {
 		.buffer = buf,
@@ -358,7 +358,7 @@ void adc_read_thread(void)
 			for (uint8_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
 				// printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
 				rf_parameters.ch_settings[ch].resolution = (uint16_t)((1 << adc_channels[ch].resolution) - 1); // Calculate resolution from ADC resolution bits
-				rf_parameters.ch_settings[ch].input = ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
+				rf_parameters.ch_settings[ch].input = ((uint16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
 			}
 		}
 		k_msleep(100); // Sleep for a while before the next read
