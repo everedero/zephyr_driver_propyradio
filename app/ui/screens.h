@@ -15,13 +15,25 @@ typedef struct _objects_t {
     lv_obj_t *button_label;
     lv_obj_t *counter_label;
     lv_obj_t *banner;
+    lv_obj_t *label_ch1;
+    lv_obj_t *label_ch2;
+    lv_obj_t *label_ch3;
+    lv_obj_t *label_ch4;
+    lv_obj_t *label_ch5;
+    lv_obj_t *label_ch6;
     lv_obj_t *menu;
-    lv_obj_t *menu_label;
     lv_obj_t *settings_tab_view;
     lv_obj_t *tab_radio;
     lv_obj_t *tab_switch;
-    lv_obj_t *menu_back;
     lv_obj_t *menu_back_label;
+    lv_obj_t *menu_back_label_3;
+    lv_obj_t *menu_back_label_1;
+    lv_obj_t *menu_back_label_2;
+    lv_obj_t *channel1;
+    lv_obj_t *channel1_1;
+    lv_obj_t *channel1_2;
+    lv_obj_t *channel1_3;
+    lv_obj_t *menu_back;
 } objects_t;
 
 extern objects_t objects;

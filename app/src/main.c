@@ -48,7 +48,7 @@ static struct k_work_delayable debounce_work;
 
 /* Radio information structure */
 struct radio_info_t {
-	uint8_t rx_channel[MAX_CHANNELS];
+	uint8_t tx_channel[MAX_CHANNELS];
 	uint32_t aux_channels_bitmap;
 	uint32_t timestamp;	
 };
@@ -56,7 +56,7 @@ struct radio_info_t {
 /* Radio fifo structure */
 struct radio_data_t {
 	void *fifo_reserved; /* 1st word reserved for use by fifo */
-	struct radio_info_t rx_info;
+	struct radio_info_t tx_info;
 };
 
 /* Channel mapping function type */
@@ -73,8 +73,8 @@ uint8_t def_map(
 	const uint8_t center,
 	const uint16_t resolution,
 	const uint16_t data) {
-	// Simple linear mapping for demonstration
-	return (uint8_t)((data - min) * (max - min) / (resolution - min) + min);
+	// Linear mapping from [0, resolution] to [min, max]
+	return (uint8_t)(min + ((uint32_t)data * (max - min)) / resolution);
 }
 
 /* Channel mapping structure */
@@ -99,10 +99,88 @@ struct rf_settings {
 
 K_FIFO_DEFINE(radio_fifo);
 
+struct radio_data_t radio_data;
+
 const struct pwm_dt_spec sBuzzer = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
 
 /* Thread plays song on buzzer */
 K_SEM_DEFINE(buzzer_initialized_sem, 0, 1); /* Wait until buzzer is ready */
+
+static bool increment_counter = false;
+
+struct rf_settings rf_parameters;
+
+#define MAX_STR_LEN 8
+static int32_t counter = 0;
+static int32_t ch1 = 0;
+static int32_t ch2 = 0;
+static int32_t ch3 = 0;
+static int32_t ch4 = 0;
+static int32_t ch5 = 0;
+static int32_t ch6 = 0;
+UI_CHANNEL_TAB selection1;
+
+UI_CHANNEL_TAB get_var_selection1() {
+    return selection1;
+}
+
+void set_var_selection1(UI_CHANNEL_TAB value) {
+    selection1 = value;
+}
+
+const char *get_var_counter() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", counter);
+	return (const char *) str_buf;}
+
+const char *get_var_ch1() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch1);
+	return (const char *) str_buf;
+}
+
+
+const char *get_var_ch2() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch2);
+	return (const char *) str_buf;
+}
+
+
+const char *get_var_ch3() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch3);
+	return (const char *) str_buf;
+}
+
+const char *get_var_ch4() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch4);
+	return (const char *) str_buf;
+}
+
+const char *get_var_ch5() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch5);
+	return (const char *) str_buf;
+}
+
+const char *get_var_ch6() {
+	static char str_buf[MAX_STR_LEN];
+	snprintf(str_buf, sizeof(str_buf), "%d", ch6);
+	return (const char *) str_buf;
+}
+void set_var_counter(const char *value) {}
+void set_var_ch1(const char *value) {}
+void set_var_ch2(const char *value) {}
+void set_var_ch3(const char *value) {}
+void set_var_ch4(const char *value) {}
+void set_var_ch5(const char *value) {}
+void set_var_ch6(const char *value) {}
+
+#define channel(NAME) ( ch ## NAME )
+#define set_var_ch_int(NAME, value) channel(NAME) = (value)
+#define set_var_counter_int(value) counter = (value)
 
 static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
@@ -113,10 +191,10 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 		return -1; // Error: Null pointer
 	}
 
-	// Fill the rx_channel array
+	// Fill the tx_channel array
 	for (int i = 0; i < MAX_CHANNELS; i++) {
 		if (settings->ch_settings[i].map != NULL) {
-			info->rx_channel[i] = settings->ch_settings[i].map(
+			info->tx_channel[i] = settings->ch_settings[i].map(
 				settings->ch_settings[i].min,
 				settings->ch_settings[i].max,
 				settings->ch_settings[i].center,
@@ -124,9 +202,15 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 				settings->ch_settings[i].input
 			);
 		} else {
-			info->rx_channel[i] = settings->ch_settings[i].center; // Default to center if no mapping function
+			info->tx_channel[i] = settings->ch_settings[i].center; // Default to center if no mapping function
 		}
 	}
+	set_var_ch_int(1, info->tx_channel[0]);
+	set_var_ch_int(2, info->tx_channel[1]);
+	set_var_ch_int(3, info->tx_channel[2]);
+	set_var_ch_int(4, info->tx_channel[3]);
+	set_var_ch_int(5, info->tx_channel[4]);
+	set_var_ch_int(6, info->tx_channel[5]);
 
 	// Fill the aux_channels_bitmap
 	for (int j = 0; j < MAX_AUX_CHANNELS; j++) {
@@ -144,12 +228,6 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 	return 0; // Success
 }
 
-
-static int32_t counter;
-static bool increment_counter = false;
-
-struct rf_settings rf_parameters;
-
 int initialize_rf_parameters(struct rf_settings *settings) {
 	if (settings == NULL) {
 		return -1; // Error: Null pointer
@@ -160,7 +238,7 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 		settings->ch_settings[i].min = 0;
 		settings->ch_settings[i].max = 255;
 		settings->ch_settings[i].center = 127;
-		settings->ch_settings[i].resolution = 255;
+		settings->ch_settings[i].resolution = (1 << 12) - 1; // Assuming 12-bit resolution
 		settings->ch_settings[i].input = 127; // Default input value
 		settings->ch_settings[i].map = def_map; // linear mapping function
 	}
@@ -173,17 +251,6 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 
 	return 0; // Success
 }
-
-int32_t get_var_counter() {
-	static char str_buf[11];
-    snprintf(str_buf, sizeof(str_buf), "%d", counter);
-    return (int32_t) str_buf;
-}
-
-void set_var_counter(int32_t value) {
-    counter = value;
-}
-
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
@@ -266,7 +333,7 @@ void radio_thread(void)
 {
 	const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
 	int err;
-	struct radio_data_t *rx_data;
+	struct radio_data_t *tx_data;
 
 	/* Check if Radio device is ready */
 	if (!device_is_ready(nrf24)) {
@@ -280,27 +347,17 @@ void radio_thread(void)
 		return;
 	}
 
-	size_t size = sizeof(struct radio_info_t);
-	char *mem_ptr = k_malloc(size);
-	__ASSERT_NO_MSG(mem_ptr != 0);
-	fill_radio_info((struct radio_info_t *)mem_ptr, &rf_parameters);
-
-
 	while (true) {
-		rx_data = k_fifo_get(&radio_fifo, K_FOREVER);
-		if (rx_data) {
-			/* Process received data */
-			//LOG_INF("Received data on channel: %d", rx_data->rx_info.rx_channel[0]);
-
-			err = nrf24_write(nrf24, (uint8_t *)&(rx_data->rx_info), sizeof(rx_data->rx_info));
+		tx_data = k_fifo_get(&radio_fifo, K_FOREVER);
+		if (tx_data) {
+			err = nrf24_write(nrf24, (uint8_t *)&(tx_data->tx_info), sizeof(tx_data->tx_info));
 			if (err != 0) {
-				// LOG_HEXDUMP_INF(err, sizeof(err), "Error nbr: ");
 				LOG_ERR("Failed to write data to NRF24L01+ device");
 			}
-			//LOG_DBG(rx_data->rx_info, sizeof(rx_data->rx_info), "Sent: ");
 		}
-		/* Free the allocated memory */
-		k_free(rx_data);
+		else {
+			LOG_ERR("Failed to get data from radio FIFO");
+		}
 	}
 }
 
@@ -309,7 +366,7 @@ void adc_read_thread(void)
 	int err;
 	uint16_t buf[6];
 	const struct adc_sequence_options adc_options = {
-		.interval_us = 50000,
+		.interval_us = 10000,
 		.callback = &adc_callback,
 		/* How many to read -1 */
 		.extra_samplings = 0,
@@ -355,13 +412,15 @@ void adc_read_thread(void)
 		}
 		else {
 			/* Process ADC samples stored in buf */
-			for (uint8_t ch = 0; ch < ARRAY_SIZE(adc_channels); ch++) {
-				// printk("Channel %d Sample: %d", ch, ((int16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)]);
-				rf_parameters.ch_settings[ch].resolution = (uint16_t)((1 << adc_channels[ch].resolution) - 1); // Calculate resolution from ADC resolution bits
-				rf_parameters.ch_settings[ch].input = ((uint16_t *)sequence.buffer)[ch * (sequence.options->extra_samplings + 1)];
+			for (uint8_t c = 0; c < ARRAY_SIZE(adc_channels); c++) {
+				// printk("Channel %d Sample: %d", c, ((int16_t *)sequence.buffer)[c * (sequence.options->extra_samplings + 1)]);
+				rf_parameters.ch_settings[c].resolution = (uint16_t)((1 << adc_channels[c].resolution) - 1); // Calculate resolution from ADC resolution bits
+				rf_parameters.ch_settings[c].input = ((uint16_t *)sequence.buffer)[c * (sequence.options->extra_samplings + 1)];
 			}
 		}
-		k_msleep(100); // Sleep for a while before the next read
+		fill_radio_info(&radio_data.tx_info, &rf_parameters);
+		k_fifo_put(&radio_fifo, &radio_data);	
+		k_msleep(50); // Sleep for a while before the next read
 	}
 }
 
@@ -477,7 +536,7 @@ int main(void)
 	lv_timer_handler();
 	display_blanking_off(display_dev);
 
-	set_var_counter(0);
+	set_var_counter_int(0);
 
 	// 1 Beep at startup
 	k_wakeup(buzzer_tid);
@@ -485,7 +544,7 @@ int main(void)
 	while (true) {
 		/* Update counter */
 		if (increment_counter) {
-			set_var_counter(counter + 1);
+			set_var_counter_int(counter + 1);
 		}
 
 		/* Update UI */
