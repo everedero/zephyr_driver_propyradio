@@ -19,6 +19,14 @@
 #include <ui.h>
 #include <zephyr/sys/__assert.h>
 
+#define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
+
+#if !DT_NODE_EXISTS(DT_NODELABEL(radio0))
+#error "whoops, node label radio0 not found"
+#endif
+
 /* size of stack area used by each thread */
 #define STACKSIZE 1024
 
@@ -31,6 +39,16 @@
 /* Maximum number of auxiliary channels */
 #define MAX_AUX_CHANNELS 4
 
+/* Debounce time in milliseconds */
+#define DEBOUNCE_TIME_MS 20
+
+/* Input pin for debounce ## for test purpose*/
+#define INPUT_PIN 0
+
+#ifdef CONFIG_NRF24L01_TRIGGER
+#define TRIGGER
+#endif
+
 /* ----------- PCF8575 ----------- */
 #define PCF_NODE DT_NODELABEL(pcf8575)
 
@@ -39,10 +57,6 @@ static const struct device *pcf_dev = DEVICE_DT_GET(PCF_NODE);
 static struct gpio_callback int_cb_data;
 
 /* ----------- Debounce ----------- */
-
-#define DEBOUNCE_TIME_MS 20
-
-#define INPUT_PIN 0
 
 static struct k_work_delayable debounce_work;
 
@@ -252,14 +266,6 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 	return 0; // Success
 }
 
-#define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
-#include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
-
-#if !DT_NODE_EXISTS(DT_NODELABEL(radio0))
-#error "whoops, node label radio0 not found"
-#endif
-
 #ifdef CONFIG_RESET_COUNTER_SW0
 static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(
 		DT_ALIAS(sw0), gpios, {0});
@@ -315,19 +321,12 @@ void action_start_button_pressed(lv_event_t *e)
 }
 
 void action_menu_back_action(lv_event_t *e) {
-    // TODO: Implement action menu_back_action here
 	loadScreen(SCREEN_ID_MAIN);
 }
 
 void action_menu_settings_action(lv_event_t *e) {
-    // TODO: Implement action menu_settings_action here
 	loadScreen(SCREEN_ID_SETTINGS);
 }
-
-
-#ifdef CONFIG_NRF24L01_TRIGGER
-#define TRIGGER
-#endif
 
 void radio_thread(void)
 {
@@ -364,7 +363,7 @@ void radio_thread(void)
 void adc_read_thread(void)
 {
 	int err;
-	uint16_t buf[6];
+	uint16_t buf[MAX_CHANNELS]; // Buffer to hold ADC samples for all channels and samplings
 	const struct adc_sequence_options adc_options = {
 		.interval_us = 10000,
 		.callback = &adc_callback,
@@ -418,9 +417,14 @@ void adc_read_thread(void)
 				rf_parameters.ch_settings[c].input = ((uint16_t *)sequence.buffer)[c * (sequence.options->extra_samplings + 1)];
 			}
 		}
+		/* Fill radio info and put it in the FIFO for transmission */
 		fill_radio_info(&radio_data.tx_info, &rf_parameters);
-		k_fifo_put(&radio_fifo, &radio_data);	
-		k_msleep(50); // Sleep for a while before the next read
+
+		/* Put the radio data in the FIFO for transmission */
+		k_fifo_put(&radio_fifo, &radio_data);
+
+		/* Sleep for a while before the next read */
+		k_msleep(50);
 	}
 }
 
@@ -523,7 +527,6 @@ int main(void)
 	k_sem_give(&buzzer_initialized_sem);
 	LOG_INF("Buzzer device ready");
 	
-
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 	/* Check if the Display device is ready */

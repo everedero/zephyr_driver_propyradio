@@ -27,7 +27,13 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_CH4 = 4,
     FLOW_GLOBAL_VARIABLE_CH5 = 5,
     FLOW_GLOBAL_VARIABLE_CH6 = 6,
-    FLOW_GLOBAL_VARIABLE_SELECTION1 = 7
+    FLOW_GLOBAL_VARIABLE_SELECTION1 = 7,
+    FLOW_GLOBAL_VARIABLE_SW1 = 8,
+    FLOW_GLOBAL_VARIABLE_SW2 = 9,
+    FLOW_GLOBAL_VARIABLE_SW3 = 10,
+    FLOW_GLOBAL_VARIABLE_SW4 = 11,
+    FLOW_GLOBAL_VARIABLE_SW5 = 12,
+    FLOW_GLOBAL_VARIABLE_SW6 = 13
 };
 
 // Native global variables
@@ -48,6 +54,18 @@ extern const char *get_var_ch6();
 extern void set_var_ch6(const char *value);
 extern UI_CHANNEL_TAB get_var_selection1();
 extern void set_var_selection1(UI_CHANNEL_TAB value);
+extern bool get_var_sw1();
+extern void set_var_sw1(bool value);
+extern bool get_var_sw2();
+extern void set_var_sw2(bool value);
+extern bool get_var_sw3();
+extern void set_var_sw3(bool value);
+extern bool get_var_sw4();
+extern void set_var_sw4(bool value);
+extern bool get_var_sw5();
+extern void set_var_sw5(bool value);
+extern bool get_var_sw6();
+extern void set_var_sw6(bool value);
 
 
 #ifdef __cplusplus

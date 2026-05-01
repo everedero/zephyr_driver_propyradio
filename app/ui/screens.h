@@ -10,6 +10,12 @@ extern "C" {
 typedef struct _objects_t {
     lv_obj_t *main;
     lv_obj_t *settings;
+    lv_obj_t *sw_a;
+    lv_obj_t *sw_a_1;
+    lv_obj_t *sw_a_2;
+    lv_obj_t *sw_a_3;
+    lv_obj_t *sw_a_4;
+    lv_obj_t *sw_a_5;
     lv_obj_t *label_counter;
     lv_obj_t *start_button;
     lv_obj_t *button_label;
@@ -24,6 +30,7 @@ typedef struct _objects_t {
     lv_obj_t *menu;
     lv_obj_t *settings_tab_view;
     lv_obj_t *tab_radio;
+    lv_obj_t *aux1;
     lv_obj_t *tab_switch;
     lv_obj_t *menu_back_label;
     lv_obj_t *menu_back_label_3;
@@ -33,6 +40,11 @@ typedef struct _objects_t {
     lv_obj_t *channel1_1;
     lv_obj_t *channel1_2;
     lv_obj_t *channel1_3;
+    lv_obj_t *sw1_1;
+    lv_obj_t *sw_2;
+    lv_obj_t *sw1;
+    lv_obj_t *sw_5;
+    lv_obj_t *sw_6;
     lv_obj_t *menu_back;
 } objects_t;
 
