@@ -124,77 +124,14 @@ static bool increment_counter = false;
 
 struct rf_settings rf_parameters;
 
-#define MAX_STR_LEN 8
-static int32_t counter = 0;
-static int32_t ch1 = 0;
-static int32_t ch2 = 0;
-static int32_t ch3 = 0;
-static int32_t ch4 = 0;
-static int32_t ch5 = 0;
-static int32_t ch6 = 0;
-UI_CHANNEL_TAB selection1;
-
-UI_CHANNEL_TAB get_var_selection1() {
-    return selection1;
-}
-
-void set_var_selection1(UI_CHANNEL_TAB value) {
-    selection1 = value;
-}
-
-const char *get_var_counter() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", counter);
-	return (const char *) str_buf;}
-
-const char *get_var_ch1() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch1);
-	return (const char *) str_buf;
-}
-
-
-const char *get_var_ch2() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch2);
-	return (const char *) str_buf;
-}
-
-
-const char *get_var_ch3() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch3);
-	return (const char *) str_buf;
-}
-
-const char *get_var_ch4() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch4);
-	return (const char *) str_buf;
-}
-
-const char *get_var_ch5() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch5);
-	return (const char *) str_buf;
-}
-
-const char *get_var_ch6() {
-	static char str_buf[MAX_STR_LEN];
-	snprintf(str_buf, sizeof(str_buf), "%d", ch6);
-	return (const char *) str_buf;
-}
-void set_var_counter(const char *value) {}
-void set_var_ch1(const char *value) {}
-void set_var_ch2(const char *value) {}
-void set_var_ch3(const char *value) {}
-void set_var_ch4(const char *value) {}
-void set_var_ch5(const char *value) {}
-void set_var_ch6(const char *value) {}
-
-#define channel(NAME) ( ch ## NAME )
-#define set_var_ch_int(NAME, value) channel(NAME) = (value)
-#define set_var_counter_int(value) counter = (value)
+extern void set_var_ch1_int(int32_t value);
+extern void set_var_ch2_int(int32_t value);
+extern void set_var_ch3_int(int32_t value);
+extern void set_var_ch4_int(int32_t value);
+extern void set_var_ch5_int(int32_t value);
+extern void set_var_ch6_int(int32_t value);
+extern void set_var_counter_int(int32_t value);
+extern int32_t get_var_counter_int(void);
 
 static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
@@ -219,12 +156,12 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 			info->tx_channel[i] = settings->ch_settings[i].center; // Default to center if no mapping function
 		}
 	}
-	set_var_ch_int(1, info->tx_channel[0]);
-	set_var_ch_int(2, info->tx_channel[1]);
-	set_var_ch_int(3, info->tx_channel[2]);
-	set_var_ch_int(4, info->tx_channel[3]);
-	set_var_ch_int(5, info->tx_channel[4]);
-	set_var_ch_int(6, info->tx_channel[5]);
+	set_var_ch1_int(info->tx_channel[0]);
+	set_var_ch2_int(info->tx_channel[1]);
+	set_var_ch3_int(info->tx_channel[2]);
+	set_var_ch4_int(info->tx_channel[3]);
+	set_var_ch5_int(info->tx_channel[4]);
+	set_var_ch6_int(info->tx_channel[5]);
 
 	// Fill the aux_channels_bitmap
 	for (int j = 0; j < MAX_AUX_CHANNELS; j++) {
@@ -519,7 +456,7 @@ int main(void)
         return ret;
     }
 
-    LOG_INF("PCF8575 debounce example ready");
+    LOG_INF("PCF8575 IO Expander ready");
 	
 	if (!device_is_ready(sBuzzer.dev)) {
 		return -ENODEV;
@@ -547,7 +484,7 @@ int main(void)
 	while (true) {
 		/* Update counter */
 		if (increment_counter) {
-			set_var_counter_int(counter + 1);
+			set_var_counter_int(get_var_counter_int() + 1);
 		}
 
 		/* Update UI */
