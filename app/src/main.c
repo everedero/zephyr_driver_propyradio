@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Eve Redero
+ * Copyright (C) 2026 Philippe Peurichard <p.peurichard@gmail.com>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,14 +10,19 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/drivers/pwm.h>
+#include <zephyr/sys/__assert.h>
+
 #include <lvgl.h>
+#include <lvgl_input_device.h>
+
 #include <stdio.h>
 #include <string.h>
-#include <lvgl_input_device.h>
+
 #include <app/drivers/nrf24.h>
+
 #include <vars.h>
 #include <ui.h>
-#include <zephyr/sys/__assert.h>
+#include "platform.h"
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
@@ -27,23 +32,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #error "whoops, node label radio0 not found"
 #endif
 
-/* size of stack area used by each thread */
-#define STACKSIZE 1024
-
-/* scheduling priority used by each thread */
-#define PRIORITY 7
-
-/* Maximum number of channels */
-#define MAX_CHANNELS 6
-
-/* Maximum number of auxiliary channels */
-#define MAX_AUX_CHANNELS 4
-
-/* Debounce time in milliseconds */
-#define DEBOUNCE_TIME_MS 20
-
-/* Input pin for debounce ## for test purpose*/
-#define INPUT_PIN 0
 
 #ifdef CONFIG_NRF24L01_TRIGGER
 #define TRIGGER
@@ -283,6 +271,17 @@ void radio_thread(void)
 		return;
 	}
 
+	k_msleep(1000); // Sleep for a short time to ensure everything is initialized before starting transmission
+
+	while(true) {
+		char *buf = "Hello, world!";
+		err = nrf24_write(nrf24, (uint8_t *)buf, strlen(buf));
+		if (err != 0) {
+			LOG_ERR("Failed to write data to NRF24L01+ device");
+		}
+		k_msleep(1000); // Sleep for a while before the next transmission
+	}
+
 	while (true) {
 		tx_data = k_fifo_get(&radio_fifo, K_FOREVER);
 		if (tx_data) {
@@ -340,6 +339,9 @@ void adc_read_thread(void)
 	/* Re-set multiple channel config, rewritten by sequence_init */
 	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
 
+	k_msleep(1000); // Sleep for a short time to ensure everything is initialized before starting transmission
+	return;
+
 	while (true) {
 		err = adc_read_dt(adc_channels, &sequence);
 		if (err < 0) {
@@ -361,7 +363,7 @@ void adc_read_thread(void)
 		k_fifo_put(&radio_fifo, &radio_data);
 
 		/* Sleep for a while before the next read */
-		k_msleep(50);
+		k_msleep(1000);
 	}
 }
 
@@ -382,15 +384,15 @@ void buzzer_thread(void *d0, void *d1, void *d2)
 	}
 }
 K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
-		PRIORITY, 0, 0);
+		PRIORITY_BUZZER, 0, 0);
 
 
 K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
-		(PRIORITY-1), 0, 0);
+		(PRIORITY_RADIO), 0, 0);
 
 
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
-		(PRIORITY-2), 0, 0);
+		(PRIORITY_ADC), 0, 0);
 
 static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
@@ -407,10 +409,12 @@ static const enum adc_action adc_callback(const struct device *dev,
 static void debounce_work_handler(struct k_work *work)
 {
     ARG_UNUSED(work);
-	int val = gpio_pin_get(pcf_dev, INPUT_PIN);
-	LOG_INF("Debounced value: %d", val);
-	/* re-enable interrupt */
-	gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_BOTH);
+	uint32_t changed_pins;
+
+	/* read changed pins value */
+	gpio_port_get_raw(pcf_dev, &changed_pins);
+
+	LOG_INF("Debounced value: 0x%x", changed_pins);
 }
 
 /* ----------- ISR ----------- */
@@ -420,8 +424,7 @@ static void pcf_int_callback(const struct device *dev,
                              uint32_t pins)
 {
     /* disable interrupt */
-    gpio_pin_interrupt_configure(dev, pins, GPIO_INT_DISABLE);
-
+    // changed_pins = pins & 0xFFFF; // Mask to get only the relevant pins (assuming 16 pins)
 	/* start debounce timer*/
     k_work_reschedule(&debounce_work, K_MSEC(DEBOUNCE_TIME_MS));
 }
@@ -430,7 +433,6 @@ static void pcf_int_callback(const struct device *dev,
 int main(void)
 {
 	const struct device *display_dev;
-	int ret;
 
 	if (!device_is_ready(pcf_dev)) {
         LOG_ERR("Device PCF8575 not ready");
@@ -438,23 +440,14 @@ int main(void)
     }
 
 	/* By default all pins are inputs so do nothing */
-    // gpio_pin_configure(pcf_dev, INPUT_PIN, GPIO_INPUT); // Configure pin 0 as input (INT pin)
-    
-    gpio_init_callback(&int_cb_data,
+	gpio_init_callback(&int_cb_data,
                        pcf_int_callback,
-                       BIT(INPUT_PIN));
+                       0xFFFF); // Listen to all pins, we will check in the callback which one triggered the interrupt
 
     gpio_add_callback(pcf_dev, &int_cb_data);
 
     k_work_init_delayable(&debounce_work,
                           debounce_work_handler);
-
-	ret = gpio_pin_interrupt_configure(pcf_dev, INPUT_PIN, GPIO_INT_EDGE_TO_ACTIVE); // Configure interrupt on rising edge
-
-	if (ret < 0) {
-        LOG_ERR("Interrupt config failed");
-        return ret;
-    }
 
     LOG_INF("PCF8575 IO Expander ready");
 	
