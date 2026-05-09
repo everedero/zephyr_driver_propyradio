@@ -21,6 +21,9 @@
 /* Debounce time in milliseconds */
 #define DEBOUNCE_TIME_MS 20
 
+/* Payload size for NRF24L01+ communication */
+#define PAYLOAD_SIZE 32
+
 /* PCF8575 is used with buttons, here is the mapping */
 #define TRIM_JOYSTICK_ROULIS_UP 0
 #define TRIM_JOYSTICK_ROULIS_DOWN 1

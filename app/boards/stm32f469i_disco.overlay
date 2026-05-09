@@ -106,7 +106,7 @@
 };
 
 &spi2 {
-	cs-gpios = <&arduino_header 10 GPIO_ACTIVE_LOW>;
+	cs-gpios = <&arduino_header 10 (GPIO_ACTIVE_LOW|GPIO_PULL_UP)>;
 	clock-frequency = <8000000>; // Max 8 Mbps for SPI
 
 };
@@ -124,11 +124,11 @@
 		channel-frequency = <76>;
 		lna-gain;
 		rf-power-attenuation = <18>;
-		tx-address = [00 00 00 00 01]; // [ab cd ab cd 71];    
+		tx-address = [01 00 00 00 01]; // [ab cd ab cd 71];
 		payload-fixed-size = <32>;
 		rx-datapipes-number = <2>;
-		rx-datapipe0-address = [00 00 00 00 01]; // [ab cd ab cd 71];
-		rx-datapipe1-address = [00 00 00 00 ff]; // [ab cd ab cd 72];
+		rx-datapipe0-address = [01 00 00 00 01]; // [ab cd ab cd 71];
+		rx-datapipe1-address = [ff 00 00 00 ff]; // [ab cd ab cd 72];
 		// payload-ack;
 		payload-crc;
 		crc-encoding-twobytes;

@@ -32,11 +32,6 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #error "whoops, node label radio0 not found"
 #endif
 
-
-#ifdef CONFIG_NRF24L01_TRIGGER
-#define TRIGGER
-#endif
-
 /* ----------- PCF8575 ----------- */
 #define PCF_NODE DT_NODELABEL(pcf8575)
 
@@ -253,10 +248,30 @@ void action_menu_settings_action(lv_event_t *e) {
 	loadScreen(SCREEN_ID_SETTINGS);
 }
 
+void buzzer_thread(void *d0, void *d1, void *d2)
+{
+	/* Block until buzzer is available */
+	k_sem_take(&buzzer_initialized_sem, K_FOREVER);
+	while (true) {
+
+		pwm_set_dt(&sBuzzer, PWM_HZ(1000), PWM_HZ(1000) / 2);
+		k_msleep(100);
+
+		/* turn buzzer off (pulse duty to 0) */
+		pwm_set_pulse_dt(&sBuzzer, 0);
+
+		/* Sleep thread until awoken externally */
+		k_sleep(K_FOREVER);
+	}
+}
+K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
+		PRIORITY_BUZZER, 0, 0);
+
 void radio_thread(void)
 {
 	const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
 	int err;
+	bool connected = false;
 	struct radio_data_t *tx_data;
 
 	/* Check if Radio device is ready */
@@ -271,24 +286,45 @@ void radio_thread(void)
 		return;
 	}
 
-	k_msleep(1000); // Sleep for a short time to ensure everything is initialized before starting transmission
+	while(!connected) {
+		// Buffer to get binding key from the other device, can be used to trigger buzzer or other actions on the remote controller when a specific key is pressed on the transmitter
+		uint8_t ack_data[PAYLOAD_SIZE] = {0};
 
-	while(true) {
-		char *buf = "Hello, world!";
-		err = nrf24_write(nrf24, (uint8_t *)buf, strlen(buf));
+		err = nrf24_read(nrf24, ack_data, PAYLOAD_SIZE);
+
 		if (err != 0) {
-			LOG_ERR("Failed to write data to NRF24L01+ device");
+			LOG_ERR("Failed to read data from NRF24L01+ device");
+
+			continue;
 		}
-		k_msleep(1000); // Sleep for a while before the next transmission
+		LOG_INF("Received data from NRF24L01+ device");
+
+		// Process acknowledgment data if necessary
+		if (ack_data[0] == 0xAA) {
+			k_wakeup(buzzer_tid);
+			LOG_INF("Received Ack, connected to the device");
+			connected = true;
+			break;
+		}
 	}
 
-	while (true) {
+	while (connected) {
 		tx_data = k_fifo_get(&radio_fifo, K_FOREVER);
+
 		if (tx_data) {
+			if (sizeof(tx_data->tx_info) > PAYLOAD_SIZE) {
+				LOG_ERR("Data size exceeds NRF24L01+ payload limit");
+				continue; // Skip sending if data is too large, or you can choose to truncate it
+			}
 			err = nrf24_write(nrf24, (uint8_t *)&(tx_data->tx_info), sizeof(tx_data->tx_info));
+			// Send the data to the NRF24L01+ device
+
 			if (err != 0) {
 				LOG_ERR("Failed to write data to NRF24L01+ device");
+				continue; // Skip to the next iteration if writing fails, or you can choose to break the loop if you want to stop trying
 			}
+			// LOG_INF("Sent data to NRF24L01+ device: %d bytes", err);
+			k_msleep(500); // Sleep for a short period before sending the next data to avoid spamming the logs with errors if the device is not responding well
 		}
 		else {
 			LOG_ERR("Failed to get data from radio FIFO");
@@ -339,9 +375,6 @@ void adc_read_thread(void)
 	/* Re-set multiple channel config, rewritten by sequence_init */
 	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
 
-	k_msleep(1000); // Sleep for a short time to ensure everything is initialized before starting transmission
-	return;
-
 	while (true) {
 		err = adc_read_dt(adc_channels, &sequence);
 		if (err < 0) {
@@ -366,26 +399,6 @@ void adc_read_thread(void)
 		k_msleep(1000);
 	}
 }
-
-void buzzer_thread(void *d0, void *d1, void *d2)
-{
-	/* Block until buzzer is available */
-	k_sem_take(&buzzer_initialized_sem, K_FOREVER);
-	while (true) {
-		
-		pwm_set_dt(&sBuzzer, PWM_HZ(1000), PWM_HZ(1000) / 2);
-		k_msleep(100);
-		
-		/* turn buzzer off (pulse duty to 0) */
-		pwm_set_pulse_dt(&sBuzzer, 0);
-
-		/* Sleep thread until awoken externally */
-		k_sleep(K_FOREVER);
-	}
-}
-K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
-		PRIORITY_BUZZER, 0, 0);
-
 
 K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 		(PRIORITY_RADIO), 0, 0);
