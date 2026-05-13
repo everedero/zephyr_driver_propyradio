@@ -13,14 +13,24 @@
 		/* period cell corresponds to initial period */
 		pwms = <&pwm1 1 PWM_HZ(1000) PWM_POLARITY_NORMAL>;
 	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+
+		user_button: button {
+			label = "Trim1";
+			gpios = <&gpiog 10 (GPIO_ACTIVE_LOW|GPIO_PULL_UP)>;
+			/* zephyr,code = <INPUT_KEY_0>;*/
+		};
+	};
 };
 
-&timers3 {
+&timers12 {
 	st,prescaler = <8>;
 	status = "okay";
 
 	pwm1: pwm {
-		pinctrl-0 = <&tim3_ch1_pa6>;
+		pinctrl-0 = <&tim12_ch1_ph6>;
 		pinctrl-names = "default";
 		#pwm-cells = <3>;
 		status = "okay";
