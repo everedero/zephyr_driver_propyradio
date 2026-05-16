@@ -28,9 +28,47 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
+
 #if !DT_NODE_EXISTS(DT_NODELABEL(radio0))
 #error "whoops, node label radio0 not found"
 #endif
+
+
+#ifdef CONFIG_RESET_COUNTER_SW0
+static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(
+		DT_ALIAS(sw0), gpios, {0});
+static struct gpio_callback button_callback;
+
+static void button_isr_callback(const struct device *port,
+				struct gpio_callback *cb,
+				uint32_t pins)
+{
+	ARG_UNUSED(port);
+	ARG_UNUSED(cb);
+	ARG_UNUSED(pins);
+
+	// count = 0;
+}
+#endif /* CONFIG_RESET_COUNTER_SW0 */
+
+#ifdef CONFIG_LV_Z_ENCODER_INPUT
+static const struct device *lvgl_encoder =
+	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_encoder_input));
+#endif /* CONFIG_LV_Z_ENCODER_INPUT */
+
+#ifdef CONFIG_LV_Z_KEYPAD_INPUT
+static const struct device *lvgl_keypad =
+	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
+#endif /* CONFIG_LV_Z_KEYPAD_INPUT */
+
+
+#if !DT_NODE_EXISTS(DT_PATH(zephyr_user)) || \
+	!DT_NODE_HAS_PROP(DT_PATH(zephyr_user), io_channels)
+#error "No suitable devicetree overlay specified"
+#endif
+
+#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
+	ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
 
 /* ----------- PCF8575 ----------- */
 #define PCF_NODE DT_NODELABEL(pcf8575)
@@ -58,28 +96,56 @@ struct radio_data_t {
 
 /* Channel mapping function type */
 typedef uint8_t (*map_t)(
-	const uint8_t min,
-	const uint8_t max,
-	const uint8_t center,
-	const uint16_t resolution,
-	const uint16_t data);
+	const uint16_t min,
+	const uint16_t max,
+	const uint16_t center,
+	      uint16_t data,
+	const bool is_reversed);
 
+/* Fonction de remappage linéaire */
+static inline uint8_t fmap(uint16_t val, uint16_t low1, uint16_t max1, uint16_t low2, uint16_t max2) {
+	return (uint8_t)((low2 + (val - low1) * (max2 - low2) / (max1 - low1)));
+}
+
+/* Linear mapping function with reversal support , boundaries check 
+ * and tuning based on center point to give more precision around it
+ * useful for joysticks and trims
+ */
 uint8_t def_map(
-	const uint8_t min,
-	const uint8_t max,
-	const uint8_t center,
-	const uint16_t resolution,
-	const uint16_t data) {
-	// Linear mapping from [0, resolution] to [min, max]
-	return (uint8_t)(min + ((uint32_t)data * (max - min)) / resolution);
+	const uint16_t min,
+	const uint16_t max,
+	const uint16_t center,
+	      uint16_t data,
+	const bool is_reversed) {
+
+	uint8_t mapped_value = 0;
+	/* Check boundaries */
+	if (data < min) {
+		data = min;
+	}
+	else if (data > max) {
+		data = max;
+	}
+	if (data < center) {
+		/* Map from [min, center] to [0, 127] */
+		mapped_value = fmap(data, min, center, 0, 127);
+	}
+	else {
+		/* Map from [center, max] to [128, 255] */
+		mapped_value = fmap(data, center, max, 128, 255);
+	}
+
+	if (is_reversed) {
+		mapped_value = 255 - mapped_value;
+	}
+	return mapped_value;
 }
 
 /* Channel mapping structure */
 struct channel_map {
-	uint8_t min;
-	uint8_t max;
-	uint8_t center;
-	uint16_t resolution;
+	uint16_t min;
+	uint16_t max;
+	uint16_t center;
 	uint16_t input;
 	map_t map;
 };
@@ -132,11 +198,11 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 				settings->ch_settings[i].min,
 				settings->ch_settings[i].max,
 				settings->ch_settings[i].center,
-				settings->ch_settings[i].resolution,
-				settings->ch_settings[i].input
+				settings->ch_settings[i].input,
+				false // Assuming no reversal for now, you can add a field in channel_map if you want to support reversed channels
 			);
 		} else {
-			info->tx_channel[i] = settings->ch_settings[i].center; // Default to center if no mapping function
+			info->tx_channel[i] = 127; // Default to center if no mapping function
 		}
 	}
 	set_var_ch1_int(info->tx_channel[0]);
@@ -170,10 +236,9 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 	// Initialize channel settings with default values
 	for (int i = 0; i < MAX_CHANNELS; i++) {
 		settings->ch_settings[i].min = 0;
-		settings->ch_settings[i].max = 255;
-		settings->ch_settings[i].center = 127;
-		settings->ch_settings[i].resolution = (1 << 12) - 1; // Assuming 12-bit resolution
-		settings->ch_settings[i].input = 127; // Default input value
+		settings->ch_settings[i].max = ADC_MAX_VALUE;
+		settings->ch_settings[i].center = ADC_MAX_VALUE / 2;
+		settings->ch_settings[i].input = ADC_MAX_VALUE / 2; // Default input value
 		settings->ch_settings[i].map = def_map; // linear mapping function
 	}
 
@@ -185,42 +250,6 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 
 	return 0; // Success
 }
-
-#ifdef CONFIG_RESET_COUNTER_SW0
-static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(
-		DT_ALIAS(sw0), gpios, {0});
-static struct gpio_callback button_callback;
-
-static void button_isr_callback(const struct device *port,
-				struct gpio_callback *cb,
-				uint32_t pins)
-{
-	ARG_UNUSED(port);
-	ARG_UNUSED(cb);
-	ARG_UNUSED(pins);
-
-	// count = 0;
-}
-#endif /* CONFIG_RESET_COUNTER_SW0 */
-
-#ifdef CONFIG_LV_Z_ENCODER_INPUT
-static const struct device *lvgl_encoder =
-	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_encoder_input));
-#endif /* CONFIG_LV_Z_ENCODER_INPUT */
-
-#ifdef CONFIG_LV_Z_KEYPAD_INPUT
-static const struct device *lvgl_keypad =
-	DEVICE_DT_GET(DT_COMPAT_GET_ANY_STATUS_OKAY(zephyr_lvgl_keypad_input));
-#endif /* CONFIG_LV_Z_KEYPAD_INPUT */
-
-
-#if !DT_NODE_EXISTS(DT_PATH(zephyr_user)) || \
-	!DT_NODE_HAS_PROP(DT_PATH(zephyr_user), io_channels)
-#error "No suitable devicetree overlay specified"
-#endif
-
-#define DT_SPEC_AND_COMMA(node_id, prop, idx) \
-	ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
 
 /* Data of ADC io-channels specified in devicetree. */
 static const struct adc_dt_spec adc_channels[] = {
@@ -385,7 +414,6 @@ void adc_read_thread(void)
 			/* Process ADC samples stored in buf */
 			for (uint8_t c = 0; c < ARRAY_SIZE(adc_channels); c++) {
 				// printk("Channel %d Sample: %d", c, ((int16_t *)sequence.buffer)[c * (sequence.options->extra_samplings + 1)]);
-				rf_parameters.ch_settings[c].resolution = (uint16_t)((1 << adc_channels[c].resolution) - 1); // Calculate resolution from ADC resolution bits
 				rf_parameters.ch_settings[c].input = ((uint16_t *)sequence.buffer)[c * (sequence.options->extra_samplings + 1)];
 			}
 		}

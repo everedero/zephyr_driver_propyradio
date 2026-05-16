@@ -24,23 +24,27 @@
 /* Payload size for NRF24L01+ communication */
 #define PAYLOAD_SIZE 32
 
+/*  ADC Resolution */
+#define ADC_RESOLUTION 12
+#define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
+
 /* PCF8575 is used with buttons, here is the mapping */
-#define TRIM_JOYSTICK_ROULIS_UP 0
-#define TRIM_JOYSTICK_ROULIS_DOWN 1
-#define TRIM_JOYSTICK_TANGAGE_UP 2
+#define TRIM_JOYSTICK_ROULIS_UP    0
+#define TRIM_JOYSTICK_ROULIS_DOWN  1
+#define TRIM_JOYSTICK_TANGAGE_UP   2
 #define TRIM_JOYSTICK_TANGAGE_DOWN 3
-#define TRIM_JOYSTICK_GAZ_UP 4
-#define TRIM_JOYSTICK_GAZ_DOWN 5
-#define TRIM_JOYSTICK_LACET_UP 6
-#define TRIM_JOYSTICK_LACET_DOWN 7
+// #define TRIM_JOYSTICK_GAZ    // useless
+#define TRIM_JOYSTICK_LACET_UP     4
+#define TRIM_JOYSTICK_LACET_DOWN   5
 
-#define SWITCH_SW_ON_OFF_1 8
-#define SWITCH_SW_ON_OFF_2 9
-#define SWITCH_SW_3_POSITION_UP 10
-#define SWITCH_SW_3_POSITION_DOWN 11
-#define SWITCH_SW_4_POSITION_UP 12
-#define SWITCH_SW_4_POSITION_DOWN 13
+// ON/OFF switches
+#define SWITCH_SW_1 6
+#define SWITCH_SW_2 7
+#define SWITCH_SW_3 8
+#define SWITCH_SW_4 9
+#define SWITCH_SW_4_1 10
 
-#define SWITCH_SW_5_UP 14
-#define SWITCH_SW_5_DOWN 15
-#define SWITCH_SW_6_PUSH 16
+// Push buttons
+#define SWITCH_PUSH 11
+#define SWITCH_PUSH_UP 12
+#define SWITCH_PUSH_DOWN 13
