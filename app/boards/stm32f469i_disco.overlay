@@ -18,7 +18,7 @@
 		compatible = "gpio-keys";
 
 		user_button: button {
-			label = "Trim1";
+			label = "MyButton";
 			gpios = <&gpiog 10 (GPIO_ACTIVE_LOW|GPIO_PULL_UP)>;
 			/* zephyr,code = <INPUT_KEY_0>;*/
 		};

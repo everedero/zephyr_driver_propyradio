@@ -77,6 +77,11 @@ static const struct device *pcf_dev = DEVICE_DT_GET(PCF_NODE);
 
 static struct gpio_callback int_cb_data;
 
+/* ----------- MyButton (overlay label: MyButton) ----------- */
+static const struct gpio_dt_spec mybutton = GPIO_DT_SPEC_GET_OR(DT_NODELABEL(user_button), gpios, {0});
+static struct gpio_callback mybutton_cb;
+static struct k_work_delayable mybutton_work;
+
 /* ----------- Debounce ----------- */
 
 static struct k_work_delayable debounce_work;
@@ -296,12 +301,35 @@ void buzzer_thread(void *d0, void *d1, void *d2)
 K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
 		PRIORITY_BUZZER, 0, 0);
 
+
+#define RADIO_ERR_WINDOW 100
+static uint8_t radio_err_ring[RADIO_ERR_WINDOW] = {0};
+static uint8_t radio_err_idx = 0;
+static uint8_t radio_err_count = 0;
+
+void update_radio_error_stats(int err) {
+	// Remove oldest value from count
+	if (radio_err_ring[radio_err_idx]) {
+		radio_err_count--;
+	}
+	// Store new value
+	radio_err_ring[radio_err_idx] = (err != 0) ? 1 : 0;
+	if (err != 0) {
+		radio_err_count++;
+	}
+	radio_err_idx = (radio_err_idx + 1) % RADIO_ERR_WINDOW;
+}
+
+float get_radio_error_percent(void) {
+	return (100.0f * radio_err_count) / RADIO_ERR_WINDOW;
+}
+
 void radio_thread(void)
 {
-	const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
-	int err;
-	bool connected = false;
-	struct radio_data_t *tx_data;
+	   const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
+	   int err;
+	   bool connected = false;
+	   struct radio_data_t *tx_data;
 
 	/* Check if Radio device is ready */
 	if (!device_is_ready(nrf24)) {
@@ -344,16 +372,22 @@ void radio_thread(void)
 			if (sizeof(tx_data->tx_info) > PAYLOAD_SIZE) {
 				LOG_ERR("Data size exceeds NRF24L01+ payload limit");
 				continue; // Skip sending if data is too large, or you can choose to truncate it
-			}
-			err = nrf24_write(nrf24, (uint8_t *)&(tx_data->tx_info), sizeof(tx_data->tx_info));
-			// Send the data to the NRF24L01+ device
+		   	}
+	       	err = nrf24_write(nrf24, (uint8_t *)&(tx_data->tx_info), sizeof(tx_data->tx_info));
+		   	update_radio_error_stats(err);
 
+		   	// Optionally log error percentage every 100 transmissions
+			static int tx_count = 0;
+			tx_count++;
+			if (tx_count % RADIO_ERR_WINDOW == 0) {
+				LOG_INF("Radio TX error rate (last 100): %.1f%%", get_radio_error_percent());
+			}
 			if (err != 0) {
 				LOG_ERR("Failed to write data to NRF24L01+ device");
+				k_msleep(50); // Wait before retrying
 				continue; // Skip to the next iteration if writing fails, or you can choose to break the loop if you want to stop trying
 			}
 			// LOG_INF("Sent data to NRF24L01+ device: %d bytes", err);
-			k_msleep(500); // Sleep for a short period before sending the next data to avoid spamming the logs with errors if the device is not responding well
 		}
 		else {
 			LOG_ERR("Failed to get data from radio FIFO");
@@ -424,7 +458,7 @@ void adc_read_thread(void)
 		k_fifo_put(&radio_fifo, &radio_data);
 
 		/* Sleep for a while before the next read */
-		k_msleep(1000);
+		k_msleep(30);
 	}
 }
 
@@ -470,6 +504,32 @@ static void pcf_int_callback(const struct device *dev,
     k_work_reschedule(&debounce_work, K_MSEC(DEBOUNCE_TIME_MS));
 }
 
+/* MyButton debounce handler */
+static void mybutton_work_handler(struct k_work *work)
+{
+	ARG_UNUSED(work);
+
+	int val = gpio_pin_get_dt(&mybutton);
+	LOG_INF("MyButton debounced state: %d", val);
+
+	/* Re-enable interrupt on active edge */
+	gpio_pin_interrupt_configure_dt(&mybutton, GPIO_INT_EDGE_TO_ACTIVE);
+}
+
+/* MyButton ISR: schedule debounce and disable further interrupts */
+static void mybutton_isr(const struct device *dev,
+						 struct gpio_callback *cb,
+						 uint32_t pins)
+{
+	ARG_UNUSED(dev);
+	ARG_UNUSED(cb);
+	ARG_UNUSED(pins);
+
+	/* Disable further interrupts while debouncing */
+	gpio_pin_interrupt_configure_dt(&mybutton, GPIO_INT_DISABLE);
+	k_work_reschedule(&mybutton_work, K_MSEC(10));
+}
+
 
 int main(void)
 {
@@ -489,6 +549,25 @@ int main(void)
 
     k_work_init_delayable(&debounce_work,
                           debounce_work_handler);
+
+	/* Initialize MyButton if available in devicetree */
+	if (mybutton.port == NULL || !device_is_ready(mybutton.port)) {
+		LOG_WRN("MyButton GPIO not ready or not present in devicetree");
+	} else {
+		int rc;
+
+		k_work_init_delayable(&mybutton_work, mybutton_work_handler);
+
+		rc = gpio_pin_configure_dt(&mybutton, GPIO_INPUT);
+		if (rc < 0) {
+			LOG_ERR("Failed to configure MyButton pin (%d)", rc);
+		} else {
+			gpio_init_callback(&mybutton_cb, mybutton_isr, BIT(mybutton.pin));
+			gpio_add_callback(mybutton.port, &mybutton_cb);
+			gpio_pin_interrupt_configure_dt(&mybutton, GPIO_INT_EDGE_TO_ACTIVE);
+			LOG_INF("MyButton initialized on %p:%d", mybutton.port, mybutton.pin);
+		}
+	}
 
     LOG_INF("PCF8575 IO Expander ready");
 	
@@ -525,7 +604,7 @@ int main(void)
 		ui_tick();
 		lv_timer_handler();
 
-		k_sleep(K_MSEC(1));
+		k_sleep(K_MSEC(20));
 	}
 	return 0;
 }
