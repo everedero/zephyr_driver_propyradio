@@ -139,7 +139,7 @@
 		rx-datapipes-number = <2>;
 		rx-datapipe0-address = [01 00 00 00 01]; // [ab cd ab cd 71];
 		rx-datapipe1-address = [ff 00 00 00 ff]; // [ab cd ab cd 72];
-		// payload-ack;
+		/* payload-ack; */
 		payload-crc;
 		crc-encoding-twobytes;
 	};

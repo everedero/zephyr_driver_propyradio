@@ -234,9 +234,14 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 }
 
 int initialize_rf_parameters(struct rf_settings *settings) {
+	uint32_t changed_pins;
+
 	if (settings == NULL) {
 		return -1; // Error: Null pointer
 	}
+
+	/* read changed pins value */
+	gpio_port_get_raw(pcf_dev, &changed_pins);
 
 	// Initialize channel settings with default values
 	for (int i = 0; i < MAX_CHANNELS; i++) {
@@ -247,9 +252,15 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 		settings->ch_settings[i].map = def_map; // linear mapping function
 	}
 
+	settings->aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[4].activated = IS_SWITCH_SW_4_1_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[5].activated = false; // Default state
+	
 	// Initialize auxiliary channel settings with default values
 	for (int j = 0; j < MAX_AUX_CHANNELS; j++) {
-		settings->aux_settings[j].activated = false;
 		settings->aux_settings[j].aux_function = 0; // Default function
 	}
 
@@ -355,6 +366,13 @@ void radio_thread(void)
 			continue;
 		}
 		LOG_INF("Received data from NRF24L01+ device");
+		#if defined ACK
+			// TO DO: manage ACK payload properly, for now we just read it without checking if it is actually an ACK or not, 
+			// and we do not use it for anything specific
+			uint8_t ack[2] = {0};
+			err = nrf24l01_write_ack_payload(nrf24, ack, sizeof(ack), 0); 
+			// pipe 0 for ACK payload
+		#endif
 
 		// Process acknowledgment data if necessary
 		if (ack_data[0] == 0xAA) {
@@ -380,10 +398,10 @@ void radio_thread(void)
 			static int tx_count = 0;
 			tx_count++;
 			if (tx_count % RADIO_ERR_WINDOW == 0) {
-				LOG_INF("Radio TX error rate (last 100): %.1f%%", get_radio_error_percent());
+				// LOG_INF("Radio TX error rate (last 100): %.1f%%", ( double )get_radio_error_percent());
 			}
 			if (err != 0) {
-				LOG_ERR("Failed to write data to NRF24L01+ device");
+				LOG_ERR("Failed to write data to NRF24L01+ device! err: %d",err);
 				k_msleep(50); // Wait before retrying
 				continue; // Skip to the next iteration if writing fails, or you can choose to break the loop if you want to stop trying
 			}
@@ -488,6 +506,11 @@ static void debounce_work_handler(struct k_work *work)
 
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
+	settings->aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
+	settings->aux_settings[4].activated = IS_SWITCH_SW_4_1_ACTIVATED(changed_pins); // Default state based on switch position
 
 	LOG_INF("Debounced value: 0x%x", changed_pins);
 }
