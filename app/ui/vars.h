@@ -67,7 +67,6 @@ extern void set_var_sw5(bool value);
 extern bool get_var_sw6();
 extern void set_var_sw6(bool value);
 
-
 #ifdef __cplusplus
 }
 #endif
