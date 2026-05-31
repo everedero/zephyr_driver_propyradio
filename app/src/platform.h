@@ -30,27 +30,39 @@
 
 /* PCF8575 is used with buttons, here is the mapping */
 #define TRIM_JOYSTICK_ROULIS_UP    0
+#define IS_TRIM_JOYSTICK_ROULIS_UP_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_ROULIS_UP)) == 0)
 #define TRIM_JOYSTICK_ROULIS_DOWN  1
-#define TRIM_JOYSTICK_TANGAGE_UP   2
-#define TRIM_JOYSTICK_TANGAGE_DOWN 3
-// #define TRIM_JOYSTICK_GAZ    // useless
-#define TRIM_JOYSTICK_LACET_UP     4
-#define TRIM_JOYSTICK_LACET_DOWN   5
+#define IS_TRIM_JOYSTICK_ROULIS_DOWN_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_ROULIS_DOWN)) == 0)
+#define TRIM_JOYSTICK_TANGAGE_UP   6
+#define IS_TRIM_JOYSTICK_TANGAGE_UP_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_TANGAGE_UP)) == 0)
+#define TRIM_JOYSTICK_TANGAGE_DOWN 7
+#define IS_TRIM_JOYSTICK_TANGAGE_DOWN_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_TANGAGE_DOWN)) == 0)
+#define TRIM_JOYSTICK_LACET_UP     8
+#define IS_TRIM_JOYSTICK_LACET_UP_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_LACET_UP)) == 0)
+#define TRIM_JOYSTICK_LACET_DOWN   9
+#define IS_TRIM_JOYSTICK_LACET_DOWN_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_LACET_DOWN)) == 0)
+#define TRIM_JOYSTICK_GAZ_UP       2
+#define IS_TRIM_JOYSTICK_GAZ_UP_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_GAZ_UP)) == 0)
+#define TRIM_JOYSTICK_GAZ_DOWN     12
+#define IS_TRIM_JOYSTICK_GAZ_DOWN_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_GAZ_DOWN)) == 0)
 
 // ON/OFF switches
-#define SWITCH_SW_1 6
+#define SWITCH_SW_1 5
 #define IS_SWITCH_SW_1_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_1)) == 0)
-#define SWITCH_SW_2 7
+#define SWITCH_SW_2 10
 #define IS_SWITCH_SW_2_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_2)) == 0)
-#define SWITCH_SW_3 8
+#define SWITCH_SW_3 11
 #define IS_SWITCH_SW_3_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_3)) == 0)
-#define SWITCH_SW_4 9
+#define SWITCH_SW_4 13
 #define IS_SWITCH_SW_4_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_4)) == 0)
-#define SWITCH_SW_4_1 10
-#define IS_SWITCH_SW_4_1_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_4_1)) == 0)
 
 
 // Push buttons
-#define SWITCH_PUSH 11
-#define SWITCH_PUSH_UP 12
-#define SWITCH_PUSH_DOWN 13
+#define SWITCH_SW_A_UP      3
+#define IS_SWITCH_SW_A_UP_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_A_UP)) == 0)
+#define SWITCH_SW_A_DOWN    4
+#define IS_SWITCH_SW_A_DOWN_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_A_DOWN)) == 0)
+#define SWITCH_SW_B_UP      14
+#define IS_SWITCH_SW_B_UP_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_B_UP)) == 0)
+#define SWITCH_SW_B_DOWN    15
+#define IS_SWITCH_SW_B_DOWN_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_B_DOWN)) == 0)

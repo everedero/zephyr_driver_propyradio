@@ -178,6 +178,24 @@ static bool increment_counter = false;
 
 struct rf_settings rf_parameters;
 
+typedef enum {
+	ROULIS = 0,
+	TANGAGE = 1,
+	GAZ = 2,
+	LACET = 3,
+	AUX1 = 4,
+	AUX2 = 5
+} index_name_t;
+
+index_name_t index_lockup_table[MAX_CHANNELS] = {
+	ROULIS,
+	TANGAGE,
+	GAZ,
+	LACET,
+	AUX1, // default mapping for aux channels
+	AUX2  // default mapping for aux channels
+};
+
 extern void set_var_ch1_int(int32_t value);
 extern void set_var_ch2_int(int32_t value);
 extern void set_var_ch3_int(int32_t value);
@@ -210,12 +228,12 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 			info->tx_channel[i] = 127; // Default to center if no mapping function
 		}
 	}
-	set_var_ch1_int(info->tx_channel[0]);
-	set_var_ch2_int(info->tx_channel[1]);
-	set_var_ch3_int(info->tx_channel[2]);
-	set_var_ch4_int(info->tx_channel[3]);
-	set_var_ch5_int(info->tx_channel[4]);
-	set_var_ch6_int(info->tx_channel[5]);
+	set_var_ch1_int(info->tx_channel[index_lockup_table[ROULIS]]);
+	set_var_ch2_int(info->tx_channel[index_lockup_table[TANGAGE]]);
+	set_var_ch3_int(info->tx_channel[index_lockup_table[GAZ]]);
+	set_var_ch4_int(info->tx_channel[index_lockup_table[LACET]]);
+	set_var_ch5_int(info->tx_channel[index_lockup_table[AUX1]]);
+	set_var_ch6_int(info->tx_channel[index_lockup_table[AUX2]]);
 
 	// Fill the aux_channels_bitmap
 	for (int j = 0; j < MAX_AUX_CHANNELS; j++) {
@@ -256,9 +274,7 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 	settings->aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
 	settings->aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
 	settings->aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[4].activated = IS_SWITCH_SW_4_1_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[5].activated = false; // Default state
-	
+
 	// Initialize auxiliary channel settings with default values
 	for (int j = 0; j < MAX_AUX_CHANNELS; j++) {
 		settings->aux_settings[j].aux_function = 0; // Default function
@@ -506,11 +522,38 @@ static void debounce_work_handler(struct k_work *work)
 
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
-	settings->aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
-	settings->aux_settings[4].activated = IS_SWITCH_SW_4_1_ACTIVATED(changed_pins); // Default state based on switch position
+	rf_parameters.aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
+	rf_parameters.aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
+	rf_parameters.aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
+	rf_parameters.aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
+
+	while(IS_TRIM_JOYSTICK_ROULIS_UP_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[0].input = 0; // Gaz channel to max
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+
+
+
+	if (IS_SWITCH_SW_A_UP_ACTIVATED(changed_pins)) {
+		//LOG_INF("Switch SWA_UP activated");
+	} else {
+		//LOG_INF("Switch SWA_UP deactivated");
+	}
+	if (IS_SWITCH_SW_A_DOWN_ACTIVATED(changed_pins)) {
+		//LOG_INF("Switch SWA_DOWN activated");
+	} else {
+		//LOG_INF("Switch SWA_DOWN deactivated");
+	}
+	if (IS_SWITCH_SW_B_UP_ACTIVATED(changed_pins)) {
+		//LOG_INF("Switch SWB_UP activated");
+	} else {
+		//LOG_INF("Switch SWB_UP deactivated");
+	}
+	if (IS_SWITCH_SW_B_DOWN_ACTIVATED(changed_pins)) {
+		//LOG_INF("Switch SWB_DOWN activated");
+	} else {
+		//LOG_INF("Switch SWB_DOWN deactivated");
+	}
 
 	LOG_INF("Debounced value: 0x%x", changed_pins);
 }
