@@ -12,11 +12,18 @@
 #define PRIORITY_RADIO 6
 #define PRIORITY_ADC 5
 
+/* Startup delays for each thread */
+#define RADIO_STARTUP_DELAY     500
+#define ADC_STARTUP_DELAY       500+RADIO_STARTUP_DELAY
+#define BUZZER_STARTUP_DELAY    500+ADC_STARTUP_DELAY
+
+
 /* Maximum number of channels */
 #define MAX_CHANNELS 6
 
 /* Maximum number of auxiliary channels */
 #define MAX_AUX_CHANNELS 4
+
 
 /* Debounce time in milliseconds */
 #define DEBOUNCE_TIME_MS 20
@@ -27,6 +34,8 @@
 /*  ADC Resolution */
 #define ADC_RESOLUTION 12
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
+/* Calibration offset for ADC values */
+#define CALIBRATION_OFFSET 40*ADC_MAX_VALUE/255 // Example offset, adjust based on actual calibration results
 
 /* PCF8575 is used with buttons, here is the mapping */
 #define TRIM_JOYSTICK_ROULIS_UP    0
@@ -45,6 +54,8 @@
 #define IS_TRIM_JOYSTICK_GAZ_UP_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_GAZ_UP)) == 0)
 #define TRIM_JOYSTICK_GAZ_DOWN     12
 #define IS_TRIM_JOYSTICK_GAZ_DOWN_ACTIVATED(pins) (((pins) & (1 << TRIM_JOYSTICK_GAZ_DOWN)) == 0)
+
+#define TRIM_INCREMENT (2*ADC_MAX_VALUE/255) // 2 steps increment for trimming, adjust as needed
 
 // ON/OFF switches
 #define SWITCH_SW_1 5

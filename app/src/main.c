@@ -263,8 +263,8 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 
 	// Initialize channel settings with default values
 	for (int i = 0; i < MAX_CHANNELS; i++) {
-		settings->ch_settings[i].min = 0;
-		settings->ch_settings[i].max = ADC_MAX_VALUE;
+		settings->ch_settings[i].min = 0+CALIBRATION_OFFSET; // Minimum ADC value with calibration offset
+		settings->ch_settings[i].max = ADC_MAX_VALUE-CALIBRATION_OFFSET; // Maximum ADC value with calibration offset
 		settings->ch_settings[i].center = ADC_MAX_VALUE / 2;
 		settings->ch_settings[i].input = ADC_MAX_VALUE / 2; // Default input value
 		settings->ch_settings[i].map = def_map; // linear mapping function
@@ -311,8 +311,16 @@ void action_menu_settings_action(lv_event_t *e) {
 
 void buzzer_thread(void *d0, void *d1, void *d2)
 {
+	if (!device_is_ready(sBuzzer.dev)) {
+		LOG_ERR("Buzzer device not ready");
+		return;
+	}
+	set_var_load_bar_progress(get_var_load_bar_progress() + 20);
+	LOG_INF("Buzzer device ready");
+
 	/* Block until buzzer is available */
 	k_sem_take(&buzzer_initialized_sem, K_FOREVER);
+
 	while (true) {
 
 		pwm_set_dt(&sBuzzer, PWM_HZ(1000), PWM_HZ(1000) / 2);
@@ -326,7 +334,7 @@ void buzzer_thread(void *d0, void *d1, void *d2)
 	}
 }
 K_THREAD_DEFINE(buzzer_tid, STACKSIZE, buzzer_thread, NULL, NULL, NULL,
-		PRIORITY_BUZZER, 0, 0);
+		PRIORITY_BUZZER, 0, BUZZER_STARTUP_DELAY);
 
 
 #define RADIO_ERR_WINDOW 100
@@ -353,10 +361,10 @@ float get_radio_error_percent(void) {
 
 void radio_thread(void)
 {
-	   const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
-	   int err;
-	   bool connected = false;
-	   struct radio_data_t *tx_data;
+	const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
+	int err;
+	bool connected = false;
+	struct radio_data_t *tx_data;
 
 	/* Check if Radio device is ready */
 	if (!device_is_ready(nrf24)) {
@@ -364,6 +372,8 @@ void radio_thread(void)
 		return;
 	}
 	LOG_INF("Radio device ready");
+
+	set_var_load_bar_progress(get_var_load_bar_progress() + 20);
 
 	if (initialize_rf_parameters(&rf_parameters) != 0) {
 		LOG_ERR("Failed to initialize RF parameters");
@@ -472,6 +482,9 @@ void adc_read_thread(void)
 	/* Re-set multiple channel config, rewritten by sequence_init */
 	sequence.channels = 0xf210; /* 0b1111001000010000, adc channels bitmask */
 
+	set_var_load_bar_progress(get_var_load_bar_progress() + 20);
+
+	LOG_INF("Starting ADC read thread");
 	while (true) {
 		err = adc_read_dt(adc_channels, &sequence);
 		if (err < 0) {
@@ -497,11 +510,11 @@ void adc_read_thread(void)
 }
 
 K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
-		(PRIORITY_RADIO), 0, 0);
+		(PRIORITY_RADIO), 0, RADIO_STARTUP_DELAY);
 
 
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
-		(PRIORITY_ADC), 0, 0);
+		(PRIORITY_ADC), 0, ADC_STARTUP_DELAY);
 
 static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
@@ -528,7 +541,43 @@ static void debounce_work_handler(struct k_work *work)
 	rf_parameters.aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
 
 	while(IS_TRIM_JOYSTICK_ROULIS_UP_ACTIVATED(changed_pins)) {
-		rf_parameters.ch_settings[0].input = 0; // Gaz channel to max
+		rf_parameters.ch_settings[ROULIS].center += TRIM_INCREMENT; // Gaz channel to max
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_ROULIS_DOWN_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[ROULIS].center -= TRIM_INCREMENT; // Gaz channel to min
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_TANGAGE_UP_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[TANGAGE].center += TRIM_INCREMENT; // Gaz channel to max
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_TANGAGE_DOWN_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[TANGAGE].center -= TRIM_INCREMENT; // Gaz channel to min
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_LACET_UP_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[LACET].center += TRIM_INCREMENT; // Gaz channel to max
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_LACET_DOWN_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[LACET].center -= TRIM_INCREMENT; // Gaz channel to min
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_GAZ_UP_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[GAZ].center += TRIM_INCREMENT; // Gaz channel to max
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
+		gpio_port_get_raw(pcf_dev, &changed_pins);
+	}
+	while(IS_TRIM_JOYSTICK_GAZ_DOWN_ACTIVATED(changed_pins)) {
+		rf_parameters.ch_settings[GAZ].center -= TRIM_INCREMENT; // Gaz channel to min
+		k_msleep(DEBOUNCE_TIME_MS); // Add a small delay to avoid too fast changes, adjust as needed
 		gpio_port_get_raw(pcf_dev, &changed_pins);
 	}
 
@@ -596,10 +645,33 @@ static void mybutton_isr(const struct device *dev,
 	k_work_reschedule(&mybutton_work, K_MSEC(10));
 }
 
+void action_update_init_bar(lv_event_t *e) {
+    // TODO: Implement action update_init_bar here
+	LOG_INF("Updating init bar progress");
+}
+
 
 int main(void)
 {
 	const struct device *display_dev;
+
+	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+
+	/* Check if the Display device is ready */
+	if (!device_is_ready(display_dev)) {
+		LOG_ERR("Device not ready, aborting test");
+		return 0;
+	}
+	// Short delay to ensure everything is settled before starting the main loop
+	k_msleep(100);
+
+	/* Initialize UI */
+	ui_init();
+	lv_timer_handler();
+	display_blanking_off(display_dev);
+
+	// Short delay to ensure everything is settled before starting the main loop
+	k_msleep(100);
 
 	if (!device_is_ready(pcf_dev)) {
         LOG_ERR("Device PCF8575 not ready");
@@ -636,29 +708,38 @@ int main(void)
 	}
 
     LOG_INF("PCF8575 IO Expander ready");
-	
-	if (!device_is_ready(sBuzzer.dev)) {
-		return -ENODEV;
-	}
-	k_sem_give(&buzzer_initialized_sem);
-	LOG_INF("Buzzer device ready");
-	
-	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-
-	/* Check if the Display device is ready */
-	if (!device_is_ready(display_dev)) {
-		LOG_ERR("Device not ready, aborting test");
-		return 0;
-	}
-	/* Initialize UI */
-	ui_init();
+	set_var_load_bar_progress(get_var_load_bar_progress() + 20);
+	/* Update UI */
+	ui_tick();
 	lv_timer_handler();
-	display_blanking_off(display_dev);
+
+	// Short delay to ensure everything is settled before starting the main loop
+	k_msleep(500);
+	
+	while(get_var_load_bar_progress() <= 80) {
+		/* Update UI */
+		ui_tick();
+		lv_timer_handler();
+		k_msleep(500);
+	}
+	k_msleep(500);
+	set_var_load_bar_progress(100);
+	/* Update UI */
+	ui_tick();
+	lv_timer_handler();
+
+	// Release buzzer thread to play startup sound
+	k_sem_give(&buzzer_initialized_sem);
+	
+	k_msleep(500);
+	/* Initialize main screen */
+	loadScreen(SCREEN_ID_MAIN);
+
+	/* Update UI */
+	ui_tick();
+	lv_timer_handler();
 
 	set_var_counter_int(0);
-
-	// 1 Beep at startup
-	k_wakeup(buzzer_tid);
 
 	while (true) {
 		/* Update counter */

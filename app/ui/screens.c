@@ -239,6 +239,23 @@ void create_screen_main() {
     tick_screen_main();
 }
 
+void delete_screen_main() {
+    lv_obj_delete(objects.main);
+    objects.main = 0;
+    objects.label_counter = 0;
+    objects.start_button = 0;
+    objects.button_label = 0;
+    objects.counter_label = 0;
+    objects.banner = 0;
+    objects.label_ch1 = 0;
+    objects.label_ch2 = 0;
+    objects.label_ch3 = 0;
+    objects.label_ch4 = 0;
+    objects.label_ch5 = 0;
+    objects.label_ch6 = 0;
+    objects.menu = 0;
+}
+
 void tick_screen_main() {
     {
         const char *new_val = get_var_counter();
@@ -548,6 +565,35 @@ void create_screen_settings() {
     tick_screen_settings();
 }
 
+void delete_screen_settings() {
+    lv_obj_delete(objects.settings);
+    objects.settings = 0;
+    objects.settings_tab_view = 0;
+    objects.tab_radio = 0;
+    objects.aux1 = 0;
+    objects.tab_switch = 0;
+    objects.menu_back_label = 0;
+    objects.menu_back_label_3 = 0;
+    objects.menu_back_label_1 = 0;
+    objects.menu_back_label_2 = 0;
+    objects.channel1 = 0;
+    objects.channel1_1 = 0;
+    objects.channel1_2 = 0;
+    objects.channel1_3 = 0;
+    objects.sw_a = 0;
+    objects.sw_a_1 = 0;
+    objects.sw_a_2 = 0;
+    objects.sw_a_3 = 0;
+    objects.sw_a_4 = 0;
+    objects.sw1_1 = 0;
+    objects.sw_2 = 0;
+    objects.sw1 = 0;
+    objects.sw_a_5 = 0;
+    objects.sw_5 = 0;
+    objects.sw_6 = 0;
+    objects.menu_back = 0;
+}
+
 void tick_screen_settings() {
     {
         if (!(lv_obj_get_state(objects.channel1) & LV_STATE_EDITED)) {
@@ -651,15 +697,15 @@ void create_screen_splash_screen() {
             // InitBar
             lv_obj_t *obj = lv_bar_create(parent_obj);
             objects.init_bar = obj;
-            lv_obj_set_pos(obj, 219, 343);
+            lv_obj_set_pos(obj, 205, 343);
             lv_obj_set_size(obj, 391, 27);
-            lv_bar_set_value(obj, 5, LV_ANIM_OFF);
+            lv_obj_add_event_cb(obj, action_update_init_bar, LV_EVENT_VALUE_CHANGED, (void *)5);
         }
         {
             // WelcomeMsg
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.welcome_msg = obj;
-            lv_obj_set_pos(obj, 101, 177);
+            lv_obj_set_pos(obj, 87, 177);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text_static(obj, "Adventure72 remote controller");
@@ -669,7 +715,49 @@ void create_screen_splash_screen() {
     tick_screen_splash_screen();
 }
 
+void delete_screen_splash_screen() {
+    lv_obj_delete(objects.splash_screen);
+    objects.splash_screen = 0;
+    objects.init_bar = 0;
+    objects.welcome_msg = 0;
+}
+
 void tick_screen_splash_screen() {
+    {
+        int32_t new_val = get_var_load_bar_progress();
+        int32_t cur_val = lv_bar_get_value(objects.init_bar);
+        if (new_val != cur_val) {
+            tick_value_change_obj = objects.init_bar;
+            lv_bar_set_value(objects.init_bar, new_val, LV_ANIM_ON);
+            tick_value_change_obj = NULL;
+        }
+    }
+}
+
+typedef void (*create_screen_func_t)();
+create_screen_func_t create_screen_funcs[] = {
+    create_screen_main,
+    create_screen_settings,
+    create_screen_splash_screen,
+};
+void create_screen(int screen_index) {
+    create_screen_funcs[screen_index]();
+}
+void create_screen_by_id(enum ScreensEnum screenId) {
+    create_screen_funcs[screenId - 1]();
+}
+
+typedef void (*delete_screen_func_t)();
+delete_screen_func_t delete_screen_funcs[] = {
+    delete_screen_main,
+    delete_screen_settings,
+    delete_screen_splash_screen,
+};
+void delete_screen(int screen_index) {
+    delete_screen_funcs[screen_index]();
+}
+void delete_screen_by_id(enum ScreensEnum screenId) {
+    delete_screen_funcs[screenId - 1]();
 }
 
 typedef void (*tick_screen_func_t)();

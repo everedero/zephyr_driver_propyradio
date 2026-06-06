@@ -64,14 +64,19 @@ typedef struct _objects_t {
 extern objects_t objects;
 
 void create_screen_main();
+void delete_screen_main();
 void tick_screen_main();
 
 void create_screen_settings();
+void delete_screen_settings();
 void tick_screen_settings();
 
 void create_screen_splash_screen();
+void delete_screen_splash_screen();
 void tick_screen_splash_screen();
 
+void create_screen_by_id(enum ScreensEnum screenId);
+void delete_screen_by_id(enum ScreensEnum screenId);
 void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
 

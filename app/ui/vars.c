@@ -387,3 +387,15 @@ Sets the integer value of counter.
 @param value The new integer value for counter.
 */
 void set_var_counter_int(int32_t value) {counter = value;}
+
+int32_t load_bar_progress;
+
+int32_t get_var_load_bar_progress() {
+    return load_bar_progress;
+}
+
+void set_var_load_bar_progress(int32_t value) {
+	if (value >= 0 && value <= 100) {
+		load_bar_progress = value;
+	}
+}

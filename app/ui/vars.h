@@ -33,7 +33,8 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_SW3 = 10,
     FLOW_GLOBAL_VARIABLE_SW4 = 11,
     FLOW_GLOBAL_VARIABLE_SW5 = 12,
-    FLOW_GLOBAL_VARIABLE_SW6 = 13
+    FLOW_GLOBAL_VARIABLE_SW6 = 13,
+    FLOW_GLOBAL_VARIABLE_LOAD_BAR_PROGRESS = 14
 };
 
 // Native global variables
@@ -66,6 +67,8 @@ extern bool get_var_sw5();
 extern void set_var_sw5(bool value);
 extern bool get_var_sw6();
 extern void set_var_sw6(bool value);
+extern int32_t get_var_load_bar_progress();
+extern void set_var_load_bar_progress(int32_t value);
 
 #ifdef __cplusplus
 }
