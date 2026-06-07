@@ -1,4 +1,11 @@
 /*
+ * Project : rc_remote_controller
+ * File    : platform.h
+ * Author  : Philippe Peurichard <p.peurichard@gmail.com>
+ * Date    : 2026-06-07
+ * Brief   : Platform configuration and common macros
+ * License : Apache-2.0
+ *
  * Copyright (C) 2026 Philippe Peurichard <p.peurichard@gmail.com>
  * SPDX-License-Identifier: Apache-2.0
  */

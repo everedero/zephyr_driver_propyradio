@@ -1,5 +1,5 @@
 #include <string.h>
-
+#include <lvgl_private.h>
 #include "screens.h"
 #include "images.h"
 #include "fonts.h"
@@ -280,8 +280,7 @@ void tick_screen_main() {
     {
         uint32_t new_val = get_var_binding_led_color();
         new_val = lv_color_to_u32(lv_color_hex(new_val));
-        /* PATCH*/
-        uint32_t cur_val = lv_color_to_u32(lv_led_get_color(objects.binding_led));
+        uint32_t cur_val = lv_color_to_u32(((lv_led_t *)objects.binding_led)->color);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.binding_led;
             lv_led_set_color(objects.binding_led, lv_color_hex(new_val));

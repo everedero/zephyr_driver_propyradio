@@ -1,4 +1,11 @@
 /*
+ * Project : rc_remote_controller
+ * File    : main.c
+ * Author  : Philippe Peurichard <p.peurichard@gmail.com>
+ * Date    : 2026-06-07
+ * Brief   : Main application entry and initialization
+ * License : Apache-2.0
+ *
  * Copyright (C) 2026 Philippe Peurichard <p.peurichard@gmail.com>
  * SPDX-License-Identifier: Apache-2.0
  */
