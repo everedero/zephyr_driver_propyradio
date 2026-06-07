@@ -7,12 +7,28 @@
 #include <string.h>
 #include "vars.h"
 
+#define MAX_STR_LEN 8
+
 bool sw1;
 bool sw2;
 bool sw3;
 bool sw4;
 bool sw5;
 bool sw6;
+
+int32_t binding_led_color;
+
+int32_t counter = 0;
+int32_t ch1 = 0;
+int32_t ch2 = 0;
+int32_t ch3 = 0;
+int32_t ch4 = 0;
+int32_t ch5 = 0;
+int32_t ch6 = 0;
+UI_CHANNEL_TAB selection1;
+UI_CHANNEL_TAB selection2;
+UI_CHANNEL_TAB selection3;
+UI_CHANNEL_TAB selection4;
 
 
 /*
@@ -139,16 +155,6 @@ void set_var_sw6(bool value) {
     sw6 = value;
 }
 
-#define MAX_STR_LEN 8
-int32_t counter = 0;
-int32_t ch1 = 0;
-int32_t ch2 = 0;
-int32_t ch3 = 0;
-int32_t ch4 = 0;
-int32_t ch5 = 0;
-int32_t ch6 = 0;
-UI_CHANNEL_TAB selection1;
-
 /*
 # get_var_selection1
 
@@ -169,6 +175,72 @@ Sets the value of selection1.
 */
 void set_var_selection1(UI_CHANNEL_TAB value) {
     selection1 = value;
+}
+
+/*
+# get_var_selection2
+
+Returns the current value of selection2.
+
+@return UI_CHANNEL_TAB The current selection.
+*/
+UI_CHANNEL_TAB get_var_selection2() {
+    return selection2;
+}
+
+/*
+# set_var_selection2
+
+Sets the value of selection2.
+
+@param value The new value for selection2.
+*/
+void set_var_selection2(UI_CHANNEL_TAB value) {
+    selection2 = value;
+}
+
+/*
+# get_var_selection3
+
+Returns the current value of selection3.
+
+@return UI_CHANNEL_TAB The current selection.
+*/
+UI_CHANNEL_TAB get_var_selection3() {
+    return selection3;
+}
+
+/*
+# set_var_selection3
+
+Sets the value of selection3.
+
+@param value The new value for selection3.
+*/
+void set_var_selection3(UI_CHANNEL_TAB value) {
+    selection3 = value;
+}
+
+/*
+# get_var_selection4
+
+Returns the current value of selection4.
+
+@return UI_CHANNEL_TAB The current selection.
+*/
+UI_CHANNEL_TAB get_var_selection4() {
+    return selection4;
+}
+
+/*
+# set_var_selection4
+
+Sets the value of selection4.
+
+@param value The new value for selection4.
+*/
+void set_var_selection4(UI_CHANNEL_TAB value) {
+    selection4 = value;
 }
 
 /*
@@ -399,3 +471,12 @@ void set_var_load_bar_progress(int32_t value) {
 		load_bar_progress = value;
 	}
 }
+
+int32_t get_var_binding_led_color() {
+    return binding_led_color;
+}
+
+void set_var_binding_led_color(int32_t value) {
+    binding_led_color = value;
+}
+

@@ -32,9 +32,11 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_SW2 = 9,
     FLOW_GLOBAL_VARIABLE_SW3 = 10,
     FLOW_GLOBAL_VARIABLE_SW4 = 11,
-    FLOW_GLOBAL_VARIABLE_SW5 = 12,
-    FLOW_GLOBAL_VARIABLE_SW6 = 13,
-    FLOW_GLOBAL_VARIABLE_LOAD_BAR_PROGRESS = 14
+    FLOW_GLOBAL_VARIABLE_LOAD_BAR_PROGRESS = 12,
+    FLOW_GLOBAL_VARIABLE_SELECTION2 = 13,
+    FLOW_GLOBAL_VARIABLE_SELECTION3 = 14,
+    FLOW_GLOBAL_VARIABLE_SELECTION4 = 15,
+    FLOW_GLOBAL_VARIABLE_BINDING_LED_COLOR = 16
 };
 
 // Native global variables
@@ -63,12 +65,16 @@ extern bool get_var_sw3();
 extern void set_var_sw3(bool value);
 extern bool get_var_sw4();
 extern void set_var_sw4(bool value);
-extern bool get_var_sw5();
-extern void set_var_sw5(bool value);
-extern bool get_var_sw6();
-extern void set_var_sw6(bool value);
 extern int32_t get_var_load_bar_progress();
 extern void set_var_load_bar_progress(int32_t value);
+extern UI_CHANNEL_TAB get_var_selection2();
+extern void set_var_selection2(UI_CHANNEL_TAB value);
+extern UI_CHANNEL_TAB get_var_selection3();
+extern void set_var_selection3(UI_CHANNEL_TAB value);
+extern UI_CHANNEL_TAB get_var_selection4();
+extern void set_var_selection4(UI_CHANNEL_TAB value);
+extern int32_t get_var_binding_led_color();
+extern void set_var_binding_led_color(int32_t value);
 
 #ifdef __cplusplus
 }

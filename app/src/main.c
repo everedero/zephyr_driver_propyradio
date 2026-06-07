@@ -188,12 +188,12 @@ typedef enum {
 } index_name_t;
 
 index_name_t index_lockup_table[MAX_CHANNELS] = {
-	ROULIS,
-	TANGAGE,
-	GAZ,
-	LACET,
-	AUX1, // default mapping for aux channels
-	AUX2  // default mapping for aux channels
+	LACET,    // default mapping for channel 1
+	GAZ,	  // default mapping for channel 2
+	TANGAGE,  // default mapping for channel 3
+	AUX1,	  // default mapping for channel 4
+	AUX2,     // default mapping for aux1 channel
+	ROULIS    // default mapping for aux2 channel
 };
 
 extern void set_var_ch1_int(int32_t value);
@@ -228,10 +228,10 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 			info->tx_channel[i] = 127; // Default to center if no mapping function
 		}
 	}
-	set_var_ch1_int(info->tx_channel[index_lockup_table[ROULIS]]);
-	set_var_ch2_int(info->tx_channel[index_lockup_table[TANGAGE]]);
-	set_var_ch3_int(info->tx_channel[index_lockup_table[GAZ]]);
-	set_var_ch4_int(info->tx_channel[index_lockup_table[LACET]]);
+	set_var_ch1_int(info->tx_channel[index_lockup_table[get_var_selection1()]]);
+	set_var_ch2_int(info->tx_channel[index_lockup_table[get_var_selection2()]]);
+	set_var_ch3_int(info->tx_channel[index_lockup_table[get_var_selection3()]]);
+	set_var_ch4_int(info->tx_channel[index_lockup_table[get_var_selection4()]]);
 	set_var_ch5_int(info->tx_channel[index_lockup_table[AUX1]]);
 	set_var_ch6_int(info->tx_channel[index_lockup_table[AUX2]]);
 
@@ -379,7 +379,7 @@ void radio_thread(void)
 		LOG_ERR("Failed to initialize RF parameters");
 		return;
 	}
-
+try_reconnect:
 	while(!connected) {
 		// Buffer to get binding key from the other device, can be used to trigger buzzer or other actions on the remote controller when a specific key is pressed on the transmitter
 		uint8_t ack_data[PAYLOAD_SIZE] = {0};
@@ -404,6 +404,7 @@ void radio_thread(void)
 		if (ack_data[0] == 0xAA) {
 			k_wakeup(buzzer_tid);
 			LOG_INF("Received Ack, connected to the device");
+			set_var_binding_led_color(0x00FF00); // Green color for binding status LED
 			connected = true;
 			break;
 		}
@@ -425,6 +426,15 @@ void radio_thread(void)
 			tx_count++;
 			if (tx_count % RADIO_ERR_WINDOW == 0) {
 				// LOG_INF("Radio TX error rate (last 100): %.1f%%", ( double )get_radio_error_percent());
+				if (get_radio_error_percent() > 80.0f) { // If error rate is above 10%, trigger some action, for example, change LED color to indicate poor connection
+					set_var_binding_led_color(0xFF0000); // Red color for poor connection
+					connected = false; // Optionally, you can also set connected to false to stop trying to send data until a new connection is established, or you can choose to keep trying to send data and just indicate the poor connection status with the LED color.
+					k_wakeup(buzzer_tid); // Wake up buzzer thread to alert the user about poor connection
+					goto try_reconnect; // Jump to reconnection logic
+				}
+				else {
+					set_var_binding_led_color(0x00FF00); // Green color for good connection
+				}
 			}
 			if (err != 0) {
 				LOG_ERR("Failed to write data to NRF24L01+ device! err: %d",err);
@@ -535,10 +545,10 @@ static void debounce_work_handler(struct k_work *work)
 
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
-	rf_parameters.aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
-	rf_parameters.aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
-	rf_parameters.aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins); // Default state based on switch position
-	rf_parameters.aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins); // Default state based on switch position
+	rf_parameters.aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins);
+	rf_parameters.aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins);
+	rf_parameters.aux_settings[2].activated = IS_SWITCH_SW_3_ACTIVATED(changed_pins);
+	rf_parameters.aux_settings[3].activated = IS_SWITCH_SW_4_ACTIVATED(changed_pins);
 
 	while(IS_TRIM_JOYSTICK_ROULIS_UP_ACTIVATED(changed_pins)) {
 		rf_parameters.ch_settings[ROULIS].center += TRIM_INCREMENT; // Gaz channel to max
@@ -655,6 +665,14 @@ int main(void)
 {
 	const struct device *display_dev;
 
+	/* Initialize UI variables */
+	set_var_selection1(ROULIS);
+	set_var_selection2(TANGAGE);
+	set_var_selection3(GAZ);
+	set_var_selection4(LACET);
+	set_var_binding_led_color(0xFF0000); // Red color for binding status LED
+	set_var_load_bar_progress(10); // 10% progress at the start of initialization
+
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 	/* Check if the Display device is ready */
@@ -662,6 +680,7 @@ int main(void)
 		LOG_ERR("Device not ready, aborting test");
 		return 0;
 	}
+
 	// Short delay to ensure everything is settled before starting the main loop
 	k_msleep(100);
 
