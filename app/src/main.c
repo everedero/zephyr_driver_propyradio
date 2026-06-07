@@ -46,6 +46,16 @@ static struct gpio_dt_spec button_gpio = GPIO_DT_SPEC_GET_OR(
 		DT_ALIAS(sw0), gpios, {0});
 static struct gpio_callback button_callback;
 
+/**
+ * @brief Button interrupt service routine.
+ *
+ * This ISR handles the physical button press event and performs any
+ * immediate processing required by the application.
+ *
+ * @param[in] port GPIO device that generated the interrupt.
+ * @param[in] cb   GPIO callback data.
+ * @param[in] pins Bitmask of pins that triggered the interrupt.
+ */
 static void button_isr_callback(const struct device *port,
 				struct gpio_callback *cb,
 				uint32_t pins)
@@ -114,14 +124,34 @@ typedef uint8_t (*map_t)(
 	      uint16_t data,
 	const bool is_reversed);
 
-/* Fonction de remappage linéaire */
+/**
+ * @brief Linear interpolation mapping helper.
+ *
+ * Maps a value from one range to another using integer arithmetic.
+ *
+ * @param[in] val  Input value in the source range.
+ * @param[in] low1 Lower bound of the source range.
+ * @param[in] max1 Upper bound of the source range.
+ * @param[in] low2 Lower bound of the destination range.
+ * @param[in] max2 Upper bound of the destination range.
+ * @return Mapped value in the destination range.
+ */
 static inline uint8_t fmap(uint16_t val, uint16_t low1, uint16_t max1, uint16_t low2, uint16_t max2) {
 	return (uint8_t)((low2 + (val - low1) * (max2 - low2) / (max1 - low1)));
 }
 
-/* Linear mapping function with reversal support , boundaries check 
- * and tuning based on center point to give more precision around it
- * useful for joysticks and trims
+/**
+ * @brief Convert ADC input into a radio channel value.
+ *
+ * This function maps an ADC input range to a radio channel output range
+ * and optionally reverses the result for inverted controls.
+ *
+ * @param[in]  min         Minimum ADC input value.
+ * @param[in]  max         Maximum ADC input value.
+ * @param[in]  center      Center point for the input range.
+ * @param[in]  data        Current ADC reading.
+ * @param[in]  is_reversed True to reverse the mapped value.
+ * @return Mapped channel value between 0 and 255.
  */
 uint8_t def_map(
 	const uint16_t min,
@@ -178,7 +208,9 @@ struct radio_data_t radio_data;
 
 const struct pwm_dt_spec sBuzzer = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
 
-/* Thread plays song on buzzer */
+/**
+ * @brief Semaphore used to delay buzzer startup until initialization completes.
+ */
 K_SEM_DEFINE(buzzer_initialized_sem, 0, 1); /* Wait until buzzer is ready */
 
 static bool increment_counter = false;
@@ -216,6 +248,16 @@ static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
 		uint16_t sampling_index);
 
+/**
+ * @brief Populate radio transfer data from RF settings.
+ *
+ * Converts configured channel and auxiliary settings into a radio payload
+ * structure and updates selected UI variables for the mapped channels.
+ *
+ * @param[out] info     Destination radio info structure.
+ * @param[in]  settings Source RF settings including channel maps.
+ * @return 0 on success, -1 on invalid input.
+ */
 int fill_radio_info(struct radio_info_t *info, const struct rf_settings *settings) {
 	if (info == NULL || settings == NULL) {
 		return -1; // Error: Null pointer
@@ -258,6 +300,15 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 	return 0; // Success
 }
 
+/**
+ * @brief Initialize RF parameter defaults from hardware state.
+ *
+ * Reads GPIO switch positions and initializes channel and auxiliary
+ * settings for the RF transmitter.
+ *
+ * @param[out] settings RF settings structure to populate.
+ * @return 0 on success, -1 if the parameter pointer is null.
+ */
 int initialize_rf_parameters(struct rf_settings *settings) {
 	uint32_t changed_pins;
 
@@ -296,6 +347,13 @@ static const struct adc_dt_spec adc_channels[] = {
 			     DT_SPEC_AND_COMMA)
 };
 
+/**
+ * @brief Handle the start/stop button press event.
+ *
+ * Toggles the counter state and updates the button label accordingly.
+ *
+ * @param[in] e LVGL event object.
+ */
 void action_start_button_pressed(lv_event_t *e)
 {
 	ARG_UNUSED(e);
@@ -308,14 +366,33 @@ void action_start_button_pressed(lv_event_t *e)
 	}
 }
 
+/**
+ * @brief Switch back to the main screen.
+ *
+ * @param[in] e LVGL event object.
+ */
 void action_menu_back_action(lv_event_t *e) {
 	loadScreen(SCREEN_ID_MAIN);
 }
 
+/**
+ * @brief Switch to the settings screen.
+ *
+ * @param[in] e LVGL event object.
+ */
 void action_menu_settings_action(lv_event_t *e) {
 	loadScreen(SCREEN_ID_SETTINGS);
 }
 
+/**
+ * @brief Thread entry point for buzzer control.
+ *
+ * Waits for initialization to complete and then pulses the buzzer when awakened.
+ *
+ * @param[in] d0 Unused thread argument.
+ * @param[in] d1 Unused thread argument.
+ * @param[in] d2 Unused thread argument.
+ */
 void buzzer_thread(void *d0, void *d1, void *d2)
 {
 	if (!device_is_ready(sBuzzer.dev)) {
@@ -349,6 +426,14 @@ static uint8_t radio_err_ring[RADIO_ERR_WINDOW] = {0};
 static uint8_t radio_err_idx = 0;
 static uint8_t radio_err_count = 0;
 
+/**
+ * @brief Update the sliding window of radio transmission errors.
+ *
+ * Tracks the most recent radio transmission errors in a circular buffer
+ * and maintains a count of failing transmissions.
+ *
+ * @param[in] err Error code from the latest radio operation.
+ */
 void update_radio_error_stats(int err) {
 	// Remove oldest value from count
 	if (radio_err_ring[radio_err_idx]) {
@@ -362,10 +447,21 @@ void update_radio_error_stats(int err) {
 	radio_err_idx = (radio_err_idx + 1) % RADIO_ERR_WINDOW;
 }
 
+/**
+ * @brief Get the current radio error rate.
+ *
+ * @return Fraction of recent transmissions that failed, expressed as a percentage.
+ */
 float get_radio_error_percent(void) {
 	return (100.0f * radio_err_count) / RADIO_ERR_WINDOW;
 }
 
+/**
+ * @brief Main radio communication thread.
+ *
+ * Handles NRF24 initialization, connection establishment, and periodic
+ * transmission of radio data from the FIFO.
+ */
 void radio_thread(void)
 {
 	const struct device *nrf24 = DEVICE_DT_GET(DT_NODELABEL(radio0));
@@ -456,6 +552,12 @@ try_reconnect:
 	}
 }
 
+/**
+ * @brief ADC sampling thread.
+ *
+ * Periodically reads ADC channels, updates RF input values, and enqueues
+ * radio payload data for transmission.
+ */
 void adc_read_thread(void)
 {
 	int err;
@@ -533,6 +635,14 @@ K_THREAD_DEFINE(radio_thread_id, STACKSIZE, radio_thread, NULL, NULL, NULL,
 K_THREAD_DEFINE(adc_read_thread_id, STACKSIZE, adc_read_thread, NULL, NULL, NULL,
 		(PRIORITY_ADC), 0, ADC_STARTUP_DELAY);
 
+/**
+ * @brief ADC callback used during asynchronous conversions.
+ *
+ * @param[in] dev           ADC device pointer.
+ * @param[in] sequence      ADC sequence descriptor.
+ * @param[in] sampling_index Sampling index supplied by the ADC subsystem.
+ * @return ADC_ACTION_CONTINUE to keep sampling.
+ */
 static const enum adc_action adc_callback(const struct device *dev,
 		const struct adc_sequence *sequence,
 		uint16_t sampling_index)
@@ -545,6 +655,14 @@ static const enum adc_action adc_callback(const struct device *dev,
 
 /* ----------- Work handler ----------- */
 
+/**
+ * @brief Debounce handler for GPIO input changes.
+ *
+ * Reads input pin state and updates auxiliary channel activation and trim
+ * centers while the corresponding buttons are pressed.
+ *
+ * @param[in] work Work item pointer.
+ */
 static void debounce_work_handler(struct k_work *work)
 {
     ARG_UNUSED(work);
@@ -626,6 +744,15 @@ static void debounce_work_handler(struct k_work *work)
 
 /* ----------- ISR ----------- */
 
+/**
+ * @brief PCF8575 interrupt callback.
+ *
+ * Schedules debounce processing when an input pin on the expander changes.
+ *
+ * @param[in] dev GPIO device that generated the interrupt.
+ * @param[in] cb  GPIO callback structure.
+ * @param[in] pins Bitmask of pins that changed.
+ */
 static void pcf_int_callback(const struct device *dev,
                              struct gpio_callback *cb,
                              uint32_t pins)
@@ -636,7 +763,13 @@ static void pcf_int_callback(const struct device *dev,
     k_work_reschedule(&debounce_work, K_MSEC(DEBOUNCE_TIME_MS));
 }
 
-/* MyButton debounce handler */
+/**
+ * @brief Handler invoked after MyButton debounce interval.
+ *
+ * Reads the debounced state and re-enables the MyButton interrupt.
+ *
+ * @param[in] work Work item pointer.
+ */
 static void mybutton_work_handler(struct k_work *work)
 {
 	ARG_UNUSED(work);
@@ -648,10 +781,18 @@ static void mybutton_work_handler(struct k_work *work)
 	gpio_pin_interrupt_configure_dt(&mybutton, GPIO_INT_EDGE_TO_ACTIVE);
 }
 
-/* MyButton ISR: schedule debounce and disable further interrupts */
+/**
+ * @brief Button ISR that schedules debounce handling.
+ *
+ * Disables further interrupts and reschedules the MyButton work item.
+ *
+ * @param[in] dev GPIO device that generated the interrupt.
+ * @param[in] cb  GPIO callback structure.
+ * @param[in] pins Bitmask of pins that triggered the interrupt.
+ */
 static void mybutton_isr(const struct device *dev,
-						 struct gpio_callback *cb,
-						 uint32_t pins)
+                         struct gpio_callback *cb,
+                         uint32_t pins)
 {
 	ARG_UNUSED(dev);
 	ARG_UNUSED(cb);
@@ -662,12 +803,26 @@ static void mybutton_isr(const struct device *dev,
 	k_work_reschedule(&mybutton_work, K_MSEC(10));
 }
 
+/**
+ * @brief Update the initialization progress bar event.
+ *
+ * This action is called by the UI to reflect initialization progress.
+ *
+ * @param[in] e LVGL event object.
+ */
 void action_update_init_bar(lv_event_t *e) {
     // TODO: Implement action update_init_bar here
 	LOG_INF("Updating init bar progress");
 }
 
-
+/**
+ * @brief Main application entry point.
+ *
+ * Initializes peripherals, UI, and worker threads before entering the main
+ * event loop.
+ *
+ * @return 0 on success.
+ */
 int main(void)
 {
 	const struct device *display_dev;
