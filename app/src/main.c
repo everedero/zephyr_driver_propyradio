@@ -30,6 +30,7 @@
 #include <vars.h>
 #include <ui.h>
 #include "platform.h"
+#include "model.h"
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <zephyr/logging/log.h>
@@ -116,13 +117,7 @@ struct radio_data_t {
 	struct radio_info_t tx_info;
 };
 
-/* Channel mapping function type */
-typedef uint8_t (*map_t)(
-	const uint16_t min,
-	const uint16_t max,
-	const uint16_t center,
-	      uint16_t data,
-	const bool is_reversed);
+/* Channel mapping types are defined in model.h */
 
 /**
  * @brief Linear interpolation mapping helper.
@@ -183,14 +178,7 @@ uint8_t def_map(
 	return mapped_value;
 }
 
-/* Channel mapping structure */
-struct channel_map {
-	uint16_t min;
-	uint16_t max;
-	uint16_t center;
-	uint16_t input;
-	map_t map;
-};
+/* `struct channel_map` defined in model.h */
 
 struct aux_settings {
 	bool activated;
@@ -316,17 +304,12 @@ int initialize_rf_parameters(struct rf_settings *settings) {
 		return -1; // Error: Null pointer
 	}
 
+	if (load_model(&active_model_index, settings->ch_settings) == -1) {
+		LOG_ERR("Failed to load model");
+		return -1;
+	}
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
-
-	// Initialize channel settings with default values
-	for (int i = 0; i < MAX_CHANNELS; i++) {
-		settings->ch_settings[i].min = 0+CALIBRATION_OFFSET; // Minimum ADC value with calibration offset
-		settings->ch_settings[i].max = ADC_MAX_VALUE-CALIBRATION_OFFSET; // Maximum ADC value with calibration offset
-		settings->ch_settings[i].center = ADC_MAX_VALUE / 2;
-		settings->ch_settings[i].input = ADC_MAX_VALUE / 2; // Default input value
-		settings->ch_settings[i].map = def_map; // linear mapping function
-	}
 
 	settings->aux_settings[0].activated = IS_SWITCH_SW_1_ACTIVATED(changed_pins); // Default state based on switch position
 	settings->aux_settings[1].activated = IS_SWITCH_SW_2_ACTIVATED(changed_pins); // Default state based on switch position
