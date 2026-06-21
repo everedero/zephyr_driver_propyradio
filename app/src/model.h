@@ -26,6 +26,10 @@ extern "C" {
 #define MODEL_NAME_MAX 32
 #endif
 
+#ifndef MODEL_SELECTION_COUNT
+#define MODEL_SELECTION_COUNT 4
+#endif
+
 /* Channel mapping function type and structure
  * These match the application's channel mapping concept and allow
  * models to store per-channel mapping settings directly.
@@ -42,6 +46,7 @@ struct channel_map {
     uint16_t max;
     uint16_t center;
     uint16_t input;
+    bool is_reversed;
     map_t map;
 };
 
@@ -50,6 +55,7 @@ typedef struct {
     bool used;                          /* slot in use */
     char name[MODEL_NAME_MAX];          /* NUL-terminated name */
     struct channel_map ch[MAX_CHANNELS];              /* channel mapping data */
+    uint8_t channel_selection[MODEL_SELECTION_COUNT]; /* ch1..ch4 selected source channel */
 } model_t;
 
 #ifndef MODEL_FLASH_SECTION
@@ -83,16 +89,21 @@ int8_t model_remove(int index);
 /* Get model name by index, or NULL if invalid/unused. */
 const char *model_name_get(int index);
 
-/* Load the active model into `out_model`.
+/* Load the active model data.
  * Parameters:
- *  - `active_model_index`: pointer to store the active model index (may be NULL)
- *  - `out_model`: pointer to a model_t buffer to receive the model data (may be NULL)
+ *  - `active_model_index`: pointer to store the active model index.
+ *  - `ch_array`: destination channel map array.
+ *  - `channel_selection`: destination array of 4 values for CH1..CH4 selection.
  *
  * If the persisted active index is 0xFF, this will set the active index to 0
- * and initialize `out_model` with default parameters. On success returns
- * a pointer to `out_model`, or NULL on error.
+ * and initialize default model parameters.
+ *
+ * `channel_selection` may be NULL when caller only needs channel maps.
  */
-int8_t load_model(uint8_t *active_model_index, struct channel_map *ch_array);
+int8_t load_model(uint8_t *active_model_index,
+                  struct channel_map *ch_array,
+                  uint8_t *channel_selection);
+
 
 #ifdef __cplusplus
 }

@@ -259,7 +259,7 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
 				settings->ch_settings[i].max,
 				settings->ch_settings[i].center,
 				settings->ch_settings[i].input,
-				false // Assuming no reversal for now, you can add a field in channel_map if you want to support reversed channels
+				settings->ch_settings[i].is_reversed
 			);
 		} else {
 			info->tx_channel[i] = 127; // Default to center if no mapping function
@@ -299,15 +299,21 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
  */
 int initialize_rf_parameters(struct rf_settings *settings) {
 	uint32_t changed_pins;
+	uint8_t channel_selection[MODEL_SELECTION_COUNT] = {ROULIS, TANGAGE, GAZ, LACET};
 
 	if (settings == NULL) {
 		return -1; // Error: Null pointer
 	}
 
-	if (load_model(&active_model_index, settings->ch_settings) == -1) {
+	if (load_model(&active_model_index, settings->ch_settings, channel_selection) == -1) {
 		LOG_ERR("Failed to load model");
 		return -1;
 	}
+
+	set_var_selection1(channel_selection[0]);
+	set_var_selection2(channel_selection[1]);
+	set_var_selection3(channel_selection[2]);
+	set_var_selection4(channel_selection[3]);
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
 
@@ -811,10 +817,6 @@ int main(void)
 	const struct device *display_dev;
 
 	/* Initialize UI variables */
-	set_var_selection1(ROULIS);
-	set_var_selection2(TANGAGE);
-	set_var_selection3(GAZ);
-	set_var_selection4(LACET);
 	set_var_binding_led_color(0xFF0000); // Red color for binding status LED
 	set_var_load_bar_progress(10); // 10% progress at the start of initialization
 

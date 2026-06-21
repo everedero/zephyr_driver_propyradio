@@ -41,8 +41,14 @@ uint8_t model_create(const char *name)
                 model_storage[i].ch[j].max = ADC_MAX_VALUE-CALIBRATION_OFFSET;
                 model_storage[i].ch[j].center = ADC_MAX_VALUE / 2;
                 model_storage[i].ch[j].input = ADC_MAX_VALUE / 2;
+                model_storage[i].ch[j].is_reversed = false;
                 model_storage[i].ch[j].map = def_map;
             }
+            /* Default CH1..CH4 selections: ROULIS, TANGAGE, GAZ, LACET. */
+            model_storage[i].channel_selection[0] = 0;
+            model_storage[i].channel_selection[1] = 1;
+            model_storage[i].channel_selection[2] = 2;
+            model_storage[i].channel_selection[3] = 3;
             model_storage[i].used = true;
             strncpy(model_storage[i].name, name, MODEL_NAME_MAX - 1);
             model_storage[i].name[MODEL_NAME_MAX - 1] = '\0';
@@ -77,7 +83,9 @@ const char *model_name_get(int index)
  * @param ch_array Destination channel map array.
  * @return 0 on success, -1 on error.
  */
-int8_t load_model(uint8_t *active_model_index, struct channel_map *ch_array)
+int8_t load_model(uint8_t *active_model_index,
+                  struct channel_map *ch_array,
+                  uint8_t *channel_selection)
 {
 	uint8_t idx = *active_model_index;
 
@@ -91,6 +99,11 @@ int8_t load_model(uint8_t *active_model_index, struct channel_map *ch_array)
 	}
 
 	memcpy(ch_array, model_storage[idx].ch, sizeof(model_storage[idx].ch));
+    if (channel_selection != NULL) {
+        memcpy(channel_selection,
+               model_storage[idx].channel_selection,
+               MODEL_SELECTION_COUNT * sizeof(model_storage[idx].channel_selection[0]));
+    }
 	*active_model_index = idx;
 	
 	return 0;
