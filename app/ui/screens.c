@@ -379,12 +379,9 @@ void create_screen_settings() {
                     {
                         lv_obj_t *parent_obj = obj;
                         {
-                            // Aux1
-                            lv_obj_t *obj = lv_checkbox_create(parent_obj);
-                            objects.aux1 = obj;
-                            lv_obj_set_pos(obj, 121, 1);
-                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-                            lv_checkbox_set_text_static(obj, "Aux1");
+                            lv_obj_t *obj = lv_switch_create(parent_obj);
+                            lv_obj_set_pos(obj, 0, 0);
+                            lv_obj_set_size(obj, 51, 25);
                         }
                     }
                 }
@@ -543,6 +540,87 @@ void create_screen_settings() {
                         }
                     }
                 }
+                {
+                    // Device
+                    lv_obj_t *obj = lv_tabview_add_tab(parent_obj, "Device");
+                    objects.device = obj;
+                    {
+                        lv_obj_t *parent_obj = obj;
+                        {
+                            lv_obj_t *obj = lv_label_create(parent_obj);
+                            lv_obj_set_pos(obj, 0, 107);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                            lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_label_set_text_static(obj, "Current Device  : ");
+                        }
+                        {
+                            // DeviceList
+                            lv_obj_t *obj = lv_dropdown_create(parent_obj);
+                            objects.device_list = obj;
+                            lv_obj_set_pos(obj, 155, 233);
+                            lv_obj_set_size(obj, 150, LV_SIZE_CONTENT);
+                            lv_dropdown_set_options_static(obj, "Option 1\nOption 2\nOption 3");
+                            lv_dropdown_set_selected(obj, 0);
+                        }
+                        {
+                            // LoadDeviceLabel
+                            lv_obj_t *obj = lv_label_create(parent_obj);
+                            objects.load_device_label = obj;
+                            lv_obj_set_pos(obj, 0, 244);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                            lv_label_set_text_static(obj, "Load Device : ");
+                        }
+                        {
+                            lv_obj_t *obj = lv_button_create(parent_obj);
+                            objects.obj0 = obj;
+                            lv_obj_set_pos(obj, 468, 169);
+                            lv_obj_set_size(obj, 101, 50);
+                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xf5b169), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            {
+                                lv_obj_t *parent_obj = obj;
+                                {
+                                    lv_obj_t *obj = lv_label_create(parent_obj);
+                                    objects.obj1 = obj;
+                                    lv_obj_set_pos(obj, 0, 0);
+                                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_text_color(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_label_set_text_static(obj, "New");
+                                }
+                            }
+                        }
+                        {
+                            lv_obj_t *obj = lv_button_create(parent_obj);
+                            objects.obj2 = obj;
+                            lv_obj_set_pos(obj, 468, 265);
+                            lv_obj_set_size(obj, 100, 50);
+                            lv_obj_set_style_bg_color(obj, lv_color_hex(0xf5b169), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_bg_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+                            {
+                                lv_obj_t *parent_obj = obj;
+                                {
+                                    lv_obj_t *obj = lv_label_create(parent_obj);
+                                    objects.obj3 = obj;
+                                    lv_obj_set_pos(obj, 0, 0);
+                                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_obj_set_style_text_color(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+                                    lv_label_set_text_static(obj, "Delete");
+                                }
+                            }
+                        }
+                        {
+                            // DeviceNameLabel
+                            lv_obj_t *obj = lv_label_create(parent_obj);
+                            objects.device_name_label = obj;
+                            lv_obj_set_pos(obj, 171, 107);
+                            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                            lv_obj_set_style_text_color(obj, lv_color_hex(0xfafafa), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_obj_set_style_border_color(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+                            lv_label_set_text(obj, "");
+                        }
+                    }
+                }
             }
         }
         {
@@ -556,6 +634,19 @@ void create_screen_settings() {
             lv_obj_set_style_bg_color(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_bg_image_src(obj, &img_back_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
+        {
+            // Save
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.save = obj;
+            lv_obj_set_pos(obj, 0, 266);
+            lv_obj_set_size(obj, 76, 114);
+            lv_obj_add_event_cb(obj, action_save_button_pressed, LV_EVENT_PRESSED, (void *)0);
+            lv_obj_set_style_bg_image_src(obj, &img_save_icon, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_image_recolor(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_color(obj, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_bg_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
     }
     
     tick_screen_settings();
@@ -566,7 +657,6 @@ void delete_screen_settings() {
     objects.settings = 0;
     objects.settings_tab_view = 0;
     objects.tab_radio = 0;
-    objects.aux1 = 0;
     objects.tab_switch = 0;
     objects.menu_back_label = 0;
     objects.menu_back_label_3 = 0;
@@ -583,7 +673,16 @@ void delete_screen_settings() {
     objects.sw_2 = 0;
     objects.sw1 = 0;
     objects.sw_a_5 = 0;
+    objects.device = 0;
+    objects.device_list = 0;
+    objects.load_device_label = 0;
+    objects.obj0 = 0;
+    objects.obj1 = 0;
+    objects.obj2 = 0;
+    objects.obj3 = 0;
+    objects.device_name_label = 0;
     objects.menu_back = 0;
+    objects.save = 0;
 }
 
 void tick_screen_settings() {
@@ -680,6 +779,15 @@ void tick_screen_settings() {
             } else {
                 lv_obj_remove_state(objects.sw_a_5, LV_STATE_CHECKED);
             }
+            tick_value_change_obj = NULL;
+        }
+    }
+    {
+        const char *new_val = get_var_device_name();
+        const char *cur_val = lv_label_get_text(objects.device_name_label);
+        if (strcmp(new_val, cur_val) != 0) {
+            tick_value_change_obj = objects.device_name_label;
+            lv_label_set_text(objects.device_name_label, new_val);
             tick_value_change_obj = NULL;
         }
     }

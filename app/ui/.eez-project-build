@@ -12,6 +12,7 @@
     "ui.c",
     "ui.h",
     "ui_image_back_icon.c",
+    "ui_image_save_icon.c",
     "ui_image_settings_icon.c",
     "vars.h"
   ]

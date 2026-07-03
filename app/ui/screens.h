@@ -36,7 +36,6 @@ typedef struct _objects_t {
     lv_obj_t *menu;
     lv_obj_t *settings_tab_view;
     lv_obj_t *tab_radio;
-    lv_obj_t *aux1;
     lv_obj_t *tab_switch;
     lv_obj_t *menu_back_label;
     lv_obj_t *menu_back_label_3;
@@ -53,7 +52,16 @@ typedef struct _objects_t {
     lv_obj_t *sw_2;
     lv_obj_t *sw1;
     lv_obj_t *sw_a_5;
+    lv_obj_t *device;
+    lv_obj_t *device_list;
+    lv_obj_t *load_device_label;
+    lv_obj_t *obj0;
+    lv_obj_t *obj1;
+    lv_obj_t *obj2;
+    lv_obj_t *obj3;
+    lv_obj_t *device_name_label;
     lv_obj_t *menu_back;
+    lv_obj_t *save;
     lv_obj_t *init_bar;
     lv_obj_t *welcome_msg;
 } objects_t;

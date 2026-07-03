@@ -8,6 +8,7 @@
 #include "vars.h"
 
 #define MAX_STR_LEN 8
+#define MAX_DEVICE_NAME_LEN 20
 
 bool sw1;
 bool sw2;
@@ -30,6 +31,7 @@ UI_CHANNEL_TAB selection2;
 UI_CHANNEL_TAB selection3;
 UI_CHANNEL_TAB selection4;
 
+char device_name[MAX_DEVICE_NAME_LEN] = { 0 };
 
 /*
 # get_var_sw1
@@ -480,3 +482,11 @@ void set_var_binding_led_color(int32_t value) {
     binding_led_color = value;
 }
 
+const char *get_var_device_name() {
+    return device_name;
+}
+
+void set_var_device_name(const char *value) {
+    strncpy(device_name, value, sizeof(device_name) / sizeof(char));
+    device_name[sizeof(device_name) / sizeof(char) - 1] = 0;
+}

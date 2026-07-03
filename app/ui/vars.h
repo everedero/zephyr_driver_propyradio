@@ -36,7 +36,8 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_SELECTION2 = 13,
     FLOW_GLOBAL_VARIABLE_SELECTION3 = 14,
     FLOW_GLOBAL_VARIABLE_SELECTION4 = 15,
-    FLOW_GLOBAL_VARIABLE_BINDING_LED_COLOR = 16
+    FLOW_GLOBAL_VARIABLE_BINDING_LED_COLOR = 16,
+    FLOW_GLOBAL_VARIABLE_DEVICE_NAME = 17
 };
 
 // Native global variables
@@ -75,6 +76,8 @@ extern UI_CHANNEL_TAB get_var_selection4();
 extern void set_var_selection4(UI_CHANNEL_TAB value);
 extern int32_t get_var_binding_led_color();
 extern void set_var_binding_led_color(int32_t value);
+extern const char *get_var_device_name();
+extern void set_var_device_name(const char *value);
 
 #ifdef __cplusplus
 }
