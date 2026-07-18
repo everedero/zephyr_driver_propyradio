@@ -61,5 +61,5 @@ static inline int z_impl_nrf24_write(const struct device *dev, uint8_t *buffer, 
 	return api->write(dev, buffer, data_len);
 }
 
-#include <syscalls/nrf24.h>
+#include <zephyr/syscalls/nrf24.h>
 #endif /* ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_NRF24_H_ */
