@@ -373,6 +373,9 @@ void action_menu_settings_action(lv_event_t *e) {
 	loadScreen(SCREEN_ID_SETTINGS);
 }
 
+void action_save_button_pressed(lv_event_t *e) {
+	/* Todo */
+}
 /**
  * @brief Thread entry point for buzzer control.
  *
