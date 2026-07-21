@@ -46,14 +46,15 @@ uint8_t model_create(const char *name)
                 model_storage[i].ch[j].map = def_map;
             }
             /* Default CH1..CH4 selections: ROULIS, TANGAGE, GAZ, LACET. */
-            model_storage[i].channel_selection[0] = 0;
-            model_storage[i].channel_selection[1] = 1;
-            model_storage[i].channel_selection[2] = 2;
-            model_storage[i].channel_selection[3] = 3;
+            model_storage[i].channel_selection[0] = ROULIS;
+            model_storage[i].channel_selection[1] = TANGAGE;
+            model_storage[i].channel_selection[2] = GAZ;
+            model_storage[i].channel_selection[3] = LACET;
             model_storage[i].used = true;
             strncpy(model_storage[i].name, name, MODEL_NAME_MAX - 1);
             model_storage[i].name[MODEL_NAME_MAX - 1] = '\0';
             set_var_device_name(model_storage[i].name);
+            set_var_device_list(model_storage[i].name);
             return i;
         }
     }
@@ -68,7 +69,7 @@ uint8_t model_create(const char *name)
  */
 const char *model_name_get(int index)
 {
-    if (index < 0 || index >= MODEL_MAX_COUNT || !model_storage[index].used) {
+    if (index < 0 || index >= MODEL_MAX_COUNT){
         return NULL;
     }
     return model_storage[index].name;
@@ -77,36 +78,42 @@ const char *model_name_get(int index)
 /**
  * @brief Load the active model channel map.
  *
- * If the passed-in active index is 0xFF, the function creates a default
- * model and uses that slot. The active index is updated to the selected
- * model index.
+ * Loads the model identified by the given name into the provided channel map array.
  *
- * @param active_model_index Pointer to the active model index.
+ * @param name Pointer to model name.
  * @param ch_array Destination channel map array.
- * @return 0 on success, 1 on error.
+ * @return active model index or 0xFF in case of error.
  */
-uint8_t load_model(uint8_t *active_model_index,
-                  struct channel_map *ch_array,
-                  uint8_t *channel_selection)
+uint8_t load_model(const char *model_name, struct channel_map *ch_array)
 {
-	uint8_t idx = *active_model_index;
+    uint8_t channel_selection[MODEL_SELECTION_COUNT] = {ROULIS, TANGAGE, GAZ, LACET};
 
+	/* Find model by name */
+	uint8_t idx = 0xFF;
+	for (uint8_t i = 0; i < MODEL_MAX_COUNT; i++) {
+		if (strcmp(model_storage[i].name, model_name) == 0) {
+			idx = i;
+			break;
+		}
+	}
 	if (idx == 0xFF) {
-		/* First-time: select first entry and populate defaults into out_model */
-		idx = model_create("Default Model");
+		return 0xFF; // Model not found
 	}
 
 	if (idx >= MODEL_MAX_COUNT) {
-		return 1;
+		return 0xFF;
 	}
 
 	memcpy(ch_array, model_storage[idx].ch, sizeof(model_storage[idx].ch));
-    if (channel_selection != NULL) {
-        memcpy(channel_selection,
+
+    memcpy(channel_selection,
                model_storage[idx].channel_selection,
                MODEL_SELECTION_COUNT * sizeof(model_storage[idx].channel_selection[0]));
-    }
-	*active_model_index = idx;
+    set_var_selection1(channel_selection[0]);
+	set_var_selection2(channel_selection[1]);
+	set_var_selection3(channel_selection[2]);
+	set_var_selection4(channel_selection[3]);
+    model_storage[idx].used = true; // Ensure the slot is marked as used
     set_var_device_name(model_storage[idx].name);
 	
 	return 0;

@@ -10,6 +10,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+typedef enum {
+	ROULIS = 0,
+	TANGAGE = 1,
+	GAZ = 2,
+	LACET = 3,
+	AUX1 = 4,
+	AUX2 = 5
+} index_name_t;
 
 /* size of stack area used by each thread */
 #define STACKSIZE 1024

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "vars.h"
+#include "../src/model.h"
 
 #define MAX_STR_LEN 8
 #define MAX_DEVICE_NAME_LEN 20
@@ -488,9 +489,21 @@ const char *get_var_device_list() {
     return device_list;
 }
 
+static void refresh_device_list() {
+    // Clear the device list
+    memset(device_list, 0, sizeof(device_list));
+
+    // Iterate through the model storage and append used device names to the list
+    for (int i = 0; i < MODEL_MAX_COUNT; i++) {
+        if (model_storage[i].used) {
+            strncat(device_list, model_storage[i].name, sizeof(device_list) - strlen(device_list) - 1);
+            strncat(device_list, "\n", sizeof(device_list) - strlen(device_list) - 1);
+        }
+    }
+}
+
 void set_var_device_list(const char *value) {
-    strncpy(device_list, value, sizeof(device_list) / sizeof(char));
-    device_list[sizeof(device_list) / sizeof(char) - 1] = 0;
+    refresh_device_list();
 }
 
 

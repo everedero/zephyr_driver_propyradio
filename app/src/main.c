@@ -29,7 +29,6 @@
 
 #include <vars.h>
 #include <ui.h>
-#include "platform.h"
 #include "model.h"
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
@@ -205,15 +204,6 @@ static bool increment_counter = false;
 
 struct rf_settings rf_parameters;
 
-typedef enum {
-	ROULIS = 0,
-	TANGAGE = 1,
-	GAZ = 2,
-	LACET = 3,
-	AUX1 = 4,
-	AUX2 = 5
-} index_name_t;
-
 index_name_t index_lockup_table[MAX_CHANNELS] = {
 	LACET,    // default mapping for channel 1
 	GAZ,	  // default mapping for channel 2
@@ -299,21 +289,22 @@ int fill_radio_info(struct radio_info_t *info, const struct rf_settings *setting
  */
 int initialize_rf_parameters(struct rf_settings *settings) {
 	uint32_t changed_pins;
-	uint8_t channel_selection[MODEL_SELECTION_COUNT] = {ROULIS, TANGAGE, GAZ, LACET};
 
 	if (settings == NULL) {
 		return -1; // Error: Null pointer
 	}
 
-	if (load_model(&active_model_index, settings->ch_settings, channel_selection) == -1) {
+	if (active_model_index == 0xFF) {
+		// No active model, create a default one
+		uint8_t idx = model_create("Default Model");
+		active_model_index = load_model(model_name_get(idx), settings->ch_settings);
+	} else {
+		active_model_index = load_model(get_var_device_name(), settings->ch_settings);
+	}
+	if (active_model_index == 0xFF) {
 		LOG_ERR("Failed to load model");
 		return -1;
 	}
-
-	set_var_selection1(channel_selection[0]);
-	set_var_selection2(channel_selection[1]);
-	set_var_selection3(channel_selection[2]);
-	set_var_selection4(channel_selection[3]);
 	/* read changed pins value */
 	gpio_port_get_raw(pcf_dev, &changed_pins);
 
@@ -397,12 +388,10 @@ void action_device_name_ok_button_pressed(lv_event_t *e) {
     // TODO: Implement action device_name_ok_button_pressed here
 	loadScreen(SCREEN_ID_SETTINGS);
 	uint8_t idx = model_create(get_var_device_name());
-	uint8_t channel_selection[MODEL_SELECTION_COUNT] = {ROULIS, TANGAGE, GAZ, LACET};
 
 	if (idx < 0xFF) {
 		LOG_INF("Model created successfully at index %d", idx);
-		active_model_index = idx;
-		load_model(&active_model_index, rf_parameters.ch_settings, channel_selection);
+		active_model_index = load_model(get_var_device_name(), rf_parameters.ch_settings);
 	} else {
 		LOG_ERR("Failed to create model");
 	}
@@ -434,7 +423,7 @@ void action_save_button_pressed(lv_event_t *e) {
 
 
 void action_load_device_list_changed(lv_event_t *e) {
-    // TODO: Implement action load_device_list_changed here
+    // Todo: Implement action_load_device_list_changed here
 }
 
 /**

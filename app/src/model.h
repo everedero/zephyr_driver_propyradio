@@ -89,20 +89,16 @@ uint8_t model_remove(int index);
 /* Get model name by index, or NULL if invalid/unused. */
 const char *model_name_get(int index);
 
-/* Load the active model data.
- * Parameters:
- *  - `active_model_index`: pointer to store the active model index.
- *  - `ch_array`: destination channel map array.
- *  - `channel_selection`: destination array of 4 values for CH1..CH4 selection.
+/**
+ * @brief Load the active model channel map.
  *
- * If the persisted active index is 0xFF, this will set the active index to 0
- * and initialize default model parameters.
+ * Loads the model identified by the given name into the provided channel map array.
  *
- * `channel_selection` may be NULL when caller only needs channel maps.
+ * @param name Pointer to model name.
+ * @param ch_array Destination channel map array.
+ * @return active model index or 0xFF in case of error.
  */
-uint8_t load_model(uint8_t *active_model_index,
-                  struct channel_map *ch_array,
-                  uint8_t *channel_selection);
+uint8_t load_model(const char *model_name, struct channel_map *ch_array);
 
 
 #ifdef __cplusplus
