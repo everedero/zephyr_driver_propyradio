@@ -12,6 +12,11 @@ extern void action_menu_back_action(lv_event_t * e);
 extern void action_menu_settings_action(lv_event_t * e);
 extern void action_update_init_bar(lv_event_t * e);
 extern void action_save_button_pressed(lv_event_t * e);
+extern void action_new_device_add(lv_event_t * e);
+extern void action_delete_device(lv_event_t * e);
+extern void action_device_name_ok_button_pressed(lv_event_t * e);
+extern void action_device_name_back_button_pressed(lv_event_t * e);
+extern void action_load_device_list_changed(lv_event_t * e);
 
 #ifdef __cplusplus
 }

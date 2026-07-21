@@ -14,13 +14,15 @@ enum ScreensEnum {
     SCREEN_ID_MAIN = 1,
     SCREEN_ID_SETTINGS = 2,
     SCREEN_ID_SPLASH_SCREEN = 3,
-    _SCREEN_ID_LAST = 3
+    SCREEN_ID_DEVICE_NAME = 4,
+    _SCREEN_ID_LAST = 4
 };
 
 typedef struct _objects_t {
     lv_obj_t *main;
     lv_obj_t *settings;
     lv_obj_t *splash_screen;
+    lv_obj_t *device_name;
     lv_obj_t *binding_led;
     lv_obj_t *label_counter;
     lv_obj_t *start_button;
@@ -55,15 +57,21 @@ typedef struct _objects_t {
     lv_obj_t *device;
     lv_obj_t *device_list;
     lv_obj_t *load_device_label;
+    lv_obj_t *button_new_device;
     lv_obj_t *obj0;
+    lv_obj_t *device_delete_button;
     lv_obj_t *obj1;
-    lv_obj_t *obj2;
-    lv_obj_t *obj3;
     lv_obj_t *device_name_label;
     lv_obj_t *menu_back;
     lv_obj_t *save;
     lv_obj_t *init_bar;
     lv_obj_t *welcome_msg;
+    lv_obj_t *device_text_menu;
+    lv_obj_t *model_name_text;
+    lv_obj_t *ok_button;
+    lv_obj_t *ok_button_text;
+    lv_obj_t *device_back_button;
+    lv_obj_t *back_button_text;
 } objects_t;
 
 extern objects_t objects;
@@ -79,6 +87,10 @@ void tick_screen_settings();
 void create_screen_splash_screen();
 void delete_screen_splash_screen();
 void tick_screen_splash_screen();
+
+void create_screen_device_name();
+void delete_screen_device_name();
+void tick_screen_device_name();
 
 void create_screen_by_id(enum ScreensEnum screenId);
 void delete_screen_by_id(enum ScreensEnum screenId);

@@ -373,9 +373,70 @@ void action_menu_settings_action(lv_event_t *e) {
 	loadScreen(SCREEN_ID_SETTINGS);
 }
 
-void action_save_button_pressed(lv_event_t *e) {
-	/* Todo */
+/**
+ * @brief 
+ * 
+ * @param
+ */
+void action_new_device_add(lv_event_t *e) {
+	ARG_UNUSED(e);
+	loadScreen(SCREEN_ID_DEVICE_NAME);
 }
+
+/**
+ * @brief 
+ * 
+ * @param
+ */
+void action_delete_device(lv_event_t *e) {
+	ARG_UNUSED(e);
+	// TO DO
+}
+
+void action_device_name_ok_button_pressed(lv_event_t *e) {
+    // TODO: Implement action device_name_ok_button_pressed here
+	loadScreen(SCREEN_ID_SETTINGS);
+	uint8_t idx = model_create(get_var_device_name());
+	uint8_t channel_selection[MODEL_SELECTION_COUNT] = {ROULIS, TANGAGE, GAZ, LACET};
+
+	if (idx < 0xFF) {
+		LOG_INF("Model created successfully at index %d", idx);
+		active_model_index = idx;
+		load_model(&active_model_index, rf_parameters.ch_settings, channel_selection);
+	} else {
+		LOG_ERR("Failed to create model");
+	}
+}
+
+
+void action_device_name_back_button_pressed(lv_event_t *e) {
+    // TODO: Implement action device_name_back_button_pressed here
+	loadScreen(SCREEN_ID_SETTINGS);
+}
+
+
+void action_save_button_pressed(lv_event_t *e) {
+	ARG_UNUSED(e);
+	// Save the current model settings
+	uint8_t channel_selection[MODEL_SELECTION_COUNT] = {
+		get_var_selection1(),
+		get_var_selection2(),
+		get_var_selection3(),
+		get_var_selection4()
+	};
+	if (model_save(active_model_index, rf_parameters.ch_settings, channel_selection) == 0) {
+		LOG_INF("Model saved successfully");
+	} else {
+		LOG_ERR("Failed to save model");
+	}
+	loadScreen(SCREEN_ID_MAIN);
+}
+
+
+void action_load_device_list_changed(lv_event_t *e) {
+    // TODO: Implement action load_device_list_changed here
+}
+
 /**
  * @brief Thread entry point for buzzer control.
  *

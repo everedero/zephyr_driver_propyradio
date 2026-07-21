@@ -7,6 +7,7 @@
  */
 
 #include "model.h"
+#include "vars.h"
 
 #ifndef MODEL_FLASH_SECTION
 #define MODEL_FLASH_SECTION __attribute__((section(".rodata.model_data")))
@@ -52,6 +53,7 @@ uint8_t model_create(const char *name)
             model_storage[i].used = true;
             strncpy(model_storage[i].name, name, MODEL_NAME_MAX - 1);
             model_storage[i].name[MODEL_NAME_MAX - 1] = '\0';
+            set_var_device_name(model_storage[i].name);
             return i;
         }
     }
@@ -81,9 +83,9 @@ const char *model_name_get(int index)
  *
  * @param active_model_index Pointer to the active model index.
  * @param ch_array Destination channel map array.
- * @return 0 on success, -1 on error.
+ * @return 0 on success, 1 on error.
  */
-int8_t load_model(uint8_t *active_model_index,
+uint8_t load_model(uint8_t *active_model_index,
                   struct channel_map *ch_array,
                   uint8_t *channel_selection)
 {
@@ -95,7 +97,7 @@ int8_t load_model(uint8_t *active_model_index,
 	}
 
 	if (idx >= MODEL_MAX_COUNT) {
-		return -1;
+		return 1;
 	}
 
 	memcpy(ch_array, model_storage[idx].ch, sizeof(model_storage[idx].ch));
@@ -105,6 +107,7 @@ int8_t load_model(uint8_t *active_model_index,
                MODEL_SELECTION_COUNT * sizeof(model_storage[idx].channel_selection[0]));
     }
 	*active_model_index = idx;
+    set_var_device_name(model_storage[idx].name);
 	
 	return 0;
 }
@@ -114,15 +117,21 @@ int8_t load_model(uint8_t *active_model_index,
  *
  * @param index Model index.
  * @param data Pointer to channel map data.
- * @return 0 on success, -1 on invalid index or null data.
+ * @return 0 on success, 1 on invalid index or null data.
  */
-int8_t model_save(int index, const void *data)
+uint8_t model_save(int index, const struct channel_map *map, const uint8_t *sel)
 {
-    if (index >= MODEL_MAX_COUNT || data == NULL) {
-        return -1; // Invalid index or null data
+    if (index >= MODEL_MAX_COUNT || map == NULL || !model_storage[index].used) {
+        return 1; // Invalid index, null map, or unused slot
     }
-
-    memcpy(model_storage[index].ch, data, sizeof(model_storage[index].ch));
+    model_storage[index].used = true; // Ensure the slot is marked as used
+    memcpy(model_storage[index].name, get_var_device_name(), MODEL_NAME_MAX);
+    memcpy(model_storage[index].ch, map, sizeof(model_storage[index].ch));
+    if (sel != NULL) {
+        memcpy(model_storage[index].channel_selection,
+               sel,
+               MODEL_SELECTION_COUNT * sizeof(model_storage[index].channel_selection[0]));
+    }
     return 0; // Success
 }
 
@@ -134,12 +143,12 @@ int8_t model_save(int index, const void *data)
  *
  * Marks the model slot as unused and clears its data.
  * @param index Model index to remove.
- * @return 0 on success, -1 on invalid index.
+ * @return 0 on success, 1 on invalid index.
  */
-int8_t model_remove(int index)
+uint8_t model_remove(int index)
 {
     if (index >= MODEL_MAX_COUNT) {
-        return -1; // Invalid index
+        return 1; // Invalid index
     }
 
     model_storage[index].used = false;

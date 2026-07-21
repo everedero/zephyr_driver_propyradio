@@ -106,6 +106,17 @@ static void event_handler_cb_settings_sw_a_5(lv_event_t *e) {
     }
 }
 
+static void event_handler_cb_device_name_model_name_text(lv_event_t *e) {
+    lv_event_code_t event = lv_event_get_code(e);
+    if (event == LV_EVENT_VALUE_CHANGED) {
+        lv_obj_t *ta = lv_event_get_target_obj(e);
+        if (tick_value_change_obj != ta) {
+            const char *value = lv_textarea_get_text(ta);
+            set_var_device_name(value);
+        }
+    }
+}
+
 //
 // Screens
 //
@@ -367,6 +378,7 @@ void create_screen_settings() {
             lv_obj_set_size(obj, 646, 479);
             lv_tabview_set_tab_bar_position(obj, LV_DIR_TOP);
             lv_tabview_set_tab_bar_size(obj, 50);
+            lv_tabview_set_active(obj, 1, LV_ANIM_OFF);
             lv_obj_set_style_bg_color(obj, lv_color_hex(0x8d9cf1), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
@@ -559,8 +571,9 @@ void create_screen_settings() {
                             objects.device_list = obj;
                             lv_obj_set_pos(obj, 155, 233);
                             lv_obj_set_size(obj, 150, LV_SIZE_CONTENT);
-                            lv_dropdown_set_options_static(obj, "Option 1\nOption 2\nOption 3");
+                            lv_dropdown_set_options(obj, "");
                             lv_dropdown_set_selected(obj, 0);
+                            lv_obj_add_event_cb(obj, action_load_device_list_changed, LV_EVENT_CLICKED, (void *)0);
                         }
                         {
                             // LoadDeviceLabel
@@ -571,16 +584,18 @@ void create_screen_settings() {
                             lv_label_set_text_static(obj, "Load Device : ");
                         }
                         {
+                            // ButtonNewDevice
                             lv_obj_t *obj = lv_button_create(parent_obj);
-                            objects.obj0 = obj;
+                            objects.button_new_device = obj;
                             lv_obj_set_pos(obj, 468, 169);
                             lv_obj_set_size(obj, 101, 50);
+                            lv_obj_add_event_cb(obj, action_new_device_add, LV_EVENT_PRESSED, (void *)0);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xf5b169), LV_PART_MAIN | LV_STATE_DEFAULT);
                             {
                                 lv_obj_t *parent_obj = obj;
                                 {
                                     lv_obj_t *obj = lv_label_create(parent_obj);
-                                    objects.obj1 = obj;
+                                    objects.obj0 = obj;
                                     lv_obj_set_pos(obj, 0, 0);
                                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -590,17 +605,19 @@ void create_screen_settings() {
                             }
                         }
                         {
+                            // DeviceDeleteButton
                             lv_obj_t *obj = lv_button_create(parent_obj);
-                            objects.obj2 = obj;
+                            objects.device_delete_button = obj;
                             lv_obj_set_pos(obj, 468, 265);
                             lv_obj_set_size(obj, 100, 50);
+                            lv_obj_add_event_cb(obj, action_delete_device, LV_EVENT_PRESSED, (void *)0);
                             lv_obj_set_style_bg_color(obj, lv_color_hex(0xf5b169), LV_PART_MAIN | LV_STATE_DEFAULT);
                             lv_obj_set_style_bg_opa(obj, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
                             {
                                 lv_obj_t *parent_obj = obj;
                                 {
                                     lv_obj_t *obj = lv_label_create(parent_obj);
-                                    objects.obj3 = obj;
+                                    objects.obj1 = obj;
                                     lv_obj_set_pos(obj, 0, 0);
                                     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
                                     lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -676,10 +693,10 @@ void delete_screen_settings() {
     objects.device = 0;
     objects.device_list = 0;
     objects.load_device_label = 0;
+    objects.button_new_device = 0;
     objects.obj0 = 0;
+    objects.device_delete_button = 0;
     objects.obj1 = 0;
-    objects.obj2 = 0;
-    objects.obj3 = 0;
     objects.device_name_label = 0;
     objects.menu_back = 0;
     objects.save = 0;
@@ -783,6 +800,15 @@ void tick_screen_settings() {
         }
     }
     {
+        const char *new_val = get_var_device_list();
+        const char *cur_val = lv_dropdown_get_options(objects.device_list);
+        if (strcmp(new_val, cur_val) != 0) {
+            tick_value_change_obj = objects.device_list;
+            lv_dropdown_set_options(objects.device_list, new_val);
+            tick_value_change_obj = NULL;
+        }
+    }
+    {
         const char *new_val = get_var_device_name();
         const char *cur_val = lv_label_get_text(objects.device_name_label);
         if (strcmp(new_val, cur_val) != 0) {
@@ -841,11 +867,113 @@ void tick_screen_splash_screen() {
     }
 }
 
+void create_screen_device_name() {
+    lv_obj_t *obj = lv_obj_create(0);
+    objects.device_name = obj;
+    lv_obj_set_pos(obj, 0, 0);
+    lv_obj_set_size(obj, 800, 480);
+    {
+        lv_obj_t *parent_obj = obj;
+        {
+            // DeviceTextMenu
+            lv_obj_t *obj = lv_keyboard_create(parent_obj);
+            objects.device_text_menu = obj;
+            lv_obj_set_pos(obj, 100, 90);
+            lv_obj_set_size(obj, 600, 300);
+            lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            // ModelNameText
+            lv_obj_t *obj = lv_textarea_create(parent_obj);
+            objects.model_name_text = obj;
+            lv_obj_set_pos(obj, 100, 20);
+            lv_obj_set_size(obj, 592, 70);
+            lv_textarea_set_max_length(obj, 128);
+            lv_textarea_set_one_line(obj, false);
+            lv_textarea_set_password_mode(obj, false);
+            lv_obj_add_event_cb(obj, event_handler_cb_device_name_model_name_text, LV_EVENT_ALL, 0);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            // OKButton
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.ok_button = obj;
+            lv_obj_set_pos(obj, 700, 30);
+            lv_obj_set_size(obj, 90, 50);
+            lv_obj_add_event_cb(obj, action_device_name_ok_button_pressed, LV_EVENT_PRESSED, (void *)0);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // OKButtonText
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    objects.ok_button_text = obj;
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_color(obj, lv_color_hex(0xffffff), LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text_static(obj, "OK");
+                }
+            }
+        }
+        {
+            // DeviceBackButton
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.device_back_button = obj;
+            lv_obj_set_pos(obj, 10, 30);
+            lv_obj_set_size(obj, 80, 50);
+            lv_obj_add_event_cb(obj, action_device_name_back_button_pressed, LV_EVENT_PRESSED, (void *)0);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    // BackButtonText
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    objects.back_button_text = obj;
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_obj_set_style_text_font(obj, &lv_font_montserrat_40, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text_static(obj, "<");
+                }
+            }
+        }
+    }
+    lv_keyboard_set_textarea(objects.device_text_menu, objects.model_name_text);
+    
+    tick_screen_device_name();
+}
+
+void delete_screen_device_name() {
+    lv_obj_delete(objects.device_name);
+    objects.device_name = 0;
+    objects.device_text_menu = 0;
+    objects.model_name_text = 0;
+    objects.ok_button = 0;
+    objects.ok_button_text = 0;
+    objects.device_back_button = 0;
+    objects.back_button_text = 0;
+}
+
+void tick_screen_device_name() {
+    {
+        const char *new_val = get_var_device_name();
+        const char *cur_val = lv_textarea_get_text(objects.model_name_text);
+        uint32_t max_length = lv_textarea_get_max_length(objects.model_name_text);
+        if (strncmp(new_val, cur_val, max_length) != 0) {
+            tick_value_change_obj = objects.model_name_text;
+            lv_textarea_set_text(objects.model_name_text, new_val);
+            tick_value_change_obj = NULL;
+        }
+    }
+}
+
 typedef void (*create_screen_func_t)();
 create_screen_func_t create_screen_funcs[] = {
     create_screen_main,
     create_screen_settings,
     create_screen_splash_screen,
+    create_screen_device_name,
 };
 void create_screen(int screen_index) {
     create_screen_funcs[screen_index]();
@@ -859,6 +987,7 @@ delete_screen_func_t delete_screen_funcs[] = {
     delete_screen_main,
     delete_screen_settings,
     delete_screen_splash_screen,
+    delete_screen_device_name,
 };
 void delete_screen(int screen_index) {
     delete_screen_funcs[screen_index]();
@@ -872,9 +1001,10 @@ tick_screen_func_t tick_screen_funcs[] = {
     tick_screen_main,
     tick_screen_settings,
     tick_screen_splash_screen,
+    tick_screen_device_name,
 };
 void tick_screen(int screen_index) {
-    if (screen_index >= 0 && screen_index < 3) {
+    if (screen_index >= 0 && screen_index < 4) {
         tick_screen_funcs[screen_index]();
     }
 }
@@ -974,4 +1104,5 @@ void create_screens() {
     create_screen_main();
     create_screen_settings();
     create_screen_splash_screen();
+    create_screen_device_name();
 }

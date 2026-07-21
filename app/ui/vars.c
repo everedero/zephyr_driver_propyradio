@@ -32,6 +32,8 @@ UI_CHANNEL_TAB selection3;
 UI_CHANNEL_TAB selection4;
 
 char device_name[MAX_DEVICE_NAME_LEN] = { 0 };
+char device_list[MAX_DEVICE_NAME_LEN*6] = { 0 };
+
 
 /*
 # get_var_sw1
@@ -481,6 +483,16 @@ int32_t get_var_binding_led_color() {
 void set_var_binding_led_color(int32_t value) {
     binding_led_color = value;
 }
+
+const char *get_var_device_list() {
+    return device_list;
+}
+
+void set_var_device_list(const char *value) {
+    strncpy(device_list, value, sizeof(device_list) / sizeof(char));
+    device_list[sizeof(device_list) / sizeof(char) - 1] = 0;
+}
+
 
 const char *get_var_device_name() {
     return device_name;

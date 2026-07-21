@@ -80,11 +80,11 @@ extern uint8_t def_map(
  */
 uint8_t model_create(const char *name);
 
-/* Overwrite an existing model's data. Returns 0 on success, -1 on error. */
-int8_t model_save(int index, const void *data);
+/* Overwrite an existing model's data. Returns 0 on success, 1 on error. */
+uint8_t model_save(int index, const struct channel_map *map, const uint8_t *sel);
 
-/* Remove a model at index. Returns 0 on success, -1 on error. */
-int8_t model_remove(int index);
+/* Remove a model at index. Returns 0 on success, 1 on error. */
+uint8_t model_remove(int index);
 
 /* Get model name by index, or NULL if invalid/unused. */
 const char *model_name_get(int index);
@@ -100,7 +100,7 @@ const char *model_name_get(int index);
  *
  * `channel_selection` may be NULL when caller only needs channel maps.
  */
-int8_t load_model(uint8_t *active_model_index,
+uint8_t load_model(uint8_t *active_model_index,
                   struct channel_map *ch_array,
                   uint8_t *channel_selection);
 
