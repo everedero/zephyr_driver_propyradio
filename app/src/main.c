@@ -381,7 +381,32 @@ void action_new_device_add(lv_event_t *e) {
  */
 void action_delete_device(lv_event_t *e) {
 	ARG_UNUSED(e);
-	// TO DO
+	if (model_remove(active_model_index) != 0) {
+		LOG_ERR("Failed to remove model");
+		return;
+	}
+	LOG_INF("Model removed successfully");
+	set_var_device_list("");
+
+	if (active_model_index > 0 && active_model_index < MODEL_MAX_COUNT) {
+		active_model_index--;
+	} else {
+		active_model_index = model_find_used_index();
+	}
+
+	if (active_model_index != 0xFF) {
+		set_var_device_name(model_name_get(active_model_index));
+	}
+	else {
+		LOG_INF("No used model found after deletion");
+		// Reset device list and create a default model
+		set_var_device_list("");
+		model_create("Default Model");
+	}
+	active_model_index = load_model(get_var_device_name(), rf_parameters.ch_settings);
+	LOG_INF("Loaded model: %s", get_var_device_name());
+	set_var_device_list("");
+
 }
 
 void action_device_name_ok_button_pressed(lv_event_t *e) {
@@ -395,6 +420,7 @@ void action_device_name_ok_button_pressed(lv_event_t *e) {
 	} else {
 		LOG_ERR("Failed to create model");
 	}
+	set_var_device_list("");
 }
 
 
@@ -423,7 +449,22 @@ void action_save_button_pressed(lv_event_t *e) {
 
 
 void action_load_device_list_changed(lv_event_t *e) {
-    // Todo: Implement action_load_device_list_changed here
+    char selected_model_name[MODEL_NAME_MAX];
+	lv_obj_t *dropb = lv_event_get_target_obj(e);
+	
+	lv_dropdown_get_selected_str(dropb, selected_model_name, sizeof(selected_model_name));
+
+	if (strncmp(selected_model_name, get_var_device_name(), MODEL_NAME_MAX) == 0) {
+		LOG_INF("Selected model is the same as the current one: %s", selected_model_name);
+		return; // No change, do nothing
+	}
+
+	active_model_index = load_model(selected_model_name, rf_parameters.ch_settings);
+	if (active_model_index != 0xFF) {
+		LOG_INF("Loaded model: %s", selected_model_name);
+	} else {
+		LOG_ERR("Failed to load model: %s", selected_model_name);
+	}
 }
 
 /**

@@ -80,6 +80,11 @@ extern uint8_t def_map(
  */
 uint8_t model_create(const char *name);
 
+/* Find the first used model slot.
+ * Returns the valid index on success or 0xFF if no used model exists.
+ */
+uint8_t model_find_used_index(void);
+
 /* Overwrite an existing model's data. Returns 0 on success, 1 on error. */
 uint8_t model_save(int index, const struct channel_map *map, const uint8_t *sel);
 

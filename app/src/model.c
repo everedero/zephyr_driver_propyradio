@@ -62,6 +62,22 @@ uint8_t model_create(const char *name)
 }
 
 /**
+ * @brief Find the first used model slot.
+ *
+ * @return Index of the first used model, or 0xFF if none are in use.
+ */
+uint8_t model_find_used_index(void)
+{
+    for (uint8_t i = 0; i < MODEL_MAX_COUNT; i++) {
+        if (model_storage[i].used) {
+            return i;
+        }
+    }
+
+    return 0xFF;
+}
+
+/**
  * @brief Get a model name by index.
  *
  * @param index Model index.
