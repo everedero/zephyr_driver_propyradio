@@ -1,0 +1,113 @@
+/*
+ * model.h
+ *
+ * Simple model management for RC remote controller application.
+ * A "model" is a named set of settings (opaque byte buffer).
+ * Supports up to MODEL_MAX_COUNT models.
+ */
+#ifndef RC_REMOTE_CONTROLLER_MODEL_H
+#define RC_REMOTE_CONTROLLER_MODEL_H
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include "platform.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Configuration */
+#ifndef MODEL_MAX_COUNT
+#define MODEL_MAX_COUNT 6
+#endif
+
+#ifndef MODEL_NAME_MAX
+#define MODEL_NAME_MAX 32
+#endif
+
+#ifndef MODEL_SELECTION_COUNT
+#define MODEL_SELECTION_COUNT 4
+#endif
+
+/* Channel mapping function type and structure
+ * These match the application's channel mapping concept and allow
+ * models to store per-channel mapping settings directly.
+ */
+typedef uint8_t (*map_t)(
+    const uint16_t min,
+    const uint16_t max,
+    const uint16_t center,
+          uint16_t data,
+    const bool is_reversed);
+
+struct channel_map {
+    uint16_t min;
+    uint16_t max;
+    uint16_t center;
+    uint16_t input;
+    bool is_reversed;
+    map_t map;
+};
+
+/* Model stores a named `struct channel_map` as its payload. */
+typedef struct {
+    bool used;                          /* slot in use */
+    char name[MODEL_NAME_MAX];          /* NUL-terminated name */
+    struct channel_map ch[MAX_CHANNELS];              /* channel mapping data */
+    uint8_t channel_selection[MODEL_SELECTION_COUNT]; /* ch1..ch4 selected source channel */
+} model_t;
+
+#ifndef MODEL_FLASH_SECTION
+#define MODEL_FLASH_SECTION __attribute__((section(".rodata.model_data")))
+#endif
+
+/* The persistent model list is placed in a dedicated linker section.
+ * Using `.rodata.model_data` keeps the array in read-only flash storage,
+ * and __attribute__((used)) prevents the linker from discarding it.
+ */
+extern model_t model_storage[MODEL_MAX_COUNT];
+extern uint8_t active_model_index;
+extern uint8_t def_map(
+	const uint16_t min,
+	const uint16_t max,
+	const uint16_t center,
+	      uint16_t data,
+	const bool is_reversed);
+
+/* Create a new model with the given name .
+ * Returns index (0..MODEL_MAX_COUNT-1) on success or 0xFF on error.
+ */
+uint8_t model_create(const char *name);
+
+/* Find the first used model slot.
+ * Returns the valid index on success or 0xFF if no used model exists.
+ */
+uint8_t model_find_used_index(void);
+
+/* Overwrite an existing model's data. Returns 0 on success, 1 on error. */
+uint8_t model_save(int index, const struct channel_map *map, const uint8_t *sel);
+
+/* Remove a model at index. Returns 0 on success, 1 on error. */
+uint8_t model_remove(int index);
+
+/* Get model name by index, or NULL if invalid/unused. */
+const char *model_name_get(int index);
+
+/**
+ * @brief Load the active model channel map.
+ *
+ * Loads the model identified by the given name into the provided channel map array.
+ *
+ * @param name Pointer to model name.
+ * @param ch_array Destination channel map array.
+ * @return active model index or 0xFF in case of error.
+ */
+uint8_t load_model(const char *model_name, struct channel_map *ch_array);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* RC_REMOTE_CONTROLLER_MODEL_H */
