@@ -31,6 +31,8 @@
 
 #include <vars.h>
 #include <ui.h>
+#include "platform.h"
+#include "autocalibration_service.h"
 #include "display_services.h"
 #include "model.h"
 
@@ -745,9 +747,20 @@ void adc_read_thread(void)
 			continue;
 		}
 		else {
+			bool calibration_active = autocalibration_service_is_active();
+
 			for (size_t i = 0U; i < ARRAY_SIZE(adc_input_map); i++) {
-				rf_parameters.ch_settings[adc_input_map[i].input_index].input =
+				uint16_t sample =
 					buf[i * (sequence.options->extra_samplings + 1U)];
+
+				rf_parameters.ch_settings[adc_input_map[i].input_index].input = sample;
+				if (calibration_active) {
+					err = autocalibration_service_observe(
+						adc_input_map[i].input_index, sample);
+					if (err < 0) {
+						LOG_ERR("Failed to record calibration sample (%d)", err);
+					}
+				}
 			}
 		}
 		/* Fill radio info and put it in the FIFO for transmission */
@@ -961,8 +974,6 @@ int main(void)
 	const struct device *display_dev;
 	int rc;
 
-	k_msleep(300); // Short delay to ensure everything is settled before starting the main loop
-
 	display_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
 
 	/* Initialize UI variables */
@@ -1004,7 +1015,7 @@ int main(void)
 			return -EIO;
 		}
 	}
-	set_var_load_bar_progress(10);
+	set_var_load_bar_progress(20);
 
 	/* Initialize UI */
 	ui_init();
@@ -1036,7 +1047,7 @@ int main(void)
 	/* Initialize MyButton if available in devicetree */
 	if (mybutton.port == NULL || !device_is_ready(mybutton.port)) {
 		LOG_WRN("MyButton GPIO not ready or not present in devicetree");
-	} else {
+	} else 	{
 		int rc;
 
 		k_work_init_delayable(&mybutton_work, mybutton_work_handler);
@@ -1060,7 +1071,13 @@ int main(void)
 
 	// Short delay to ensure everything is settled before starting the main loop
 	k_msleep(500);
-	
+
+	rc = autocalibration_service_init();
+	if (rc < 0) {
+		LOG_ERR("Failed to initialize autocalibration service (%d)", rc);
+		return rc;
+	}
+
 	/* Wait for adc & rf threads to complete */
 	while(get_var_load_bar_progress() <= 80) {
 		/* Update UI */
@@ -1076,7 +1093,7 @@ int main(void)
 
 	// Release buzzer thread to play startup sound
 	k_sem_give(&buzzer_initialized_sem);
-	
+
 	k_msleep(500);
 	/* Initialize main screen */
 	loadScreen(SCREEN_ID_MAIN);
@@ -1102,8 +1119,7 @@ int main(void)
 
 		/* Update counter */
 		if (increment_counter) {
-			// for tests purposes only
-			// set_var_counter_int(get_var_counter_int() + 1);
+			autocalibration_service_start();
 		}
 
 		/* Update UI */

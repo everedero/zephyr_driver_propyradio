@@ -88,6 +88,20 @@ int model_add(const char *name);
  */
 int model_store(const struct channel_map *map);
 
+/*
+ * Apply four joystick calibration ranges to the active model and persist it.
+ * The caller must ensure every axis has a captured range and refresh any
+ * separate runtime channel-map copy after success.
+ */
+int model_apply_calibration(const uint16_t min[CALIBRATION_AXIS_COUNT],
+                            const uint16_t max[CALIBRATION_AXIS_COUNT]);
+
+/*
+ * Restore the active model's factory calibration ranges and persist it.
+ * The caller must refresh any separate runtime channel-map copy after success.
+ */
+int model_reset_calibration(void);
+
 /* Remove a model based on its name. 
  * Returns 0 on success, error code on error.
  */

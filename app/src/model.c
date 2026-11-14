@@ -259,6 +259,63 @@ int model_store(const struct channel_map *map)
     return model_fs_save_model(active_model.name, &active_model);
 }
 
+int model_apply_calibration(const uint16_t min[CALIBRATION_AXIS_COUNT],
+			    const uint16_t max[CALIBRATION_AXIS_COUNT])
+{
+	uint16_t previous_min[CALIBRATION_AXIS_COUNT];
+	uint16_t previous_max[CALIBRATION_AXIS_COUNT];
+	int rc;
+
+	if (min == NULL || max == NULL) {
+		return -EINVAL;
+	}
+	if (!active_model.used) {
+		return -ENODEV;
+	}
+
+	for (size_t i = 0U; i < CALIBRATION_AXIS_COUNT; i++) {
+		if (min[i] >= max[i] || max[i] > ADC_MAX_VALUE) {
+			return -EINVAL;
+		}
+		previous_min[i] = active_model.ch[i].min;
+		previous_max[i] = active_model.ch[i].max;
+	}
+
+	for (size_t i = 0U; i < CALIBRATION_AXIS_COUNT; i++) {
+		active_model.ch[i].min = min[i];
+		active_model.ch[i].max = max[i];
+	}
+
+	rc = model_fs_save_model(active_model.name, &active_model);
+	if (rc != 0) {
+		for (size_t i = 0U; i < CALIBRATION_AXIS_COUNT; i++) {
+			active_model.ch[i].min = previous_min[i];
+			active_model.ch[i].max = previous_max[i];
+		}
+		LOG_ERR("Failed to save calibration for model '%s': %d",
+			active_model.name, rc);
+	}
+
+	return rc;
+}
+
+int model_reset_calibration(void)
+{
+	uint16_t default_min[CALIBRATION_AXIS_COUNT];
+	uint16_t default_max[CALIBRATION_AXIS_COUNT];
+
+	if (!active_model.used) {
+		return -ENODEV;
+	}
+
+	for (size_t i = 0U; i < CALIBRATION_AXIS_COUNT; i++) {
+		default_min[i] = CALIBRATION_OFFSET;
+		default_max[i] = ADC_MAX_VALUE - CALIBRATION_OFFSET;
+	}
+
+	return model_apply_calibration(default_min, default_max);
+}
+
 /**
  * @brief Remove a model from persistent storage by name.
  * Warning: if model to remove is the active model

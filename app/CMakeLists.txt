@@ -10,5 +10,14 @@ set(SYSCALL_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 include_directories(ui)
 project(app LANGUAGES C)
-file(GLOB SOURCES src/main.c src/model.c src/model_fs.c src/display_services.c src/platform.h ui/*.h ui/*.c)
+file(GLOB SOURCES
+	src/main.c
+	src/model.c
+	src/model_fs.c
+	src/display_services.c
+	src/autocalibration_service.c
+	src/platform.h
+	ui/*.h
+	ui/*.c
+)
 target_sources(app PRIVATE ${SOURCES})

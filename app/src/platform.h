@@ -10,6 +10,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#ifndef PLATFORM_H
+#define PLATFORM_H
+
 typedef enum {
 	ROULIS = 0,
 	TANGAGE = 1,
@@ -35,6 +38,7 @@ typedef enum {
 
 /* Maximum number of channels */
 #define MAX_CHANNELS 6
+#define CALIBRATION_AXIS_COUNT 4U
 
 /* Maximum number of auxiliary channels */
 #define MAX_AUX_CHANNELS 4
@@ -92,3 +96,5 @@ typedef enum {
 #define IS_SWITCH_SW_B_UP_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_B_UP)) == 0)
 #define SWITCH_SW_B_DOWN    15
 #define IS_SWITCH_SW_B_DOWN_ACTIVATED(pins) (((pins) & (1 << SWITCH_SW_B_DOWN)) == 0)
+
+#endif /* PLATFORM_H */

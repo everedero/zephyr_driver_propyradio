@@ -18,4 +18,5 @@ this file gathers all the remaining requirements (todo) to be implemented for th
     b. GPS Data
     c. Position Data
 13. Optimize power consumption to reduce (Backlight & Display switch-off) ==> DONE
-14. Implement binding mechanism that scan particular RF channel to recieve the receiver characteristics such as dedicated reception/transmission channels then swich to remote controller onto this particular reception/transmission channels 
+14. Implement binding mechanism that scan particular RF channel to recieve the receiver characteristics such as dedicated reception/transmission channels then swich to remote controller onto this particular reception/transmission channels
+15. Implement autocalibration mode ==> DONE
