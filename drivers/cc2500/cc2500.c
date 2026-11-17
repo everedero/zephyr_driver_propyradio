@@ -477,6 +477,7 @@ static int cc2500_write(const struct device *dev, uint8_t *buffer, uint8_t data_
 {
 	int ret = 0;
 	int status = 0;
+	int i;
 
 	cc2500_idle(dev);
 	status = cc2500_read_status(dev);
@@ -485,9 +486,13 @@ static int cc2500_write(const struct device *dev, uint8_t *buffer, uint8_t data_
 	cc2500_set_pkt_len(dev, data_len);
 
 	cc2500_set_tx(dev);
-	status = cc2500_read_status(dev);
-	k_usleep(800);
-	status = cc2500_read_status(dev);
+	/* Calibration (~0.8 ms) + packet (~0.6 ms): wait for TXOFF_MODE to bring us back to IDLE */
+	for (i = 0; i < 50 && (cc2500_read_status(dev) & 0x70) != 0; i++) {
+		k_usleep(100);
+	}
+	if (i == 50) {
+		LOG_WRN("TX did not finish within 5 ms");
+	}
 
 	cc2500_flush_tx(dev);
 	status = cc2500_idle(dev);
@@ -689,6 +694,7 @@ static int cc2500_init(const struct device *dev)
 #endif /* CONFIG_CC2500_TRIGGER */
 	cc2500_reset(dev);
 	cc2500_set_config_registers(dev);
+	cc2500_set_channel_num(dev, data->channel_frequency);
 
 	cc2500_set_pkt_len(dev, 9);
 	cc2500_write_register_burst(dev, PATABLE, pa_data, 8);
