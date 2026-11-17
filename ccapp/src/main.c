@@ -17,6 +17,8 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 #define PKT_GAP_MS 54
 /* Idle motor level the remote sends right after pairing */
 #define LEVEL_IDLE 0x28
+/* Motor saturates here: higher levels feel no stronger (measured by hand, may vary per device) */
+#define LEVEL_MAX  0x78
 
 /*
  * Bytes 3-4 carry the motor level the remote computed (tilt, pattern...),
@@ -55,19 +57,13 @@ int main(void)
 
 	/* Remote start-up: idle level before any mode change */
 	hold(cc2500, 0, 5, LEVEL_IDLE, 10000);
-	/* Level steps, 5 s each */
-	hold(cc2500, 3, 9, 0x00, 5000);
-	hold(cc2500, 3, 9, 0x48, 5000);
-	hold(cc2500, 3, 9, 0x80, 5000);
-	hold(cc2500, 3, 9, 0xC0, 5000);
-	/* Ramp 0x28 -> 0x80 and back, like the remote's mode 6, three times */
-	LOG_INF("ramp");
-	for (int n = 0; n < 3; n++) {
-		for (int l = 0x28; l <= 0x80; l += 8) {
-			send(cc2500, 6, 0x10, l);
+	/* Slow ramp 0 -> LEVEL_MAX, ~0.35 s per step */
+	for (int l = 0x00; l <= LEVEL_MAX; l++) {
+		if ((l & 0x07) == 0) {
+			LOG_INF("level 0x%02x", l);
 		}
-		for (int l = 0x80; l >= 0x28; l -= 8) {
-			send(cc2500, 6, 0x10, l);
+		for (int r = 0; r < 3; r++) {
+			send(cc2500, 3, 9, l);
 		}
 	}
 	hold(cc2500, 0, 5, LEVEL_IDLE, 3000);
