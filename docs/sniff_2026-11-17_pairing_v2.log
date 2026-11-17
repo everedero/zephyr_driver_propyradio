@@ -1,0 +1,742 @@
+[00:01:41.422,027] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -79 dBm
+[00:01:42.422,546] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -98 max -84 dBm
+[00:01:43.423,065] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -98 max -83 dBm
+[00:01:44.423,583] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -97 max -86 dBm
+[00:01:45.424,072] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -98 max -83 dBm
+[00:01:46.424,591] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -98 max -76 dBm
+[00:01:47.425,109] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -100 max -88 dBm
+[00:01:48.425,628] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -100 max -78 dBm
+[00:01:49.426,086] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -88 dBm
+[00:01:50.426,605] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -85 dBm
+[00:01:51.427,032] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -82 dBm
+[00:01:52.427,551] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -100 max -80 dBm
+[00:01:53.428,009] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -48 dBm
+[00:01:54.428,527] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -41 dBm
+[00:01:54.437,164] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=23 crc=OK
+[00:01:54.437,164] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:54.494,750] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=28 crc=BAD
+[00:01:54.494,781] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:54.552,734] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=33 crc=OK
+[00:01:54.552,764] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:54.610,717] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=43 crc=BAD
+[00:01:54.610,748] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:54.668,701] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=27 crc=OK
+[00:01:54.668,731] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:54.726,684] <inf> cc2500_sniffer: ch=4 rssi=-38 dBm lqi=39 crc=BAD
+[00:01:54.726,715] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:54.784,729] <inf> cc2500_sniffer: ch=4 rssi=-38 dBm lqi=27 crc=OK
+[00:01:54.784,729] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:54.842,773] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=16 crc=BAD
+[00:01:54.842,773] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:54.900,817] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=25 crc=OK
+[00:01:54.900,817] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:54.958,282] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=21 crc=BAD
+[00:01:54.958,312] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:55.016,296] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=36 crc=OK
+[00:01:55.016,296] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:55.072,875] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=18 crc=BAD
+[00:01:55.072,906] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:55.130,859] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=31 crc=OK
+[00:01:55.130,889] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:55.188,842] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=32 crc=BAD
+[00:01:55.188,873] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:55.246,887] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=33 crc=OK
+[00:01:55.246,887] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:55.304,931] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=43 crc=BAD
+[00:01:55.304,931] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:55.362,976] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=44 crc=OK
+[00:01:55.362,976] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:01:55.420,440] <inf> cc2500_sniffer: ch=4 rssi=-38 dBm lqi=33 crc=BAD
+[00:01:55.420,471] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:01:55.428,466] <inf> cc2500_sniffer: ch=4: 18 packets, rssi avg -99 max -38 dBm
+[00:01:56.428,619] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -37 dBm
+[00:01:57.428,192] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -38 dBm
+[00:01:58.428,710] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -48 dBm
+[00:01:59.429,229] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -61 dBm
+[00:02:00.429,748] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -66 dBm
+[00:02:01.430,206] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -96 max -59 dBm
+[00:02:02.430,725] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -95 max -53 dBm
+[00:02:02.551,483] <inf> cc2500_sniffer: ch=2 rssi=-87 dBm lqi=126 crc=BAD
+[00:02:02.551,513] <inf> cc2500_sniffer: pkt
+                                         8b af 10 f3 bd 17 32 73  32                      |......2s 2       
+[00:02:03.430,175] <inf> cc2500_sniffer: ch=2: 1 packets, rssi avg -96 max -45 dBm
+[00:02:04.430,267] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -39 dBm
+[00:02:04.439,361] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=19 crc=BAD
+[00:02:04.439,392] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 37 37 00 00 c4  2d                      |...77... -       
+[00:02:04.497,344] <inf> cc2500_sniffer: ch=4 rssi=-37 dBm lqi=22 crc=OK
+[00:02:04.497,375] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 37 37 00 00 00  05                      |...77... .       
+[00:02:04.555,328] <inf> cc2500_sniffer: ch=4 rssi=-37 dBm lqi=21 crc=BAD
+[00:02:04.555,358] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 3c 3c 00 00 58  b1                      |...<<..X .       
+[00:02:04.613,311] <inf> cc2500_sniffer: ch=4 rssi=-35 dBm lqi=22 crc=OK
+[00:02:04.613,342] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 41 41 00 00 00  05                      |...AA... .       
+[00:02:04.669,921] <inf> cc2500_sniffer: ch=4 rssi=-33 dBm lqi=37 crc=BAD
+[00:02:04.669,952] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 41 41 00 00 7a  81                      |...AA..z .       
+[00:02:04.727,966] <inf> cc2500_sniffer: ch=4 rssi=-32 dBm lqi=42 crc=OK
+[00:02:04.727,966] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 41 41 00 00 00  05                      |...AA... .       
+[00:02:04.786,010] <inf> cc2500_sniffer: ch=4 rssi=-33 dBm lqi=16 crc=BAD
+[00:02:04.786,010] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 4b 4b 00 00 f2  09                      |...KK... .       
+[00:02:04.844,055] <inf> cc2500_sniffer: ch=4 rssi=-33 dBm lqi=36 crc=OK
+[00:02:04.844,055] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 55 55 00 00 00  05                      |...UU... .       
+[00:02:04.901,031] <inf> cc2500_sniffer: ch=4 rssi=-33 dBm lqi=31 crc=BAD
+[00:02:04.901,062] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 5a 5a 00 00 27  58                      |...ZZ..' X       
+[00:02:04.959,014] <inf> cc2500_sniffer: ch=4 rssi=-33 dBm lqi=24 crc=OK
+[00:02:04.959,045] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 5a 5a 00 00 00  05                      |...ZZ... .       
+[00:02:05.017,028] <inf> cc2500_sniffer: ch=4 rssi=-34 dBm lqi=22 crc=BAD
+[00:02:05.017,028] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 5a 5a 00 00 27  58                      |...ZZ..' X       
+[00:02:05.074,981] <inf> cc2500_sniffer: ch=4 rssi=-34 dBm lqi=28 crc=OK
+[00:02:05.075,012] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 00  05                      |...PP... .       
+[00:02:05.132,965] <inf> cc2500_sniffer: ch=4 rssi=-34 dBm lqi=15 crc=BAD
+[00:02:05.132,995] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 4b 4b 00 00 f2  09                      |...KK... .       
+[00:02:05.191,009] <inf> cc2500_sniffer: ch=4 rssi=-35 dBm lqi=43 crc=OK
+[00:02:05.191,009] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 46 46 00 00 00  05                      |...FF... .       
+[00:02:05.247,711] <inf> cc2500_sniffer: ch=4 rssi=-37 dBm lqi=17 crc=BAD
+[00:02:05.247,711] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 3c 3c 00 00 58  b1                      |...<<..X .       
+[00:02:05.305,755] <inf> cc2500_sniffer: ch=4 rssi=-38 dBm lqi=28 crc=OK
+[00:02:05.305,755] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 46 46 00 00 00  05                      |...FF... .       
+[00:02:05.364,501] <inf> cc2500_sniffer: ch=4 rssi=-39 dBm lqi=35 crc=BAD
+[00:02:05.364,532] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 41 41 00 00 7a  81                      |...AA..z .       
+[00:02:05.422,485] <inf> cc2500_sniffer: ch=4 rssi=-37 dBm lqi=27 crc=OK
+[00:02:05.422,515] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 4b 4b 00 00 00  05                      |...KK... .       
+[00:02:05.430,511] <inf> cc2500_sniffer: ch=4: 18 packets, rssi avg -99 max -33 dBm
+[00:02:06.430,786] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -35 dBm
+[00:02:07.431,304] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -38 dBm
+[00:02:08.431,823] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -100 max -56 dBm
+[00:02:09.431,060] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -64 dBm
+[00:02:10.431,488] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -73 dBm
+[00:02:11.432,006] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -66 dBm
+[00:02:12.432,434] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -63 dBm
+[00:02:13.432,952] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -54 dBm
+[00:02:14.432,098] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -97 max -40 dBm
+[00:02:14.465,911] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=21 crc=BAD
+[00:02:14.465,942] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:14.523,895] <inf> cc2500_sniffer: ch=4 rssi=-40 dBm lqi=22 crc=OK
+[00:02:14.523,925] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:14.581,878] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=34 crc=BAD
+[00:02:14.581,909] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:14.639,862] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=29 crc=OK
+[00:02:14.639,892] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 10 10 00 00 01  09                      |........ .       
+[00:02:14.696,472] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=17 crc=BAD
+[00:02:14.696,502] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 10 10 00 00 aa  ce                      |........ .       
+[00:02:14.754,516] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=38 crc=OK
+[00:02:14.754,516] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:14.812,561] <inf> cc2500_sniffer: ch=4 rssi=-41 dBm lqi=25 crc=BAD
+[00:02:14.812,561] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:14.870,605] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=47 crc=OK
+[00:02:14.870,605] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:14.927,581] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=22 crc=BAD
+[00:02:14.927,612] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:14.986,938] <inf> cc2500_sniffer: ch=4 rssi=-44 dBm lqi=40 crc=OK
+[00:02:14.986,968] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:15.043,579] <inf> cc2500_sniffer: ch=4 rssi=-44 dBm lqi=42 crc=BAD
+[00:02:15.043,579] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:15.101,531] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=50 crc=OK
+[00:02:15.101,562] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:15.159,515] <inf> cc2500_sniffer: ch=4 rssi=-44 dBm lqi=37 crc=BAD
+[00:02:15.159,545] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:15.208,374] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=47 crc=OK
+[00:02:15.208,374] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 02  09                      |...HH... .       
+[00:02:15.266,418] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=24 crc=BAD
+[00:02:15.266,418] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:02:15.324,462] <inf> cc2500_sniffer: ch=4 rssi=-41 dBm lqi=38 crc=OK
+[00:02:15.324,462] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 02  09                      |...HH... .       
+[00:02:15.382,873] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=38 crc=BAD
+[00:02:15.382,904] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:02:15.432,098] <inf> cc2500_sniffer: ch=4: 17 packets, rssi avg -97 max -40 dBm
+[00:02:16.432,220] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -97 max -40 dBm
+[00:02:17.432,739] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -38 dBm
+[00:02:18.433,258] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -54 dBm
+[00:02:19.361,083] <inf> cc2500_sniffer: ch=8 rssi=-96 dBm lqi=127 crc=BAD
+[00:02:19.361,114] <inf> cc2500_sniffer: pkt
+                                         fa 82 0a 27 35 f2 94 83  e6                      |...'5... .       
+[00:02:19.434,051] <inf> cc2500_sniffer: ch=8: 1 packets, rssi avg -100 max -66 dBm
+[00:02:20.434,661] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -77 dBm
+[00:02:21.435,180] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -74 dBm
+[00:02:22.435,638] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -100 max -67 dBm
+[00:02:22.985,809] <inf> cc2500_sniffer: ch=2 rssi=-100 dBm lqi=90 crc=BAD
+[00:02:22.985,839] <inf> cc2500_sniffer: pkt
+                                         b5 2d 83 19 f6 af ff 70  8d                      |.-.....p .       
+[00:02:23.435,150] <inf> cc2500_sniffer: ch=2: 1 packets, rssi avg -99 max -52 dBm
+[00:02:24.435,668] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -42 dBm
+[00:02:24.476,348] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=59 crc=OK
+[00:02:24.476,379] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 03  09                      |........ .       
+[00:02:24.534,332] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=45 crc=BAD
+[00:02:24.534,362] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:02:24.592,315] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=39 crc=OK
+[00:02:24.592,346] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 03  09                      |........ .       
+[00:02:24.650,299] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=62 crc=BAD
+[00:02:24.650,329] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:02:24.708,282] <inf> cc2500_sniffer: ch=4 rssi=-42 dBm lqi=15 crc=OK
+[00:02:24.708,312] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 03  09                      |...HH... .       
+[00:02:24.765,014] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=33 crc=BAD
+[00:02:24.765,014] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:02:24.823,059] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=42 crc=OK
+[00:02:24.823,059] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 03  09                      |...HH... .       
+[00:02:24.881,103] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=21 crc=BAD
+[00:02:24.881,103] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:02:24.939,392] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=42 crc=OK
+[00:02:24.939,422] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 03  09                      |...HH... .       
+[00:02:24.997,375] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=36 crc=BAD
+[00:02:24.997,406] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:02:25.055,389] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=39 crc=OK
+[00:02:25.055,389] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 03  09                      |...HH... .       
+[00:02:25.111,968] <inf> cc2500_sniffer: ch=4 rssi=-44 dBm lqi=27 crc=BAD
+[00:02:25.111,999] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:02:25.169,952] <inf> cc2500_sniffer: ch=4 rssi=-44 dBm lqi=47 crc=OK
+[00:02:25.169,982] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 03  09                      |........ .       
+[00:02:25.218,811] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=22 crc=BAD
+[00:02:25.218,811] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:02:25.276,855] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=66 crc=OK
+[00:02:25.276,855] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 03  09                      |........ .       
+[00:02:25.333,587] <inf> cc2500_sniffer: ch=4 rssi=-48 dBm lqi=40 crc=BAD
+[00:02:25.333,587] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:02:25.391,937] <inf> cc2500_sniffer: ch=4 rssi=-47 dBm lqi=27 crc=OK
+[00:02:25.391,967] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 04  09                      |........ .       
+[00:02:25.435,668] <inf> cc2500_sniffer: ch=4: 17 packets, rssi avg -99 max -42 dBm
+[00:02:26.435,821] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -41 dBm
+[00:02:27.435,058] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -44 dBm
+[00:02:28.435,485] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -59 dBm
+[00:02:29.436,004] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -67 dBm
+[00:02:30.436,523] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -71 dBm
+[00:02:30.978,454] <inf> cc2500_sniffer: ch=0 rssi=-98 dBm lqi=127 crc=BAD
+[00:02:30.978,485] <inf> cc2500_sniffer: pkt
+                                         2d ab 06 a6 26 d1 fa 46  39                      |-...&..F 9       
+[00:02:31.436,035] <inf> cc2500_sniffer: ch=0: 1 packets, rssi avg -96 max -69 dBm
+[00:02:32.436,523] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -96 max -63 dBm
+[00:02:33.437,042] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -97 max -55 dBm
+[00:02:34.437,561] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -44 dBm
+[00:02:34.475,494] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=27 crc=OK
+[00:02:34.475,524] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:34.532,135] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=42 crc=BAD
+[00:02:34.532,135] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:34.590,087] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=46 crc=OK
+[00:02:34.590,118] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:34.648,071] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=39 crc=BAD
+[00:02:34.648,101] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:34.706,054] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=51 crc=OK
+[00:02:34.706,085] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:34.764,099] <inf> cc2500_sniffer: ch=4 rssi=-43 dBm lqi=18 crc=BAD
+[00:02:34.764,099] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:34.822,143] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=17 crc=OK
+[00:02:34.822,143] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:34.878,875] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=23 crc=BAD
+[00:02:34.878,875] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:34.937,164] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=49 crc=OK
+[00:02:34.937,194] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:34.995,147] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=11 crc=BAD
+[00:02:34.995,178] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:35.053,161] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=38 crc=OK
+[00:02:35.053,161] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:35.111,114] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=25 crc=BAD
+[00:02:35.111,145] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:35.169,097] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=52 crc=OK
+[00:02:35.169,128] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:35.225,830] <inf> cc2500_sniffer: ch=4 rssi=-47 dBm lqi=23 crc=BAD
+[00:02:35.225,830] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:35.283,874] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=30 crc=OK
+[00:02:35.283,874] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:35.341,918] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=42 crc=BAD
+[00:02:35.341,918] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 cb  2b                      |........ +       
+[00:02:35.399,291] <inf> cc2500_sniffer: ch=4 rssi=-45 dBm lqi=20 crc=OK
+[00:02:35.399,322] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 08 08 00 00 01  09                      |........ .       
+[00:02:35.437,530] <inf> cc2500_sniffer: ch=4: 17 packets, rssi avg -99 max -43 dBm
+[00:02:36.437,652] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -100 max -42 dBm
+[00:02:37.438,171] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -47 dBm
+[00:02:38.438,690] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -100 max -57 dBm
+[00:02:39.439,208] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -65 dBm
+[00:02:40.439,666] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -71 dBm
+[00:02:41.440,185] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -80 dBm
+[00:02:42.440,643] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -72 dBm
+[00:02:43.441,162] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -100 max -79 dBm
+[00:02:44.441,680] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -100 max -82 dBm
+[00:02:45.442,199] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -100 max -77 dBm
+[00:02:46.442,657] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -86 dBm
+[00:02:47.443,176] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -78 dBm
+[00:02:48.443,695] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -100 max -79 dBm
+[00:02:49.444,213] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -87 dBm
+[00:02:50.444,671] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -84 dBm
+[00:02:51.445,190] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -82 dBm
+[00:02:52.445,648] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -100 max -76 dBm
+[00:02:53.446,166] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -100 max -81 dBm
+[00:02:54.446,624] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -100 max -88 dBm
+[00:02:55.447,143] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -100 max -81 dBm
+[00:02:56.447,601] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -100 max -87 dBm
+[00:02:57.448,120] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -100 max -78 dBm
+[00:02:58.448,577] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -100 max -86 dBm
+[00:02:59.449,096] <inf> cc2500_sniffer: ch=8: 0 packets, rssi avg -100 max -90 dBm
+[00:03:00.449,554] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -93 dBm
+[00:03:01.450,073] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -80 dBm
+[00:03:02.450,531] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -98 max -83 dBm
+[00:03:03.451,049] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -84 dBm
+[00:03:04.451,538] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -96 max -82 dBm
+[00:03:05.452,056] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -95 max -67 dBm
+[00:03:06.452,575] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -95 max -59 dBm
+[00:03:07.453,094] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -48 dBm
+[00:03:08.453,613] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -38 dBm
+[00:03:08.494,323] <inf> cc2500_sniffer: ch=8 rssi=-37 dBm lqi=39 crc=OK
+[00:03:08.494,323] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:08.550,903] <inf> cc2500_sniffer: ch=8 rssi=-37 dBm lqi=45 crc=BAD
+[00:03:08.550,933] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:08.608,886] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=43 crc=OK
+[00:03:08.608,917] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:08.666,870] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=18 crc=BAD
+[00:03:08.666,900] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:08.724,853] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=46 crc=OK
+[00:03:08.724,884] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:08.782,897] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=25 crc=BAD
+[00:03:08.782,897] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:08.840,942] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=21 crc=OK
+[00:03:08.840,942] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:08.897,674] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=23 crc=BAD
+[00:03:08.897,674] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:08.955,963] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=35 crc=OK
+[00:03:08.955,993] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:09.013,977] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=27 crc=BAD
+[00:03:09.013,977] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:09.071,929] <inf> cc2500_sniffer: ch=8 rssi=-37 dBm lqi=21 crc=OK
+[00:03:09.071,960] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:09.129,913] <inf> cc2500_sniffer: ch=8 rssi=-36 dBm lqi=22 crc=BAD
+[00:03:09.129,943] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:09.187,896] <inf> cc2500_sniffer: ch=8 rssi=-36 dBm lqi=31 crc=OK
+[00:03:09.187,927] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:09.244,628] <inf> cc2500_sniffer: ch=8 rssi=-35 dBm lqi=24 crc=BAD
+[00:03:09.244,628] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:09.302,673] <inf> cc2500_sniffer: ch=8 rssi=-35 dBm lqi=33 crc=OK
+[00:03:09.302,673] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:09.360,717] <inf> cc2500_sniffer: ch=8 rssi=-38 dBm lqi=44 crc=BAD
+[00:03:09.360,717] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:09.418,121] <inf> cc2500_sniffer: ch=8 rssi=-41 dBm lqi=42 crc=OK
+[00:03:09.418,151] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:09.453,613] <inf> cc2500_sniffer: ch=8: 17 packets, rssi avg -100 max -36 dBm
+[00:03:10.453,826] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -46 dBm
+[00:03:11.453,338] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -100 max -71 dBm
+[00:03:12.453,857] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -77 dBm
+[00:03:13.454,376] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -100 max -85 dBm
+[00:03:14.454,895] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -100 max -77 dBm
+[00:03:15.455,352] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -100 max -84 dBm
+[00:03:16.455,871] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -96 max -82 dBm
+[00:03:17.456,390] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -98 max -58 dBm
+[00:03:18.456,909] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -98 max -47 dBm
+[00:03:18.477,416] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=22 crc=OK
+[00:03:18.477,447] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:18.535,400] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=20 crc=BAD
+[00:03:18.535,430] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:18.593,383] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=44 crc=OK
+[00:03:18.593,414] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:18.651,367] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=27 crc=BAD
+[00:03:18.651,397] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:18.709,350] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=27 crc=OK
+[00:03:18.709,381] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:18.766,082] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=42 crc=BAD
+[00:03:18.766,082] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:18.824,127] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=36 crc=OK
+[00:03:18.824,127] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:18.882,171] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=21 crc=BAD
+[00:03:18.882,171] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:18.940,948] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=43 crc=OK
+[00:03:18.940,979] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:18.987,945] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=18 crc=BAD
+[00:03:18.987,976] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:19.045,959] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=36 crc=OK
+[00:03:19.045,959] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:19.103,912] <inf> cc2500_sniffer: ch=8 rssi=-46 dBm lqi=33 crc=BAD
+[00:03:19.103,942] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:19.161,895] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=56 crc=OK
+[00:03:19.161,926] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:19.219,940] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=44 crc=BAD
+[00:03:19.219,940] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:19.277,984] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=36 crc=OK
+[00:03:19.277,984] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:19.334,716] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=33 crc=BAD
+[00:03:19.334,716] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:19.393,493] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=18 crc=OK
+[00:03:19.393,524] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  05                      |...((... .       
+[00:03:19.450,103] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=25 crc=BAD
+[00:03:19.450,134] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:19.456,756] <inf> cc2500_sniffer: ch=8: 18 packets, rssi avg -99 max -43 dBm
+[00:03:20.457,092] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -46 dBm
+[00:03:21.457,977] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -97 max -81 dBm
+[00:03:22.457,214] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -82 dBm
+[00:03:23.457,641] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -82 dBm
+[00:03:24.458,160] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -98 max -82 dBm
+[00:03:25.458,679] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -100 max -72 dBm
+[00:03:26.459,197] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -98 max -69 dBm
+[00:03:27.459,716] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -100 max -57 dBm
+[00:03:28.460,205] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -49 dBm
+[00:03:28.463,592] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=58 crc=BAD
+[00:03:28.463,592] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:28.522,308] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=46 crc=OK
+[00:03:28.522,338] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:28.580,291] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=27 crc=BAD
+[00:03:28.580,322] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:28.638,275] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=54 crc=OK
+[00:03:28.638,305] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:28.694,885] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=23 crc=BAD
+[00:03:28.694,915] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:28.752,868] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=63 crc=OK
+[00:03:28.752,899] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:28.810,913] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=21 crc=BAD
+[00:03:28.810,913] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:28.868,957] <inf> cc2500_sniffer: ch=8 rssi=-46 dBm lqi=56 crc=OK
+[00:03:28.868,957] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:28.927,001] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=42 crc=BAD
+[00:03:28.927,001] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:28.984,466] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=28 crc=OK
+[00:03:28.984,497] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:29.042,480] <inf> cc2500_sniffer: ch=8 rssi=-46 dBm lqi=62 crc=BAD
+[00:03:29.042,480] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:29.100,433] <inf> cc2500_sniffer: ch=8 rssi=-46 dBm lqi=44 crc=OK
+[00:03:29.100,463] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:29.158,416] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=49 crc=BAD
+[00:03:29.158,447] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:29.216,400] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=31 crc=OK
+[00:03:29.216,430] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:29.273,132] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=22 crc=BAD
+[00:03:29.273,132] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 6b  8b                      |.......k .       
+[00:03:29.331,176] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=30 crc=OK
+[00:03:29.331,176] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 00 00 00 00 01  05                      |........ .       
+[00:03:29.380,035] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=12 crc=BAD
+[00:03:29.380,035] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 af  d0                      |...PP... .       
+[00:03:29.438,385] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=17 crc=OK
+[00:03:29.438,415] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 02  0a                      |...PP... .       
+[00:03:29.460,144] <inf> cc2500_sniffer: ch=8: 18 packets, rssi avg -100 max -45 dBm
+[00:03:30.460,968] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -44 dBm
+[00:03:31.461,242] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -98 max -81 dBm
+[00:03:32.461,761] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -98 max -81 dBm
+[00:03:33.462,280] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -100 max -79 dBm
+[00:03:34.462,799] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -97 max -76 dBm
+[00:03:35.463,317] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -96 max -69 dBm
+[00:03:36.463,836] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -97 max -66 dBm
+[00:03:37.464,355] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -54 dBm
+[00:03:38.464,874] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -46 dBm
+[00:03:38.497,741] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=41 crc=OK
+[00:03:38.497,772] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:38.554,382] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=41 crc=BAD
+[00:03:38.554,382] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:38.612,335] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=27 crc=OK
+[00:03:38.612,365] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:38.670,318] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=27 crc=BAD
+[00:03:38.670,349] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:38.728,302] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=37 crc=OK
+[00:03:38.728,332] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:38.786,346] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=45 crc=BAD
+[00:03:38.786,346] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:38.844,390] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=25 crc=OK
+[00:03:38.844,390] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:38.901,123] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=32 crc=BAD
+[00:03:38.901,123] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:38.959,899] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=24 crc=OK
+[00:03:38.959,930] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:39.017,913] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=43 crc=BAD
+[00:03:39.017,913] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:39.075,866] <inf> cc2500_sniffer: ch=8 rssi=-42 dBm lqi=22 crc=OK
+[00:03:39.075,897] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:39.132,476] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=20 crc=BAD
+[00:03:39.132,507] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:39.190,460] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=23 crc=OK
+[00:03:39.190,490] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:39.248,504] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=32 crc=BAD
+[00:03:39.248,504] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:39.306,518] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=17 crc=OK
+[00:03:39.306,518] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:39.364,562] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=33 crc=BAD
+[00:03:39.364,562] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:39.422,027] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=41 crc=OK
+[00:03:39.422,058] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 00  0a                      |...((... .       
+[00:03:39.455,291] <inf> cc2500_sniffer: ch=8 rssi=-102 dBm lqi=127 crc=BAD
+[00:03:39.455,322] <inf> cc2500_sniffer: pkt
+                                         06 68 ff 7b fc 57 cd e8  35                      |.h.{.W.. 5       
+[00:03:39.464,691] <inf> cc2500_sniffer: ch=8: 18 packets, rssi avg -99 max -42 dBm
+[00:03:40.464,599] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -99 max -44 dBm
+[00:03:41.464,508] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -99 max -75 dBm
+[00:03:42.465,026] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -83 dBm
+[00:03:43.465,545] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -77 dBm
+[00:03:44.466,064] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -75 dBm
+[00:03:45.466,583] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -99 max -72 dBm
+[00:03:46.467,071] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -69 dBm
+[00:03:47.467,590] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -100 max -59 dBm
+[00:03:48.468,109] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -50 dBm
+[00:03:48.494,110] <inf> cc2500_sniffer: ch=8 rssi=-46 dBm lqi=33 crc=BAD
+[00:03:48.494,140] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:48.552,093] <inf> cc2500_sniffer: ch=8 rssi=-47 dBm lqi=45 crc=OK
+[00:03:48.552,124] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:48.610,076] <inf> cc2500_sniffer: ch=8 rssi=-49 dBm lqi=47 crc=BAD
+[00:03:48.610,107] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:48.668,060] <inf> cc2500_sniffer: ch=8 rssi=-51 dBm lqi=59 crc=OK
+[00:03:48.668,090] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:48.716,430] <inf> cc2500_sniffer: ch=8 rssi=-47 dBm lqi=27 crc=BAD
+[00:03:48.716,461] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:48.774,475] <inf> cc2500_sniffer: ch=8 rssi=-48 dBm lqi=37 crc=OK
+[00:03:48.774,475] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:48.831,207] <inf> cc2500_sniffer: ch=8 rssi=-48 dBm lqi=28 crc=BAD
+[00:03:48.831,207] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:48.889,251] <inf> cc2500_sniffer: ch=8 rssi=-48 dBm lqi=28 crc=OK
+[00:03:48.889,251] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:48.946,655] <inf> cc2500_sniffer: ch=8 rssi=-50 dBm lqi=45 crc=BAD
+[00:03:48.946,685] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:49.004,669] <inf> cc2500_sniffer: ch=8 rssi=-47 dBm lqi=54 crc=OK
+[00:03:49.004,669] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:49.062,652] <inf> cc2500_sniffer: ch=8 rssi=-47 dBm lqi=21 crc=BAD
+[00:03:49.062,652] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:49.120,605] <inf> cc2500_sniffer: ch=8 rssi=-49 dBm lqi=18 crc=OK
+[00:03:49.120,635] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:49.178,588] <inf> cc2500_sniffer: ch=8 rssi=-50 dBm lqi=33 crc=BAD
+[00:03:49.178,619] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:49.226,135] <inf> cc2500_sniffer: ch=8 rssi=-50 dBm lqi=35 crc=OK
+[00:03:49.226,135] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:49.284,179] <inf> cc2500_sniffer: ch=8 rssi=-49 dBm lqi=55 crc=BAD
+[00:03:49.284,179] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:49.342,224] <inf> cc2500_sniffer: ch=8 rssi=-50 dBm lqi=49 crc=OK
+[00:03:49.342,224] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:49.399,200] <inf> cc2500_sniffer: ch=8 rssi=-51 dBm lqi=44 crc=BAD
+[00:03:49.399,230] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 61  b7                      |.......a .       
+[00:03:49.447,570] <inf> cc2500_sniffer: ch=8 rssi=-48 dBm lqi=35 crc=OK
+[00:03:49.447,601] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 80 80 00 00 02  10                      |........ .       
+[00:03:49.469,329] <inf> cc2500_sniffer: ch=8: 18 packets, rssi avg -99 max -47 dBm
+[00:03:50.469,604] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -100 max -49 dBm
+[00:03:51.470,123] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -94 max -75 dBm
+[00:03:52.470,642] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -96 max -79 dBm
+[00:03:53.471,160] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -95 max -79 dBm
+[00:03:54.471,679] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -99 max -75 dBm
+[00:03:55.472,198] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -99 max -70 dBm
+[00:03:56.472,717] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -99 max -66 dBm
+[00:03:57.473,236] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -55 dBm
+[00:03:58.473,724] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -49 dBm
+[00:03:58.532,257] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=36 crc=BAD
+[00:03:58.532,287] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:58.590,240] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=30 crc=OK
+[00:03:58.590,270] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 06  10                      |...((... .       
+[00:03:58.648,223] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=23 crc=BAD
+[00:03:58.648,254] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 28 28 00 00 c9  a4                      |...((... .       
+[00:03:58.706,207] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=18 crc=OK
+[00:03:58.706,237] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 30 30 00 00 06  10                      |...00... .       
+[00:03:58.762,817] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=47 crc=BAD
+[00:03:58.762,847] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 30 30 00 00 a8  41                      |...00... A       
+[00:03:58.820,861] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=30 crc=OK
+[00:03:58.820,861] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 30 30 00 00 06  10                      |...00... .       
+[00:03:58.878,906] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=39 crc=BAD
+[00:03:58.878,936] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 38 38 00 00 08  e1                      |...88... .       
+[00:03:58.936,950] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=16 crc=OK
+[00:03:58.936,950] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 38 38 00 00 06  10                      |...88... .       
+[00:03:58.993,927] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=36 crc=BAD
+[00:03:58.993,957] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 38 38 00 00 08  e1                      |...88... .       
+[00:03:59.051,940] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=28 crc=OK
+[00:03:59.051,940] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 40 40 00 00 06  10                      |...@@... .       
+[00:03:59.109,893] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=37 crc=BAD
+[00:03:59.109,924] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 40 40 00 00 6e  95                      |...@@..n .       
+[00:03:59.167,877] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=34 crc=OK
+[00:03:59.167,907] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 06  10                      |...HH... .       
+[00:03:59.225,860] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=24 crc=BAD
+[00:03:59.225,891] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 ce  35                      |...HH... 5       
+[00:03:59.283,905] <inf> cc2500_sniffer: ch=8 rssi=-45 dBm lqi=15 crc=OK
+[00:03:59.283,905] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 48 48 00 00 06  10                      |...HH... .       
+[00:03:59.331,451] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=27 crc=BAD
+[00:03:59.331,451] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 af  d0                      |...PP... .       
+[00:03:59.389,495] <inf> cc2500_sniffer: ch=8 rssi=-43 dBm lqi=24 crc=OK
+[00:03:59.389,495] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 06  10                      |...PP... .       
+[00:03:59.447,845] <inf> cc2500_sniffer: ch=8 rssi=-44 dBm lqi=16 crc=BAD
+[00:03:59.447,875] <inf> cc2500_sniffer: pkt
+                                         01 00 a5 50 50 00 00 af  d0                      |...PP... .       
+[00:03:59.473,724] <inf> cc2500_sniffer: ch=8: 17 packets, rssi avg -100 max -43 dBm
+[00:04:00.473,052] <inf> cc2500_sniffer: ch=9: 0 packets, rssi avg -99 max -44 dBm
+[00:04:01.473,449] <inf> cc2500_sniffer: ch=0: 0 packets, rssi avg -99 max -83 dBm
+[00:04:02.473,937] <inf> cc2500_sniffer: ch=1: 0 packets, rssi avg -99 max -76 dBm
+[00:04:03.473,083] <inf> cc2500_sniffer: ch=2: 0 packets, rssi avg -99 max -76 dBm
+[00:04:04.473,602] <inf> cc2500_sniffer: ch=3: 0 packets, rssi avg -98 max -72 dBm
+[00:04:05.474,121] <inf> cc2500_sniffer: ch=4: 0 packets, rssi avg -100 max -67 dBm
+[00:04:06.474,639] <inf> cc2500_sniffer: ch=5: 0 packets, rssi avg -98 max -53 dBm
+[00:04:07.475,158] <inf> cc2500_sniffer: ch=6: 0 packets, rssi avg -99 max -45 dBm
+[00:04:08.475,677] <inf> cc2500_sniffer: ch=7: 0 packets, rssi avg -99 max -39 dBm
+[00:04:08.500,305] <inf> cc2500_sniffer: ch=8 rssi=-40 dBm lqi=40 crc=OK
+[00:04:08.500,335] <inf> cc2500_sniffer: pkt
+                                         01 00 a5
