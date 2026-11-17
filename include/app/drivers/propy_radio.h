@@ -61,5 +61,5 @@ static inline int z_impl_propy_radio_write(const struct device *dev, uint8_t *bu
 	return api->write(dev, buffer, data_len);
 }
 
-#include <syscalls/propy_radio.h>
+#include <zephyr/syscalls/propy_radio.h>
 #endif /* ZEPHYR_INCLUDE_ZEPHYR_DRIVERS_WIRELESS_PROPY_RADIO_H_ */

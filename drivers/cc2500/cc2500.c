@@ -709,7 +709,7 @@ static int cc2500_init(const struct device *dev)
 
 #define CC2500_DEFINE(i)                                               \
 	static const struct cc2500_config cc2500_config_##i = {          \
-		.spi = SPI_DT_SPEC_INST_GET(i, CC2500_SPI_MODE, 2),            \
+		.spi = SPI_DT_SPEC_INST_GET(i, CC2500_SPI_MODE),            \
 		.array = DT_INST_PROP_OR(i, conf_array, {}), \
 		.array_len = DT_INST_PROP_LEN_OR(i, conf_array, 0), \
 		.gpio2_as_irq = DT_INST_PROP_OR(i, use_gpio_2_as_irq, false),      \
