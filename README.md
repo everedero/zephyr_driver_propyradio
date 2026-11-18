@@ -1,6 +1,17 @@
-# Zephyr out-of-tree driver for nRF24L01 SPI 2.4GHz remote control module
+# RC Airplane remote controller applicaation based on Zephyr
 
-This repository contains a Zephyr out-of-tree driver.
+This repository contains a Zephyr based application.
+The application deals with a RC plane remote controller.
+It is built on 'stm32f469i-disco' board with a specific custom shield.
+
+This shield interconnects: 
+1. a nRF24L01 module for the radio part
+2. 2 joysticks and 4 associated trim buttons
+3. additionnal on/off, push buttons and 1 variator
+
+The application uses Zephyr as ecosystem with ['LVGL'](https://lvgl.io) as graphical framework.
+For the GUI (Graphical User Interface) ['EEZ Studio'](https://www.envox.eu/studio/studio-introduction/) has been used to 
+generate code (available in /ui/ directory)
 
 This repository is versioned together with the [Zephyr main tree][zephyr]. This
 means that every time that Zephyr is tagged, this repository is tagged as well
@@ -13,6 +24,9 @@ points to the development branch of Zephyr, also `main`.
 [drivers]: https://docs.zephyrproject.org/latest/reference/drivers/index.html
 [zephyr]: https://github.com/zephyrproject-rtos/zephyr
 [west_ext]: https://docs.zephyrproject.org/latest/develop/west/extensions.html
+
+The application starts from a fork of 'https://github.com/everedero/driver_nrf24l01' out of tree nRF24 Zephyr driver test application
+'
 
 ## Getting Started
 
@@ -28,32 +42,20 @@ command:
 
 ```shell
 # initialize my-workspace for the example-application (main branch)
-west init -m https://github.com/everedero/driver_nrf24l01 --mr main my-workspace
+west init -m https://github.com/phildefer/rc-remote-controller --mr main my-workspace
 # update Zephyr modules
 cd my-workspace
 west update
 ```
 
-This has been tested with Zephyr 3.5.99
+This has been tested with Zephyr 4.4
 
 ### Building and running
 
 To build the application, run the following command:
 
 ```shell
-west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=prj.conf
-```
-
-where `$BOARD` is the target board.
-```shell
-BOARD="nucleo_f756zg"
-BOARD="nrf52dk_nrf52832"
-BOARD="esp32_devkitc_wroom"
-```
-
-In order to activate debug logs:
-```shell
-west build -b $BOARD -p always app -- -DOVERLAY_CONFIG=debug.conf
+west build -p always -b stm32f469i_disco ./app/
 ```
 
 Once you have built the application, run the following command to flash it:
@@ -65,50 +67,30 @@ west flash
 For more detailed information, see the [example app Readme](app/README.md)
 
 ### Testing
+To do
 
-To execute Twister integration tests, run the following command:
+# Modules & SW components
+This repository is organized into the following top-level directories:
 
-```shell
-west twister -T tests --integration
-```
+- `app/`: main application source tree, board configuration, app Kconfig, and generated GUI code in `app/ui/`.
+- `build/`: generated build output and intermediate CMake artifacts produced by `west build`.
+- `drivers/`: custom and out-of-tree driver code, including the nRF24L01 integration used by this controller.
+- `dts/`: device tree source files and binding information used for hardware configuration.
+- `include/`: public header files for application code and shared interfaces.
+- `lib/`: reusable libraries and helper modules used by the application.
+- `scripts/`: helper utilities, example west commands, and build-related scripts.
+- `tests/`: driver and application test cases for verifying functionality.
+- `zephyr/`: the Zephyr RTOS module tree checked out by `west` that contains the underlying OS, board support, and subsystems.
 
-This only tests correct compilation under 3 different platforms, it does not run tests on target or emulator.
+Within `app/src/`, `main.c` is the main entry point and runtime orchestrator for the controller. It:
 
-# API reference
+- initializes the LVGL UI and the display, including startup progress updates.
+- configures the PCF8575 IO expander and handles GPIO input interrupts with debounce processing.
+- reads ADC channels periodically to sample joystick/trim inputs.
+- maps ADC input values into radio channel values and builds NRF24L01+ payloads.
+- manages radio connection state, handles reconnection logic, and updates UI indicators for binding and error status.
+- controls the buzzer thread for startup and alert tones.
 
-This driver uses a minimalist custom API.
-
-## Read
-```
-int nrf24_read(const struct device *dev, uint8_t *buffer, uint8_t data_len)
-```
-
-This methods reads data\_len bytes from the device dev, and places it in buffer.
-In trigger mode, if NRF24L01\_READ\_TIMEOUT is exceeded, the function times out.
-
-In polling mode, it will loop forever.
-
-# Write
-```
-int nrf24_write(const struct device *dev, uint8_t *buffer, uint8_t data_len)
-```
-
-This methods writes data\_len bytes from buffer, and sends it through device dev.
-In trigger mode, if NRF24L01\_WRITE\_TIMEOUT is exceeded, the function times out.
-
-In polling mode, it will loop forever.
+This means the `app/` directory contains both the application logic and the hardware interaction glue that connects UI, ADC, GPIO, and radio transmission in a single Zephyr-based firmware package.
 
 # Troubleshooting
-
-## No RX received
-
-* Verify your device tree
-* Verify CE GPIO is active high and IRQ active low.
-
-## Issue with SPI read/write
-
-Write in a register and read it.
-
-* Verify NRF24 is correctly plugged
-* Verify it is power supplied correctly
-* Verify the incoming SPI data is correct
