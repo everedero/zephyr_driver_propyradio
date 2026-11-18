@@ -495,6 +495,36 @@ void action_load_device_list_changed(lv_event_t *e) {
 	}
 }
 
+void action_reset_device_settings(lv_event_t *e) {
+    UNUSED(e);
+	int rc = model_reset(active_model.name);
+	if (rc != 0) {
+		LOG_ERR("Failed to reset model: %s", active_model.name);
+	}
+	if (initialize_rf_parameters(&rf_parameters) != 0) {
+		LOG_ERR("Failed to initialize RF parameters");
+	}
+	LOG_INF("Model settings reset to factory defaults: %s", active_model.name);
+}
+
+
+void action_duplicate_model(lv_event_t *e) {
+    // TODO: Implement action duplicate_model here
+	UNUSED(e);
+	char new_model_name[MODEL_NAME_MAX] = {0};
+	// Generate a new model name based on the active model's name
+	snprintf(new_model_name, sizeof(new_model_name), "%s_Copy", active_model.name);
+
+	int rc = model_copy(active_model.name, new_model_name);
+	if (rc != 0) {
+		LOG_ERR("Failed to duplicate model: %s", active_model.name);		
+	}
+	if (initialize_rf_parameters(&rf_parameters) != 0) {
+		LOG_ERR("Failed to initialize RF parameters");
+	}
+	LOG_INF("Model duplicated successfully: %s -> %s", active_model.name, new_model_name);
+}
+
 /**
  * @brief Thread entry point for buzzer control.
  *
@@ -1119,7 +1149,7 @@ int main(void)
 
 		/* Update counter */
 		if (increment_counter) {
-			autocalibration_service_start();
+			// For test purposes.
 		}
 
 		/* Update UI */

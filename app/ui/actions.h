@@ -33,6 +33,9 @@ extern void action_ch3_max_increment(lv_event_t * e);
 extern void action_ch4_min_decrement(lv_event_t * e);
 extern void action_ch4_min_increment(lv_event_t * e);
 extern void action_ch4_max_decrement(lv_event_t * e);
+extern void action_calib_button_pressed(lv_event_t * e);
+extern void action_reset_device_settings(lv_event_t * e);
+extern void action_duplicate_model(lv_event_t * e);
 
 #ifdef __cplusplus
 }

@@ -189,6 +189,60 @@ int model_add(const char *name)
     return 0;
 }
 
+/* Copy a model from one name to another.
+ * Returns 0 or error code.
+ */
+int model_copy(const char *src_name, const char *dst_name){
+
+    int rc = model_fs_load_model(src_name, &new_model);
+    if (rc != 0) {
+        LOG_ERR("Failed to load source model '%s': %d", src_name, rc);
+        return rc;
+    }
+    strncpy(new_model.name, dst_name, MODEL_NAME_MAX - 1);
+    new_model.name[MODEL_NAME_MAX - 1] = '\0';
+
+    rc = model_fs_save_model(dst_name, &new_model);
+    if (rc != 0) {
+        LOG_ERR("Failed to save copied model '%s': %d", dst_name, rc);
+        return rc;
+    }
+    /* Set the newly copied model as the active device */
+    model_load(dst_name);
+    /* Update device list in UI */
+    set_var_device_list(dst_name);
+
+    return 0;
+}
+
+/* Reset a model's settings to their factory defaults.
+ * Returns 0 or error code.
+ */
+int model_reset(const char *model_name) {
+    int rc = model_create(model_name);
+    if (rc != 0) {
+        LOG_ERR("Failed to create default model '%s': %d", model_name, rc);
+        return rc;
+    }
+    /* First delete the existing model and save the reset one */
+    rc = model_fs_delete_model(model_name);
+    if (rc != 0) {
+        LOG_ERR("Failed to delete existing model '%s': %d", model_name, rc);
+        return rc;
+    }
+    rc = model_fs_save_model(model_name, &new_model);
+    if (rc != 0) {
+        LOG_ERR("Failed to save reset model '%s' to storage: %d", model_name, rc);
+        return rc;
+    }
+    /* Set the reset model as the active device */
+    model_load(model_name);
+    /* Update device list in UI */
+    set_var_device_list(model_name);
+
+    return 0;
+}
+
 
 /**
  * @brief Load the active model channel map.

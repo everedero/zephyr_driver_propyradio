@@ -83,6 +83,16 @@ int model_init(void);
  */
 int model_add(const char *name);
 
+/* Copy a model from one name to another.
+ * Returns 0 or error code.
+ */
+int model_copy(const char *src_name, const char *dst_name);
+
+/* Reset a model's settings to their factory defaults.
+ * Returns 0 or error code.
+ */
+int model_reset(const char *model_name);
+
 /* Store active model in persistent storage.
  * Returns 0 on success, error code on error
  */

@@ -79,10 +79,10 @@ typedef struct _objects_t {
     lv_obj_t *device_list;
     lv_obj_t *load_device_label;
     lv_obj_t *button_new_device;
-    lv_obj_t *obj0;
     lv_obj_t *device_delete_button;
-    lv_obj_t *obj1;
     lv_obj_t *device_name_label;
+    lv_obj_t *reset_settings_button;
+    lv_obj_t *duplicate_button;
     lv_obj_t *tab_trim;
     lv_obj_t *lab_ch1;
     lv_obj_t *lab_ch2;
@@ -96,6 +96,11 @@ typedef struct _objects_t {
     lv_obj_t *label_ch6;
     lv_obj_t *lab_ch5;
     lv_obj_t *lab_ch6;
+    lv_obj_t *calibration;
+    lv_obj_t *calib_button;
+    lv_obj_t *calib_button_label;
+    lv_obj_t *calib_label;
+    lv_obj_t *calib_bar;
     lv_obj_t *menu_back;
     lv_obj_t *save;
     lv_obj_t *init_bar;

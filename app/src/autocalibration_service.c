@@ -8,10 +8,14 @@
 #include <errno.h>
 #include <limits.h>
 #include <stddef.h>
+#include "actions.h"
+#include "ui.h"
 
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(autocalibration_service, CONFIG_LOG_DEFAULT_LEVEL);
+
+static lv_anim_t bar_anim;
 
 struct autocalibration_service_state {
 	struct k_work_delayable timeout_work;
@@ -25,6 +29,19 @@ static struct autocalibration_service_state service;
 static const char *const channel_names[AUTOCALIBRATION_CHANNEL_COUNT] = {
 	"ROULIS", "TANGAGE", "GAZ", "LACET",
 };
+
+static void set_bar_value(void *bar, int32_t value)
+{
+	lv_bar_set_value((lv_obj_t *)bar, value, LV_ANIM_ON);
+}
+
+static void initialize_bar_anim(lv_anim_t *anim, lv_obj_t *bar) {
+    lv_anim_init(anim);
+    lv_anim_set_exec_cb(anim, set_bar_value);
+    lv_anim_set_duration(anim, AUTOCALIBRATION_DURATION_MS);
+    lv_anim_set_var(anim, bar);
+    lv_anim_set_values(anim, 0, 100);
+}
 
 static void reset_result(struct autocalibration_result *result)
 {
@@ -60,6 +77,26 @@ static void autocalibration_timeout(struct k_work *work)
 		} else {
 			LOG_WRN("Autocalibration %s: no samples captured", channel_names[i]);
 		}
+	}
+
+	lv_anim_del(&bar_anim, set_bar_value);
+	lv_bar_set_value(objects.calib_bar, 100 , LV_ANIM_OFF);
+	lv_label_set_text(objects.calib_button_label, "Completed");
+}
+
+void action_calib_button_pressed(lv_event_t *e) {
+	UNUSED(e);
+	if (service.active == true) {
+		autocalibration_service_discard();
+		lv_anim_del(&bar_anim, set_bar_value);
+		lv_bar_set_value(objects.calib_bar, 0 , LV_ANIM_OFF);
+		lv_label_set_text(objects.calib_button_label, "Start");
+	} else {
+		autocalibration_service_start();
+		lv_bar_set_value(objects.calib_bar, 0, LV_ANIM_ON);
+		initialize_bar_anim(&bar_anim, objects.calib_bar);
+		lv_anim_start(&bar_anim);
+		lv_label_set_text(objects.calib_button_label, "Stop");
 	}
 }
 
