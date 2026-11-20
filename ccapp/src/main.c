@@ -47,8 +47,8 @@ static const struct {
 	[RAMP]   = {"ramp", 5, "Pattern 4: sawtooth 0x28 -> 8*S, hold 0.5 s"},
 	[WAVE]   = {"wave", 6, "Pattern 5: triangle 0x28 <-> 8*S"},
 	[RANDOM] = {"random", 7, "Pattern 6: random 0.4 s steps, ignores power"},
-	[SINE_SLOW] = {"sine-slow", 2, "Ours: 0 -> 8*S over 2 s, hold 1 s, down 2 s, rest 0.25 s"},
-	[SINE_FAST] = {"sine-fast", 2, "Ours: 0 -> 8*S over 0.5 s, hold 0.25 s, down 0.5 s, no rest"},
+	[SINE_SLOW] = {"sine-slow", 2, "Ours: 0 -> 8*S over 2 s, hold 1 s, down 2 s, no rest"},
+	[SINE_FAST] = {"sine-fast", 2, "Ours: 0 -> 8*S over 0.5 s, hold 0.5 s, down 0.5 s, no rest"},
 };
 
 /* Pattern 6 levels, one per 7 packets, repeats after 127 steps (7-bit LFSR period) */
@@ -111,9 +111,9 @@ static uint8_t level_at(int m, uint32_t s, uint32_t t)
 	case RANDOM:
 		return random_levels[(t / 7) % ARRAY_SIZE(random_levels)];
 	case SINE_SLOW:
-		return trapezoid(t, 34, 17, 4, top); /* 2 s ramps, 1 s hold, 0.25 s rest (58 ms/pkt) */
+		return trapezoid(t, 34, 17, 0, top); /* 2 s ramps, 1 s hold, no rest (58 ms/pkt) */
 	case SINE_FAST:
-		return trapezoid(t, 9, 4, 0, top); /* 0.5 s ramps, 0.25 s hold, no rest */
+		return trapezoid(t, 9, 9, 0, top); /* 0.5 s ramps, 0.5 s hold, no rest */
 	default:
 		return 0;
 	}
