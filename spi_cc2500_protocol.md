@@ -53,6 +53,25 @@ In mode 3, standard button mode is activated.
 * Modes go from 1 to 7, middle button allow to circle between modes.
 * Strength is controlled by buttons + and -.
 
+#### Modes and levels (2026-11-20, docs/sniff_2026-11-20_*.log)
+S (byte 8) goes from 5 to 16 with - / +; holding - at 5 turns the remote off. Base level = 8·S
+(`28`..`80`). The center button cycles mode bytes 0 → 7 → 0. One step = one packet (58 ms),
+and the level is updated on every packet, short ones included.
+
+| M | Manual            | Level (bytes 3-4)                                                   |
+|---|-------------------|---------------------------------------------------------------------|
+| 0 | SenseMotion 1     | tilt: `28` flat (start-up/pairing), up to ~`64`                     |
+| 1 | SenseMotion 2     | movement: `08` still, up to `80` shaken (S16)                       |
+| 2 | Pattern 1         | constant 8·S                                                        |
+| 3 | Pattern 2         | `00` ×7, 8·S ×7                                                     |
+| 4 | Pattern 3         | 8·S ×3, `00` ×4                                                     |
+| 5 | Pattern 4         | sawtooth: `28`, `30` … up to 8·S, 2 steps each, then 8·S ×9         |
+| 6 | Pattern 5         | triangle 8·S ↔ `28` in 8-unit steps, one every 8/3 steps, ends ×5   |
+| 7 | Pattern 6         | ignores S: fixed table of 127 levels (`28`..`70`), 7 steps each     |
+
+On mode entry the remote may first ramp up from `00` (ramp mode). ccapp skips this.
+The mode 7 table is in ccapp/src/main.c (`random_levels`).
+
 ### TX data sending
 We send a short packet without M and S, and then a long packet with M and S.
 

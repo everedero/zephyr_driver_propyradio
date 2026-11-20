@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * CC2500 RX sniffer (raw SPI, no driver): configure the chip like the original
- * remote (see spi_cc2500_protocol.md), sweep channels and log every packet with
+ * remote (see spi_cc2500_protocol.md), sweep channels until packets show up, stay on
+ * that channel while they keep coming, and log every packet with
  * RSSI, LQI and CRC status, plus per-channel RSSI average/peak (carrier sense).
  */
 
@@ -103,8 +104,9 @@ int main(void)
 	LOG_INF("Sniffing ch %d..%d, %d ms each, %d-byte packets", CH_FIRST, CH_LAST, DWELL_MS,
 		PKT_LEN);
 
-	while (1) {
-		for (uint8_t ch = CH_FIRST; ch <= CH_LAST; ch++) {
+	/* Lock on: stay on a channel while it has packets, sweep once a dwell is empty */
+	for (uint8_t ch = CH_FIRST;;) {
+		{
 			int64_t end = k_uptime_get() + DWELL_MS;
 			int pkts = 0, polls = 0, rssi_max = -128;
 			long rssi_sum = 0;
@@ -131,6 +133,9 @@ int main(void)
 			}
 			LOG_INF("ch=%u: %d packets, rssi avg %ld max %d dBm", ch, pkts,
 				rssi_sum / (2 * polls) - RSSI_OFFSET, rssi_max / 2 - RSSI_OFFSET);
+			if (pkts == 0) {
+				ch = ch >= CH_LAST ? CH_FIRST : ch + 1;
+			}
 		}
 	}
 	return 0;
