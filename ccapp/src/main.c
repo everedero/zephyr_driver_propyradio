@@ -31,7 +31,7 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
  * Patterns measured on the remote, see spi_cc2500_protocol.md and
  * docs/sniff_2026-11-20_*.log. One step = one packet (58 ms).
  */
-enum { IDLE, TILT, MOTION, STEADY, SLOW, FAST, RAMP, WAVE, RANDOM };
+enum { IDLE, TILT, MOTION, STEADY, SLOW, FAST, RAMP, WAVE, RANDOM, SINE_SLOW, SINE_FAST };
 
 static const struct {
 	const char *name;
@@ -47,6 +47,8 @@ static const struct {
 	[RAMP]   = {"ramp", 5, "Pattern 4: sawtooth 0x28 -> 8*S, hold 0.5 s"},
 	[WAVE]   = {"wave", 6, "Pattern 5: triangle 0x28 <-> 8*S"},
 	[RANDOM] = {"random", 7, "Pattern 6: random 0.4 s steps, ignores power"},
+	[SINE_SLOW] = {"sine-slow", 2, "Ours: 0 -> 8*S over 2 s, hold 1 s, down 2 s, rest 1 s"},
+	[SINE_FAST] = {"sine-fast", 2, "Ours: 0 -> 8*S over 0.5 s, hold 0.25 s, down, rest"},
 };
 
 /* Pattern 6 levels, one per 7 packets, repeats after 127 steps (7-bit LFSR period) */
@@ -60,6 +62,24 @@ static const uint8_t random_levels[127] = {
 	0x48, 0x50, 0x48, 0x40, 0x38, 0x30, 0x70, 0x70, 0x60, 0x40, 0x38, 0x48, 0x40, 0x28, 0x38, 0x30,
 	0x60, 0x50, 0x48, 0x50, 0x48, 0x40, 0x28, 0x28, 0x38, 0x30, 0x70, 0x70, 0x70, 0x70, 0x70,
 };
+
+/* Trapezoid "sine": ramp 0 -> top, hold, ramp top -> 0, rest; durations in packets */
+static uint8_t trapezoid(uint32_t t, uint32_t ramp, uint32_t hold, uint32_t top)
+{
+	t %= 2 * (ramp + hold);
+	if (t < ramp) {
+		return top * t / ramp;
+	}
+	t -= ramp;
+	if (t < hold) {
+		return top;
+	}
+	t -= hold;
+	if (t < ramp) {
+		return top - top * t / ramp;
+	}
+	return 0;
+}
 
 /* Motor level of mode m at strength s, t packets after the mode was entered */
 static uint8_t level_at(int m, uint32_t s, uint32_t t)
@@ -90,6 +110,10 @@ static uint8_t level_at(int m, uint32_t s, uint32_t t)
 		return top - 8 * MIN(i, 2 * n + 1 - i);
 	case RANDOM:
 		return random_levels[(t / 7) % ARRAY_SIZE(random_levels)];
+	case SINE_SLOW:
+		return trapezoid(t, 34, 17, top); /* 2 s ramps, 1 s holds at 58 ms/packet */
+	case SINE_FAST:
+		return trapezoid(t, 9, 4, top); /* 0.5 s ramps, 0.25 s holds */
 	default:
 		return 0;
 	}
@@ -119,7 +143,7 @@ static int cmd_mode(const struct shell *sh, size_t argc, char **argv)
 {
 	if (argc == 1) {
 		for (size_t i = 0; i < ARRAY_SIZE(modes); i++) {
-			shell_print(sh, "%-7s %s", modes[i].name, modes[i].help);
+			shell_print(sh, "%-9s %s", modes[i].name, modes[i].help);
 		}
 		return 0;
 	}
