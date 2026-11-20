@@ -122,6 +122,10 @@ static uint8_t level_at(int m, uint32_t s, uint32_t t)
 static atomic_t mode = ATOMIC_INIT(IDLE);
 static atomic_t strength = ATOMIC_INIT(S_BOOT);
 static atomic_t stopped;
+/* Test knobs: packet spacing and which lengths to send (bit0 short, bit1 long) */
+static atomic_t gap_ms = ATOMIC_INIT(PKT_GAP_MS);
+static atomic_t pkts = ATOMIC_INIT(3);
+static const char *const pkts_names[] = {[1] = "short", [2] = "long", [3] = "both"};
 
 static int cmd_power(const struct shell *sh, size_t argc, char **argv)
 {
@@ -166,16 +170,45 @@ static void mode_get(size_t idx, struct shell_static_entry *entry)
 }
 SHELL_DYNAMIC_CMD_CREATE(mode_names, mode_get);
 
+static int cmd_gap(const struct shell *sh, size_t argc, char **argv)
+{
+	int err = 0;
+	unsigned long ms = shell_strtoul(argv[1], 0, &err);
+
+	if (err || ms < 5 || ms > 2000) {
+		shell_error(sh, "expected 5..2000 ms (remote: %d)", PKT_GAP_MS);
+		return -EINVAL;
+	}
+	atomic_set(&gap_ms, ms);
+	return 0;
+}
+
+static int cmd_pkts(const struct shell *sh, size_t argc, char **argv)
+{
+	for (int i = 1; i < ARRAY_SIZE(pkts_names); i++) {
+		if (strcmp(argv[1], pkts_names[i]) == 0) {
+			atomic_set(&pkts, i);
+			return 0;
+		}
+	}
+	shell_error(sh, "expected short, long or both");
+	return -EINVAL;
+}
+
 static int cmd_status(const struct shell *sh, size_t argc, char **argv)
 {
-	shell_print(sh, "mode %s power %ld%s", modes[atomic_get(&mode)].name,
-		    atomic_get(&strength), atomic_get(&stopped) ? " (stopped)" : "");
+	shell_print(sh, "mode %s power %ld%s, pkts %s every %ld ms", modes[atomic_get(&mode)].name,
+		    atomic_get(&strength), atomic_get(&stopped) ? " (stopped)" : "",
+		    pkts_names[atomic_get(&pkts)], atomic_get(&gap_ms));
 	return 0;
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(tia_cmds,
 	SHELL_CMD_ARG(power, NULL, "Set power 5-16 like the remote (0 stops)", cmd_power, 2, 0),
 	SHELL_CMD_ARG(mode, &mode_names, "Set mode by name, no name lists them", cmd_mode, 1, 1),
+	SHELL_CMD_ARG(gap, NULL, "Test: packet spacing in ms (remote: 54)", cmd_gap, 2, 0),
+	SHELL_CMD_ARG(pkts, NULL, "Test: send short, long or both packets (remote: both)",
+		      cmd_pkts, 2, 0),
 	SHELL_CMD(status, NULL, "Show current state", cmd_status),
 	SHELL_SUBCMD_SET_END);
 SHELL_CMD_REGISTER(tia, &tia_cmds, "Control the remote-controlled device", NULL);
@@ -203,9 +236,14 @@ int main(void)
 		}
 		uint8_t l = atomic_get(&stopped) ? 0 : level_at(m, s, t);
 		uint8_t buf[] = {0x01, 0x00, 0xA5, l, l, 0x00, 0x00, modes[m].byte, s};
+		int p = atomic_get(&pkts);
 
+		/* with only one length enabled, every packet uses it */
+		if (p != 3) {
+			lng = p == 2;
+		}
 		propy_radio_write(cc2500, buf, lng ? sizeof(buf) : sizeof(buf) - 2);
-		k_msleep(PKT_GAP_MS);
+		k_msleep(atomic_get(&gap_ms));
 	}
 	return 0;
 }
