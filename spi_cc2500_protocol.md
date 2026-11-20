@@ -81,6 +81,10 @@ Note (2026-11-17): over the air, packets are 58 ms apart; the short packet is 7 
 After STX the chip calibrates ~0.8 ms then transmits ~0.6 ms: the remote's 1 ms wait still sees
 state `20` (TX), so SFTX/IDLE must wait for IDLE (~1.4 ms) or the packet is cut.
 
+Note (2026-11-20): the device's link-loss timeout is under 2 s (at a 2000 ms gap it blinks
+yellow and ignores packets). Flaky reception turned out to be a low device battery, not
+packet timing: test with the device on mains power.
+
 For each send:
 ```
 // 54 ms
