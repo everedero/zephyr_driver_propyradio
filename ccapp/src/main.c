@@ -18,6 +18,11 @@ LOG_MODULE_REGISTER(main, CONFIG_APP_LOG_LEVEL);
 
 /* Remote sends a packet every ~58 ms, alternating short (7 B) and long (9 B) */
 #define PKT_GAP_MS 54
+/* Each received packet dips the device motor on battery: resend unchanged levels only this often.
+ * Sends land on the ~56 ms tick, so 100 -> ~112 ms actual. On battery 150 (~168 ms) and 200
+ * sometimes drop the link (2026-11-23).
+ */
+#define KEEPALIVE_MS 100
 /* Remote strength range (- / + buttons), level = 8 * S */
 #define S_MIN      5
 #define S_MAX      16
@@ -123,7 +128,7 @@ static atomic_t mode = ATOMIC_INIT(IDLE);
 static atomic_t strength = ATOMIC_INIT(S_BOOT);
 static atomic_t stopped;
 /* Test knobs: packet spacing and which lengths to send (bit0 short, bit1 long) */
-static atomic_t gap_ms = ATOMIC_INIT(PKT_GAP_MS);
+static atomic_t gap_ms = ATOMIC_INIT(KEEPALIVE_MS);
 static atomic_t pkts = ATOMIC_INIT(3);
 static const char *const pkts_names[] = {[1] = "short", [2] = "long", [3] = "both"};
 
@@ -176,7 +181,7 @@ static int cmd_gap(const struct shell *sh, size_t argc, char **argv)
 	unsigned long ms = shell_strtoul(argv[1], 0, &err);
 
 	if (err || ms < 5 || ms > 2000) {
-		shell_error(sh, "expected 5..2000 ms (remote: %d)", PKT_GAP_MS);
+		shell_error(sh, "expected 5..2000 ms (default: %d)", KEEPALIVE_MS);
 		return -EINVAL;
 	}
 	atomic_set(&gap_ms, ms);
@@ -197,7 +202,7 @@ static int cmd_pkts(const struct shell *sh, size_t argc, char **argv)
 
 static int cmd_status(const struct shell *sh, size_t argc, char **argv)
 {
-	shell_print(sh, "mode %s power %ld%s, pkts %s every %ld ms", modes[atomic_get(&mode)].name,
+	shell_print(sh, "mode %s power %ld%s, pkts %s, keep-alive %ld ms", modes[atomic_get(&mode)].name,
 		    atomic_get(&strength), atomic_get(&stopped) ? " (stopped)" : "",
 		    pkts_names[atomic_get(&pkts)], atomic_get(&gap_ms));
 	return 0;
@@ -206,7 +211,8 @@ static int cmd_status(const struct shell *sh, size_t argc, char **argv)
 SHELL_STATIC_SUBCMD_SET_CREATE(tia_cmds,
 	SHELL_CMD_ARG(power, NULL, "Set power 5-16 like the remote (0 stops)", cmd_power, 2, 0),
 	SHELL_CMD_ARG(mode, &mode_names, "Set mode by name, no name lists them", cmd_mode, 1, 1),
-	SHELL_CMD_ARG(gap, NULL, "Test: packet spacing in ms (remote: 54)", cmd_gap, 2, 0),
+	SHELL_CMD_ARG(gap, NULL, "Keep-alive: resend unchanged level every N ms (default 100)",
+		      cmd_gap, 2, 0),
 	SHELL_CMD_ARG(pkts, NULL, "Test: send short, long or both packets (remote: both)",
 		      cmd_pkts, 2, 0),
 	SHELL_CMD(status, NULL, "Show current state", cmd_status),
@@ -225,25 +231,34 @@ int main(void)
 	}
 	LOG_INF("Device ready");
 
-	/* One packet per step like the remote, alternating short/long; boot = pairing idle */
-	for (bool lng = false;; lng = !lng, t++) {
+	/* Pattern ticks at the remote's packet rate, but only send on a change or keep-alive */
+	int64_t last_tx = 0;
+	uint8_t last_l = 0, last_s = 0;
+	bool lng = false;
+
+	for (;; t++) {
 		int m = atomic_get(&mode);
 		uint8_t s = atomic_get(&strength);
+		bool changed = m != cur || s != last_s;
 
 		if (m != cur) {
 			cur = m;
 			t = 0;
 		}
 		uint8_t l = atomic_get(&stopped) ? 0 : level_at(m, s, t);
-		uint8_t buf[] = {0x01, 0x00, 0xA5, l, l, 0x00, 0x00, modes[m].byte, s};
-		int p = atomic_get(&pkts);
 
-		/* with only one length enabled, every packet uses it */
-		if (p != 3) {
-			lng = p == 2;
+		if (changed || l != last_l || k_uptime_get() - last_tx >= atomic_get(&gap_ms)) {
+			uint8_t buf[] = {0x01, 0x00, 0xA5, l, l, 0x00, 0x00, modes[m].byte, s};
+			int p = atomic_get(&pkts);
+
+			/* alternate short/long like the remote; with one length enabled, use it */
+			lng = p == 3 ? !lng : p == 2;
+			propy_radio_write(cc2500, buf, lng ? sizeof(buf) : sizeof(buf) - 2);
+			last_tx = k_uptime_get();
+			last_l = l;
+			last_s = s;
 		}
-		propy_radio_write(cc2500, buf, lng ? sizeof(buf) : sizeof(buf) - 2);
-		k_msleep(atomic_get(&gap_ms));
+		k_msleep(PKT_GAP_MS);
 	}
 	return 0;
 }
