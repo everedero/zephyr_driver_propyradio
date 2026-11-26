@@ -132,6 +132,23 @@ static atomic_t gap_ms = ATOMIC_INIT(KEEPALIVE_MS);
 static atomic_t pkts = ATOMIC_INIT(3);
 static const char *const pkts_names[] = {[1] = "short", [2] = "long", [3] = "both"};
 
+/* Stored program, generated from program_10min.csv by CMakeLists.txt. s = 0: forever */
+static const struct {
+	uint16_t s;
+	uint8_t mode;
+	uint8_t power;
+} program[] = {
+#include "program.inc"
+};
+/* Idle like the remote at power-up before starting the program */
+#define BOOT_IDLE_MS 10000
+enum { PROG_NONE, PROG_START, PROG_STOP };
+/* Shell requests, applied by the main loop which owns prog_row/prog_end */
+static atomic_t prog_req;
+/* Current row, -1 = none. Next row is entered at prog_end (0 = never) */
+static int prog_row = -1;
+static int64_t prog_end = BOOT_IDLE_MS;
+
 static int cmd_power(const struct shell *sh, size_t argc, char **argv)
 {
 	int err = 0;
@@ -141,6 +158,7 @@ static int cmd_power(const struct shell *sh, size_t argc, char **argv)
 		shell_error(sh, "expected %d..%d like the remote, or 0 to stop", S_MIN, S_MAX);
 		return -EINVAL;
 	}
+	atomic_set(&prog_req, PROG_STOP);
 	atomic_set(&stopped, s == 0);
 	if (s) {
 		atomic_set(&strength, s);
@@ -158,6 +176,7 @@ static int cmd_mode(const struct shell *sh, size_t argc, char **argv)
 	}
 	for (size_t i = 0; i < ARRAY_SIZE(modes); i++) {
 		if (strcmp(argv[1], modes[i].name) == 0) {
+			atomic_set(&prog_req, PROG_STOP);
 			atomic_set(&mode, i);
 			return 0;
 		}
@@ -200,12 +219,82 @@ static int cmd_pkts(const struct shell *sh, size_t argc, char **argv)
 	return -EINVAL;
 }
 
+static int cmd_program_start(const struct shell *sh, size_t argc, char **argv)
+{
+	atomic_set(&prog_req, PROG_START);
+	return 0;
+}
+
+static int cmd_program_stop(const struct shell *sh, size_t argc, char **argv)
+{
+	atomic_set(&prog_req, PROG_STOP);
+	atomic_set(&stopped, 1); /* motor off, keep-alive keeps the link */
+	return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(program_cmds,
+	SHELL_CMD(start, NULL, "Start the stored program from the first row", cmd_program_start),
+	SHELL_CMD(stop, NULL, "Stop the stored program and the motor", cmd_program_stop),
+	SHELL_SUBCMD_SET_END);
+
 static int cmd_status(const struct shell *sh, size_t argc, char **argv)
 {
+	int row = prog_row;
+	int64_t left = prog_end ? (prog_end - k_uptime_get()) / 1000 : -1;
+
 	shell_print(sh, "mode %s power %ld%s, pkts %s, keep-alive %ld ms", modes[atomic_get(&mode)].name,
 		    atomic_get(&strength), atomic_get(&stopped) ? " (stopped)" : "",
 		    pkts_names[atomic_get(&pkts)], atomic_get(&gap_ms));
+	if (row >= 0 && left >= 0) {
+		shell_print(sh, "program row %d/%d, %lld s left", row + 1, (int)ARRAY_SIZE(program), left);
+	} else if (row >= 0) {
+		shell_print(sh, "program row %d/%d, forever", row + 1, (int)ARRAY_SIZE(program));
+	} else if (left >= 0) {
+		shell_print(sh, "program starts in %lld s", left);
+	} else {
+		shell_print(sh, "program stopped");
+	}
 	return 0;
+}
+
+/* Main loop only: apply shell requests and advance the program when the row is over */
+static void program_step(void)
+{
+	int64_t now = k_uptime_get();
+
+	switch (atomic_clear(&prog_req)) {
+	case PROG_START:
+		prog_row = -1;
+		prog_end = now;
+		break;
+	case PROG_STOP:
+		prog_row = -1;
+		prog_end = 0;
+		return;
+	default:
+		break;
+	}
+	if (prog_end == 0 || now < prog_end) {
+		return;
+	}
+	if (prog_row + 1 >= ARRAY_SIZE(program)) {
+		prog_end = 0; /* hold the last row */
+		return;
+	}
+	prog_row++;
+	if (program[prog_row].power < S_MIN || program[prog_row].power > S_MAX) {
+		LOG_ERR("program row %d: power %d not in %d..%d, stopping", prog_row + 1,
+			program[prog_row].power, S_MIN, S_MAX);
+		prog_row = -1;
+		prog_end = 0;
+		return;
+	}
+	atomic_set(&mode, program[prog_row].mode);
+	atomic_set(&strength, program[prog_row].power);
+	atomic_set(&stopped, 0);
+	prog_end = program[prog_row].s ? now + program[prog_row].s * 1000 : 0;
+	LOG_INF("program row %d/%d: %s %d, %d s", prog_row + 1, (int)ARRAY_SIZE(program),
+		modes[program[prog_row].mode].name, program[prog_row].power, program[prog_row].s);
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(tia_cmds,
@@ -215,6 +304,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(tia_cmds,
 		      cmd_gap, 2, 0),
 	SHELL_CMD_ARG(pkts, NULL, "Test: send short, long or both packets (remote: both)",
 		      cmd_pkts, 2, 0),
+	SHELL_CMD(program, &program_cmds, "Stored program (runs at boot)", NULL),
 	SHELL_CMD(status, NULL, "Show current state", cmd_status),
 	SHELL_SUBCMD_SET_END);
 SHELL_CMD_REGISTER(tia, &tia_cmds, "Control the remote-controlled device", NULL);
@@ -237,6 +327,8 @@ int main(void)
 	bool lng = false;
 
 	for (;; t++) {
+		program_step();
+
 		int m = atomic_get(&mode);
 		uint8_t s = atomic_get(&strength);
 		bool changed = m != cur || s != last_s;

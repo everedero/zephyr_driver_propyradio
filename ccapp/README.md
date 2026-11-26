@@ -14,6 +14,13 @@ For each board, an example overlay layer is provided.
 BOARD="nucleo_f756zg";west build -b $BOARD -p always ccapp -- -DOVERLAY_CONFIG=bob.conf
 ```
 
+## Stored program
+
+`program_10min.csv` (`duration;mode;power`, seconds, header line) is compiled into flash.
+Empty duration = hold forever; after the last row the last row is held. It starts after
+10 s of idle at boot. `tia program stop` / `tia program start` (restarts at row 1);
+`tia mode` / `tia power` by hand also stop it. Edit the CSV, rebuild, reflash.
+
 ## Pinout
 
 | Name      | CC25 pin  | Nucleo pin | Nucleo logical GPIO | NRF52DK pin | NRF52 logical GPIO | ESP32WROOM pin | ESP32 logical GPIO |
