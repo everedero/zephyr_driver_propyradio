@@ -132,7 +132,7 @@ static atomic_t gap_ms = ATOMIC_INIT(KEEPALIVE_MS);
 static atomic_t pkts = ATOMIC_INIT(3);
 static const char *const pkts_names[] = {[1] = "short", [2] = "long", [3] = "both"};
 
-/* Stored program, generated from program_10min.csv by CMakeLists.txt. s = 0: forever */
+/* Stored program, generated from CONFIG_CCAPP_PROGRAM by CMakeLists.txt. s = 0: forever */
 static const struct {
 	uint16_t s;
 	uint8_t mode;
@@ -319,7 +319,7 @@ int main(void)
 		LOG_ERR("Radio not ready");
 		return 0;
 	}
-	LOG_INF("Device ready");
+	LOG_INF("Device ready, program %s", CONFIG_CCAPP_PROGRAM);
 
 	/* Pattern ticks at the remote's packet rate, but only send on a change or keep-alive */
 	int64_t last_tx = 0;

@@ -10,6 +10,11 @@ menu "Zephyr"
 source "Kconfig.zephyr"
 endmenu
 
+config CCAPP_PROGRAM
+	string "Stored program CSV, relative to ccapp/programs/"
+	help
+	  duration;mode;power CSV compiled into flash and run at boot.
+
 module = APP
 module-str = APP
 source "subsys/logging/Kconfig.template.log_config"

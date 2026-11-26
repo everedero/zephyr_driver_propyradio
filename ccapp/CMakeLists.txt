@@ -14,7 +14,11 @@ project(app LANGUAGES C)
 target_sources(app PRIVATE src/main.c)
 
 # Stored program: duration;mode;power CSV (header line, empty duration = forever) -> C table
-set(PROGRAM_CSV ${CMAKE_CURRENT_SOURCE_DIR}/program_10min.csv)
+set(PROGRAM_CSV ${CMAKE_CURRENT_SOURCE_DIR}/programs/${CONFIG_CCAPP_PROGRAM})
+if("${CONFIG_CCAPP_PROGRAM}" STREQUAL "" OR NOT EXISTS ${PROGRAM_CSV} OR IS_DIRECTORY ${PROGRAM_CSV})
+  file(GLOB available RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/programs ${CMAKE_CURRENT_SOURCE_DIR}/programs/*.csv)
+  message(FATAL_ERROR "CONFIG_CCAPP_PROGRAM='${CONFIG_CCAPP_PROGRAM}' not found in programs/, available: ${available}")
+endif()
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROGRAM_CSV})
 file(READ ${PROGRAM_CSV} csv)
 string(REPLACE ";" "," csv "${csv}")

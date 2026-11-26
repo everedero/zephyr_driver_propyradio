@@ -16,7 +16,9 @@ BOARD="nucleo_f756zg";west build -b $BOARD -p always ccapp -- -DOVERLAY_CONFIG=b
 
 ## Stored program
 
-`program_10min.csv` (`duration;mode;power`, seconds, header line) is compiled into flash.
+The CSV chosen by `CONFIG_CCAPP_PROGRAM` (a file in `programs/`, set in `prj.conf` or with
+`west build -p ... -- -DCONFIG_CCAPP_PROGRAM=\"other.csv\"`) is compiled into flash.
+Format: `duration;mode;power`, seconds, header line.
 Empty duration = hold forever; after the last row the last row is held. It starts after
 10 s of idle at boot. `tia program stop` / `tia program start` (restarts at row 1);
 `tia mode` / `tia power` by hand also stop it. Edit the CSV, rebuild, reflash.
